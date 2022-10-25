@@ -1,5 +1,5 @@
 # JFXShader
-Allows custom effect shaders in JavaFX
+Allows custom effect shaders in JavaFX using OpenGL (GLSL) or DirectX (HLSL).
 
 
 ## Maven
@@ -40,4 +40,6 @@ This library is bound to the restrictions of the JavaFX effects system. The foll
 
 - Only fragment/pixel shaders are supported. The vertex shaders of effects cannot be overwritten.
 - The fragment/pixel shaders only support up to two samplers (input textures) and one output texture.
+- It is not possible to use OpenGL shaders on Windows.
 - For DirectX, only ps_3_0 shaders are supported.
+- JavaFX requires DirectX shaders to be compiled with the `fxc` compiler. The following command can be used to compile HLSL shaders: `fxc.exe /nologo /T ps_3_0 /Fo .\shader.obj .\shader.hlsl`
