@@ -43,3 +43,5 @@ This library is bound to the restrictions of the JavaFX effects system. The foll
 - It is not possible to use OpenGL shaders on Windows.
 - For DirectX, only ps_3_0 shaders are supported.
 - JavaFX requires DirectX shaders to be compiled with the `fxc` compiler. The following command can be used to compile HLSL shaders: `fxc.exe /nologo /T ps_3_0 /Fo .\shader.obj .\shader.hlsl`
+- On some systems (i.e. VMs), it is necessary to enable the GPU usage by setting the `prism.forceGPU` system property to `true`.
+- Due to dirty region optimizations, JavaFX may apply the shader effect only to the dirty region of the node. This can lead to artifacts. To disable dirty region optimizations, set the `prism.dirtyopts` system property to `false`.

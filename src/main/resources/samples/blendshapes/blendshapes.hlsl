@@ -23,7 +23,7 @@ void main(in float2 pos0 : TEXCOORD0, in float2 pos1 : TEXCOORD1, in float2 pixc
     float4 bot = tex2D(botImg, pos0);
     float4 top = tex2D(topImg, pos1);
     float factor = 0.0;
-    for (int i = 0; i < count; i++){
+    for (int i = 0; i < asuint(count); i++){
         factor += insideRect(pixcoord, rects[i], ops[i]) * ops[i].z;
     }
     factor = clamp(factor, 0.0, 1.0);
