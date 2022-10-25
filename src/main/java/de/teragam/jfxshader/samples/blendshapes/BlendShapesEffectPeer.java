@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.geometry.Rectangle2D;
 
-import com.sun.javafx.geom.Rectangle;
 import com.sun.prism.ps.Shader;
 import com.sun.scenario.effect.FilterContext;
 import com.sun.scenario.effect.impl.BufferUtil;
@@ -33,7 +33,7 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
         final HashMap<String, Integer> params = new HashMap<>();
         params.put("count", 0);
         params.put("rects", 1);
-        params.put("ops", 5);
+        params.put("ops", 9);
         return new ShaderDeclaration(samplers, params,
                 BlendShapes.class.getResourceAsStream("/samples/blendshapes/blendshapes.frag"),
                 BlendShapes.class.getResourceAsStream("/samples/blendshapes/blendshapes.obj"));
@@ -42,18 +42,18 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
     @Override
     protected void updateShader(Shader shader, BlendShapes effect) {
         if (this.rects == null) {
-            this.rects = BufferUtil.newFloatBuffer(4 * 4);
-            this.ops = BufferUtil.newFloatBuffer(4 * 4);
+            this.rects = BufferUtil.newFloatBuffer(8 * 4);
+            this.ops = BufferUtil.newFloatBuffer(8 * 4);
         }
         this.rects.clear();
         this.ops.clear();
         final List<ObjectProperty<BlendShape>> effectShapes = effect.getBlendShapes();
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 8; i++) {
             if (i < effectShapes.size()) {
                 final BlendShape shape = effectShapes.get(i).get();
                 if (shape != null) {
-                    final Rectangle bounds = shape.getBounds();
-                    this.rects.put(new float[]{bounds.x, bounds.y, bounds.x + bounds.width, bounds.y + bounds.height});
+                    final Rectangle2D bounds = shape.getBounds();
+                    this.rects.put(new float[]{(float) bounds.getMinX(), (float) bounds.getMinY(), (float) bounds.getMaxX(), (float) bounds.getMaxY()});
                     this.ops.put(new float[]{(float) shape.getWidth(), (float) shape.getFeather(), (float) shape.getOpacity(), 0F});
                     continue;
                 }
@@ -64,7 +64,7 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
         this.rects.rewind();
         this.ops.rewind();
         shader.setConstant("count", effect.getBlendShapes().size());
-        shader.setConstants("rects", this.rects, 0, 4);
-        shader.setConstants("ops", this.ops, 0, 4);
+        shader.setConstants("rects", this.rects, 0, 8);
+        shader.setConstants("ops", this.ops, 0, 8);
     }
 }

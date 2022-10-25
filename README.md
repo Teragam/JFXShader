@@ -20,7 +20,7 @@ Then, add the following dependency:
 <dependency>
     <groupId>de.teragam</groupId>
     <artifactId>jfxshader</artifactId>
-    <version>0.5.0</version>
+    <version>0.5.1</version>
 </dependency>
 ```
 

@@ -19,8 +19,8 @@ uniform vec4 jsl_pixCoordOffset;
 uniform sampler2D botImg;
 uniform sampler2D topImg;
 uniform int count;
-uniform vec4 rects[4];
-uniform vec4 ops[4];
+uniform vec4 rects[8];
+uniform vec4 ops[8];
 
 float map(float value, float min1, float max1, float min2, float max2) {
     return min2 + (value - min1) * (max2 - min2) / (max1 - min1);

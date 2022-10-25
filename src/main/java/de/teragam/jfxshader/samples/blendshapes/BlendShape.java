@@ -1,23 +1,22 @@
 package de.teragam.jfxshader.samples.blendshapes;
 
-
-import com.sun.javafx.geom.Rectangle;
+import javafx.geometry.Rectangle2D;
 
 public class BlendShape {
 
-    private final Rectangle bounds;
+    private final Rectangle2D bounds;
     private final double width;
     private final double feather;
     private final double opacity;
 
-    public BlendShape(Rectangle bounds, double width, double feather, double opacity) {
+    public BlendShape(Rectangle2D bounds, double width, double feather, double opacity) {
         this.bounds = bounds;
         this.width = width;
         this.feather = feather;
         this.opacity = opacity;
     }
 
-    public Rectangle getBounds() {
+    public Rectangle2D getBounds() {
         return this.bounds;
     }
 

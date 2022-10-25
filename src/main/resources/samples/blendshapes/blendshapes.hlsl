@@ -1,8 +1,8 @@
 sampler2D botImg : register(s0);
 sampler2D topImg : register(s1);
 int count : register(c0);
-float4 rects[4] : register(c1);
-float4 ops[4] : register(c5);
+float4 rects[8] : register(c1);
+float4 ops[8] : register(c9);
 
 float map(float value, float min1, float max1, float min2, float max2) {
     return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
