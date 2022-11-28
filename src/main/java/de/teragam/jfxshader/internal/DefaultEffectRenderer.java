@@ -1,4 +1,4 @@
-package de.teragam.jfxshader;
+package de.teragam.jfxshader.internal;
 
 import java.util.List;
 
@@ -10,6 +10,10 @@ import com.sun.scenario.effect.ImageData;
 import com.sun.scenario.effect.InternalCoreEffectBase;
 import com.sun.scenario.effect.impl.Renderer;
 import com.sun.scenario.effect.impl.state.RenderState;
+
+import de.teragam.jfxshader.EffectPeer;
+import de.teragam.jfxshader.IEffectRenderer;
+import de.teragam.jfxshader.ShaderEffectPeer;
 
 @SuppressWarnings("unchecked")
 public class DefaultEffectRenderer implements IEffectRenderer {

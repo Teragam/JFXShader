@@ -1,6 +1,6 @@
-package de.teragam.jfxshader;
+package de.teragam.jfxshader.internal;
 
-public class ShaderCreationException extends RuntimeException {
+public class ShaderCreationException extends ShaderException {
 
     public ShaderCreationException(String message) {
         super(message);

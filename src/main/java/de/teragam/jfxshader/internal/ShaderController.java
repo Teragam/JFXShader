@@ -1,4 +1,4 @@
-package de.teragam.jfxshader;
+package de.teragam.jfxshader.internal;
 
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
@@ -14,18 +14,30 @@ import javafx.scene.effect.ShaderEffectBase;
 
 import com.sun.glass.ui.Screen;
 import com.sun.prism.GraphicsPipeline;
+import com.sun.prism.PixelFormat;
+import com.sun.prism.RTTexture;
+import com.sun.prism.Texture;
+import com.sun.prism.d3d.D3DRTTextureHelper;
+import com.sun.prism.es2.ES2RTTextureHelper;
+import com.sun.prism.impl.BaseResourceFactory;
 import com.sun.prism.ps.Shader;
 import com.sun.prism.ps.ShaderFactory;
 import com.sun.scenario.effect.FilterContext;
 import com.sun.scenario.effect.impl.Renderer;
+
+import de.teragam.jfxshader.EffectDependencies;
+import de.teragam.jfxshader.EffectPeer;
+import de.teragam.jfxshader.EffectRenderer;
+import de.teragam.jfxshader.IEffectRenderer;
+import de.teragam.jfxshader.ShaderDeclaration;
+import de.teragam.jfxshader.ShaderEffectPeer;
 
 public final class ShaderController {
 
     private static final Map<Class<? extends ShaderEffectBase>, IEffectRenderer> EFFECT_RENDERER_MAP = Collections.synchronizedMap(new HashMap<>());
     private static Field peerCacheField;
 
-    private ShaderController() {
-    }
+    private ShaderController() {}
 
     @SuppressWarnings("unchecked")
     public static void register(FilterContext fctx, ShaderEffectBase effect) {
@@ -40,11 +52,13 @@ public final class ShaderController {
                             renderer);
             final List<Class<? extends ShaderEffectPeer<?>>> dependencies = ShaderController.getPeerDependencies(effect.getClass());
             for (final Class<? extends ShaderEffectPeer<?>> peer : dependencies) {
-                final String peerName = ShaderController.getPeerName(peer);
-                if (!peerCache.containsKey(peerName)) {
-                    final Constructor<? extends ShaderEffectPeer<?>> constructor = peer.getDeclaredConstructor(FilterContext.class);
+                final EffectPeer peerConfig = ShaderController.getPeerConfig(peer);
+                if (!peerCache.containsKey(peerConfig.value())) {
+                    final Constructor<? extends ShaderEffectPeer<?>> constructor = peer.getDeclaredConstructor(ShaderEffectPeerConfig.class);
                     constructor.setAccessible(true);
-                    peerCache.put(peerName, constructor.newInstance(fctx));
+                    peerCache.put(peerConfig.value(), constructor.newInstance(
+                            new ShaderEffectPeerConfig(fctx, renderer, peerConfig.value(), peerConfig.targetFormat(), peerConfig.targetWrapMode(),
+                                    peerConfig.targetMipmaps(), peerConfig.targetPoolPolicy())));
                 }
             }
         } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException | NoSuchMethodException |
@@ -98,11 +112,27 @@ public final class ShaderController {
         }
     }
 
-    private static String getPeerName(Class<? extends ShaderEffectPeer<?>> peer) {
+    private static EffectPeer getPeerConfig(Class<? extends ShaderEffectPeer<?>> peer) {
         if (Objects.requireNonNull(peer, "Peer cannot be null").isAnnotationPresent(EffectPeer.class)) {
-            return peer.getAnnotation(EffectPeer.class).value();
+            return peer.getAnnotation(EffectPeer.class);
         } else {
             throw new IllegalArgumentException(String.format("%s is not annotated with %s", peer, EffectPeer.class));
+        }
+    }
+
+    public static RTTexture createRTTexture(FilterContext fctx, PixelFormat formatHint, Texture.WrapMode wrapMode, int width, int height, boolean useMipmap) {
+        final Object ref = Objects.requireNonNull(fctx, "FilterContext cannot be null").getReferent();
+        final GraphicsPipeline pipe = GraphicsPipeline.getPipeline();
+        if (pipe == null || !(ref instanceof Screen)) {
+            throw new ShaderCreationException("Invalid GraphicsPipeline or FilterContext");
+        }
+        final BaseResourceFactory factory = (BaseResourceFactory) GraphicsPipeline.getPipeline().getResourceFactory((Screen) ref);
+        if (pipe.supportsShader(GraphicsPipeline.ShaderType.GLSL, GraphicsPipeline.ShaderModel.SM3)) {
+            return ES2RTTextureHelper.createES2RTTexture(factory, formatHint, wrapMode, width, height, useMipmap);
+        } else if (pipe.supportsShader(GraphicsPipeline.ShaderType.HLSL, GraphicsPipeline.ShaderModel.SM3)) {
+            return D3DRTTextureHelper.createD3DRTTexture(factory, formatHint, wrapMode, width, height, useMipmap);
+        } else {
+            throw new TextureCreationException("Unsupported GraphicsPipeline");
         }
     }
 

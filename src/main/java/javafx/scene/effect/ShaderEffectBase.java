@@ -20,8 +20,8 @@ import com.sun.javafx.scene.BoundsAccessor;
 import com.sun.scenario.effect.InternalCoreEffectBase;
 import com.sun.scenario.effect.impl.state.RenderState;
 
-import de.teragam.jfxshader.DefaultEffectRenderer;
 import de.teragam.jfxshader.EffectRenderer;
+import de.teragam.jfxshader.internal.DefaultEffectRenderer;
 
 @EffectRenderer(DefaultEffectRenderer.class)
 public class ShaderEffectBase extends Effect {
@@ -110,7 +110,7 @@ public class ShaderEffectBase extends Effect {
         throw new UnsupportedOperationException("No copy functionality specified");
     }
 
-    protected void markDirty() {
+    public void markDirty() {
         super.markDirty(EffectDirtyBits.EFFECT_DIRTY);
     }
 

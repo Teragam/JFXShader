@@ -6,7 +6,7 @@ import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
 import com.sun.scenario.effect.impl.state.RenderState;
 
-import de.teragam.jfxshader.ShaderController;
+import de.teragam.jfxshader.internal.ShaderController;
 
 public class InternalCoreEffectBase extends CoreEffect<RenderState> {
 
@@ -45,11 +45,7 @@ public class InternalCoreEffectBase extends CoreEffect<RenderState> {
     }
 
     @Override
-    public RenderState getRenderState(FilterContext fctx,
-                                      BaseTransform transform,
-                                      Rectangle outputClip,
-                                      Object renderHelper,
-                                      Effect defaultInput) {
+    public RenderState getRenderState(FilterContext fctx, BaseTransform transform, Rectangle outputClip, Object renderHelper, Effect defaultInput) {
         return this.effect.getRenderState();
     }
 

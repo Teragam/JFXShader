@@ -21,6 +21,7 @@ uniform sampler2D topImg;
 uniform int count;
 uniform vec4 rects[8];
 uniform vec4 ops[8];
+uniform float scale;
 
 float map(float value, float min1, float max1, float min2, float max2) {
     return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
@@ -44,7 +45,8 @@ void main() {
     vec4 top = texture2D(topImg, texCoord1);
     float factor = 0.0;
     for (int i = 0; i < count; i++) {
-        factor += insideRect(pixcoord, rects[i], ops[i]) * ops[i].z;
+        // The scale is used to compensate for dpi scaling
+        factor += insideRect(pixcoord * (1.0 / scale), rects[i], ops[i]) * ops[i].z;
     }
     factor = clamp(factor, 0.0, 1.0);
     gl_FragColor = top * factor + bot * (1.0 - factor);

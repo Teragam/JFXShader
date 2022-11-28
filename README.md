@@ -9,7 +9,7 @@ Add the following repository to the pom.xml:
 ```xml
 <repositories>
     <repository>
-        <id>github-teragam-repo</id>
+        <id>github</id>
         <name>GitHub Teragam Repository</name>
         <url>https://maven.pkg.github.com/Teragam/JFXShader</url>
     </repository>
