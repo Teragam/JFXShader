@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented here.
 
+## v0.8.0 - 2022-12-30
+### Added
+- Some refactoring and QoL improvements to ease the development of custom [IEffectRenderer](src/main/java/de/teragam/jfxshader/IEffectRenderer.java).
+
+### Fixed
+- Fixed an issue that did not allow the use of all 4 textures in the shaders.
+
 ## v0.7.0 - 2022-11-28
 
 ### Added
@@ -12,7 +19,7 @@ All notable changes to this project will be documented here.
   mode and whether mipmaps should be generated.
   Note: For OpenGL, JavaFX uses a deprecated method to generate mipmaps. Therefore, mipmaps are only generated if the
   version of OpenGL is below 3.1.
-- Shaders now can use up to 4 texture samplers. Previously, shaders could only use 2 textures. Unfortunately, any
+- Shaders can now use up to 4 texture samplers. Previously, shaders could only use 2 textures. Unfortunately, any
   textures above 2 do not have dedicated texture coordinates, due to limitations of JavaFX.
 - Added support for shaders that use their previous output as an input texture. An example of this will be added in a
   future release.

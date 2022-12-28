@@ -13,6 +13,8 @@ import java.util.Objects;
 import javafx.scene.effect.ShaderEffectBase;
 
 import com.sun.glass.ui.Screen;
+import com.sun.javafx.geom.Rectangle;
+import com.sun.javafx.geom.transform.BaseTransform;
 import com.sun.prism.GraphicsPipeline;
 import com.sun.prism.PixelFormat;
 import com.sun.prism.RTTexture;
@@ -23,7 +25,9 @@ import com.sun.prism.impl.BaseResourceFactory;
 import com.sun.prism.ps.Shader;
 import com.sun.prism.ps.ShaderFactory;
 import com.sun.scenario.effect.FilterContext;
+import com.sun.scenario.effect.ImageData;
 import com.sun.scenario.effect.impl.Renderer;
+import com.sun.scenario.effect.impl.state.RenderState;
 
 import de.teragam.jfxshader.EffectDependencies;
 import de.teragam.jfxshader.EffectPeer;
@@ -87,7 +91,7 @@ public final class ShaderController {
                 shaderDeclaration.samplers().keySet().size() - 1, true, false);
     }
 
-    public static IEffectRenderer getEffectRenderer(ShaderEffectBase effect) {
+    static IEffectRenderer getEffectRenderer(ShaderEffectBase effect) {
         if (ShaderController.EFFECT_RENDERER_MAP.containsKey(Objects.requireNonNull(effect, "Effect cannot be null").getClass())) {
             return ShaderController.EFFECT_RENDERER_MAP.get(effect.getClass());
         }
@@ -134,6 +138,12 @@ public final class ShaderController {
         } else {
             throw new TextureCreationException("Unsupported GraphicsPipeline");
         }
+    }
+
+    public static ImageData renderPeer(String peerName, InternalEffect effect, FilterContext fctx, BaseTransform transform, Rectangle outputClip,
+                                       RenderState rstate, ImageData... inputs) {
+        return Renderer.getRenderer(fctx).getPeerInstance(fctx, Objects.requireNonNull(peerName, "Peer name cannot be null"), -1)
+                .filter(effect, rstate, transform, outputClip, inputs);
     }
 
 }

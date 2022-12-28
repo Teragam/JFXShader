@@ -28,11 +28,6 @@ public class InternalCoreEffectBase extends CoreEffect<RenderState> {
         return super.filter(fctx, transform, outputClip, renderHelper, defaultInput);
     }
 
-    @Override
-    public ImageData filterImageDatas(FilterContext fctx, BaseTransform transform, Rectangle outputClip, RenderState rstate, ImageData... inputs) {
-        return ShaderController.getEffectRenderer(this.effect).render(this, fctx, transform, outputClip, rstate, inputs);
-    }
-
     public ShaderEffectBase getEffect() {
         return this.effect;
     }

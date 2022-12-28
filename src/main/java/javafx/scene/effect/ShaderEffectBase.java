@@ -22,6 +22,7 @@ import com.sun.scenario.effect.impl.state.RenderState;
 
 import de.teragam.jfxshader.EffectRenderer;
 import de.teragam.jfxshader.internal.DefaultEffectRenderer;
+import de.teragam.jfxshader.internal.InternalEffect;
 
 @EffectRenderer(DefaultEffectRenderer.class)
 public class ShaderEffectBase extends Effect {
@@ -32,7 +33,7 @@ public class ShaderEffectBase extends Effect {
 
     @Override
     protected InternalCoreEffectBase createPeer() {
-        return new InternalCoreEffectBase(this, this.inputProperties.size());
+        return new InternalEffect(this, this.inputProperties.size());
     }
 
     protected ShaderEffectBase(int inputs) {

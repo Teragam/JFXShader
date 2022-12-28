@@ -49,7 +49,6 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
     private final ShaderEffectPeerConfig config;
 
     private final Field contextField;
-    private final Method validateTextureOpMethod;
     private final Method checkStateMethod;
     private final int checkTextureOpMask;
     private final Method setTextureMethod;
@@ -62,8 +61,6 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
 
         try {
             this.contextField = BaseGraphics.class.getDeclaredField("context");
-            this.validateTextureOpMethod = BaseShaderContext.class.getDeclaredMethod("validateTextureOp", BaseShaderGraphics.class, BaseTransform.class,
-                    Texture[].class, PixelFormat.class);
             this.checkStateMethod = BaseShaderContext.class.getDeclaredMethod("checkState", BaseShaderGraphics.class, int.class, BaseTransform.class,
                     Shader.class);
             this.setTextureMethod = BaseShaderContext.class.getDeclaredMethod("setTexture", int.class, Texture.class);
@@ -71,7 +68,6 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
             this.validateMethod = PPSRenderer.class.getDeclaredMethod("validate");
 
             this.contextField.setAccessible(true);
-            this.validateTextureOpMethod.setAccessible(true);
             this.checkStateMethod.setAccessible(true);
             this.setTextureMethod.setAccessible(true);
             this.updatePerVertexColorMethod.setAccessible(true);
@@ -178,6 +174,14 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
             }
             textures.add(srcTexture.getTextureObject());
         }
+        for (int i = 2; i < Math.min(inputs.length, 4); i++) {
+            final PrTexture<? extends Texture> srcTexture = (PrTexture<? extends Texture>) inputs[i].getUntransformedImage();
+            if (srcTexture == null || srcTexture.getTextureObject() == null) {
+                renderer.markLost();
+                return new ImageData(this.getFilterContext(), dst, dstBounds);
+            }
+            textures.add(srcTexture.getTextureObject());
+        }
         final ShaderGraphics g = dst.createGraphics();
         if (g == null) {
             renderer.markLost();
@@ -204,7 +208,9 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         }
         try {
             final BaseContext context = (BaseContext) this.contextField.get(g);
-            this.validateTextureOpMethod.invoke(context, g, xform, textures.toArray(new Texture[0]), this.config.getTargetFormat());
+            if (context.isDisposed()) {
+                return;
+            }
             this.checkStateMethod.invoke(context, g, this.checkTextureOpMask, xform, this.shader);
             for (int i = 0; i < Math.min(textures.size(), 4); i++) {
                 this.setTextureMethod.invoke(context, i, textures.get(i));
