@@ -21,7 +21,9 @@ import com.sun.prism.RTTexture;
 import com.sun.prism.Texture;
 import com.sun.prism.d3d.D3DRTTextureHelper;
 import com.sun.prism.es2.ES2RTTextureHelper;
+import com.sun.prism.es2.ES2ResourceFactory;
 import com.sun.prism.impl.BaseResourceFactory;
+import com.sun.prism.impl.ps.BaseShaderContext;
 import com.sun.prism.ps.Shader;
 import com.sun.prism.ps.ShaderFactory;
 import com.sun.scenario.effect.FilterContext;
@@ -39,8 +41,13 @@ import de.teragam.jfxshader.ShaderEffectPeer;
 
 public final class ShaderController {
 
+    public static final int MAX_BOUND_TEXTURES = 16;
+
     private static final Map<Class<? extends ShaderEffectBase>, IEffectRenderer> EFFECT_RENDERER_MAP = Collections.synchronizedMap(new HashMap<>());
     private static Field peerCacheField;
+    private static Field stateField;
+    private static Field lastTexturesField;
+    private static Field boundTexturesField;
 
     private ShaderController() {}
 
@@ -122,6 +129,45 @@ public final class ShaderController {
             return peer.getAnnotation(EffectPeer.class);
         } else {
             throw new IllegalArgumentException(String.format("%s is not annotated with %s", peer, EffectPeer.class));
+        }
+    }
+
+    public static void ensureTextureCapacity(FilterContext fctx, BaseShaderContext shaderContext) {
+        try {
+            if (ShaderController.stateField == null || ShaderController.lastTexturesField == null) {
+                ShaderController.stateField = BaseShaderContext.class.getDeclaredField("state");
+                ShaderController.stateField.setAccessible(true);
+                ShaderController.lastTexturesField = BaseShaderContext.State.class.getDeclaredField("lastTextures");
+                ShaderController.lastTexturesField.setAccessible(true);
+            }
+            final BaseShaderContext.State state = (BaseShaderContext.State) ShaderController.stateField.get(shaderContext);
+            final Texture[] lastTextures = (Texture[]) ShaderController.lastTexturesField.get(state);
+            if (lastTextures.length < MAX_BOUND_TEXTURES) {
+                final Texture[] newTextures = new Texture[ShaderController.MAX_BOUND_TEXTURES];
+                System.arraycopy(lastTextures, 0, newTextures, 0, lastTextures.length);
+                ShaderController.lastTexturesField.set(state, newTextures);
+            }
+
+            final Object ref = Objects.requireNonNull(fctx, "FilterContext cannot be null").getReferent();
+            if (!(ref instanceof Screen)) {
+                throw new ShaderCreationException("Invalid FilterContext");
+            }
+            final BaseResourceFactory factory = (BaseResourceFactory) GraphicsPipeline.getPipeline().getResourceFactory((Screen) ref);
+            if (factory instanceof ES2ResourceFactory) {
+                final Object glContext = ES2RTTextureHelper.getGLContext(factory);
+                if (ShaderController.boundTexturesField == null) {
+                    ShaderController.boundTexturesField = glContext.getClass().getDeclaredField("boundTextures");
+                    ShaderController.boundTexturesField.setAccessible(true);
+                }
+                final int[] boundTextures = (int[]) ShaderController.boundTexturesField.get(glContext);
+                if (boundTextures.length < MAX_BOUND_TEXTURES) {
+                    final int[] newBoundTextures = new int[ShaderController.MAX_BOUND_TEXTURES];
+                    System.arraycopy(boundTextures, 0, newBoundTextures, 0, boundTextures.length);
+                    ShaderController.boundTexturesField.set(glContext, newBoundTextures);
+                }
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new ShaderCreationException("Could not ensure texture capacity", e);
         }
     }
 

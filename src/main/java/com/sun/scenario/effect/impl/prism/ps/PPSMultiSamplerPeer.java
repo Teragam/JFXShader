@@ -194,7 +194,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
             }
             textures.add(srcTexture.getTextureObject());
         }
-        for (int i = 2; i < Math.min(inputs.length, 4); i++) {
+        for (int i = 2; i < Math.min(inputs.length, ShaderController.MAX_BOUND_TEXTURES); i++) {
             final PrDrawable srcTexture = (PrDrawable) inputs[i].getUntransformedImage();
             if (srcTexture == null || srcTexture.getTextureObject() == null) {
                 renderer.markLost();
@@ -228,14 +228,14 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         }
         try {
             final BaseContext context = (BaseContext) this.contextField.get(g);
-            if (context.isDisposed()) {
+            if (context.isDisposed() || !(context instanceof BaseShaderContext)) {
                 return;
             }
+            ShaderController.ensureTextureCapacity(this.getFilterContext(), (BaseShaderContext) context);
             this.checkStateMethod.invoke(context, g, this.checkTextureOpMask, xform, this.shader);
-            for (int i = 0; i < Math.min(textures.size(), 4); i++) {
+            for (int i = 0; i < Math.min(textures.size(), ShaderController.MAX_BOUND_TEXTURES); i++) {
                 this.setTextureMethod.invoke(context, i, textures.get(i));
             }
-            //TODO support more than 4 textures (OpenGL requires special handling for this)
             this.updatePerVertexColorMethod.invoke(context, null, g.getExtraAlpha());
             final VertexBuffer vb = context.getVertexBuffer();
             switch (coords.size()) {

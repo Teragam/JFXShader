@@ -17,10 +17,18 @@ public class ES2RTTextureHelper {
 
     private ES2RTTextureHelper() {}
 
+    public static GLContext getGLContext(BaseResourceFactory factory) {
+        if (!(factory instanceof ES2ResourceFactory)) {
+            throw new TextureCreationException("Factory is not a ES2ResourceFactory");
+        }
+        final ES2Context context = ReflectiveHelper.getInstance().getContext(factory);
+        return context.getGLContext();
+    }
+
     public static ES2RTTexture createES2RTTexture(BaseResourceFactory factory, PixelFormat format, Texture.WrapMode wrapMode, int width, int height,
                                                   boolean useMipmap) {
         if (!(factory instanceof ES2ResourceFactory)) {
-            throw new TextureCreationException("Factory is not a D3DResourceFactory");
+            throw new TextureCreationException("Factory is not a ES2ResourceFactory");
         }
 
         final ES2Context context = ReflectiveHelper.getInstance().getContext(factory);
