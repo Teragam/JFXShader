@@ -3,6 +3,7 @@ package com.sun.scenario.effect.impl.prism.ps;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Objects;
@@ -21,13 +22,12 @@ import com.sun.prism.paint.Paint;
 import com.sun.prism.ps.Shader;
 import com.sun.prism.ps.ShaderGraphics;
 import com.sun.scenario.effect.Effect;
-import com.sun.scenario.effect.Filterable;
 import com.sun.scenario.effect.ImageData;
 import com.sun.scenario.effect.InternalCoreEffectBase;
 import com.sun.scenario.effect.impl.EffectPeer;
 import com.sun.scenario.effect.impl.PolicyBasedImagePool;
 import com.sun.scenario.effect.impl.PoolFilterable;
-import com.sun.scenario.effect.impl.prism.PrTexture;
+import com.sun.scenario.effect.impl.prism.PrDrawable;
 import com.sun.scenario.effect.impl.state.RenderState;
 
 import de.teragam.jfxshader.ImagePoolPolicy;
@@ -45,7 +45,9 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
     private Shader shader;
     private PPSDrawable drawable;
     private BaseTransform transform;
+    private Rectangle outputClip;
 
+    private final ArrayList<float[]> textureCoords;
     private final ShaderEffectPeerConfig config;
 
     private final Field contextField;
@@ -57,6 +59,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
 
     protected PPSMultiSamplerPeer(ShaderEffectPeerConfig options) {
         super(options.getFilterContext(), options.getRenderer(), options.getShaderName());
+        this.textureCoords = new ArrayList<>();
         this.config = Objects.requireNonNull(options, "ShaderEffectPeerConfig must not be null");
 
         try {
@@ -112,6 +115,18 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         return this.drawable;
     }
 
+    protected void setOutputClip(Rectangle outputClip) {
+        this.outputClip = outputClip;
+    }
+
+    protected Rectangle getOutputClip() {
+        return this.outputClip;
+    }
+
+    protected float[] getTextureCoords(int inputIndex) {
+        return Arrays.copyOf(this.textureCoords.get(inputIndex), this.textureCoords.get(inputIndex).length);
+    }
+
     @Override
     protected final PPSRenderer getRenderer() {
         return (PPSRenderer) super.getRenderer();
@@ -123,6 +138,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         this.setEffect(effect);
         this.setRenderState(renderState);
         this.setTransform(transform);
+        this.setOutputClip(outputClip);
         this.setDestBounds(this.getResultBounds(transform, outputClip, inputs));
         return this.filterImpl(inputs);
     }
@@ -132,7 +148,8 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         final int dstw = dstBounds.width;
         final int dsth = dstBounds.height;
         final PPSRenderer renderer = this.getRenderer();
-        final PPSDrawable dst = this.getCompatibleImage(dstw, dsth);
+        final PPSDrawable dst = this.getCompatibleImage(dstw, dsth, this.config.getTargetFormat(), this.config.getTargetWrapMode(),
+                this.config.isTargetMipmaps(), this.config.getTargetPoolPolicy());
         this.drawable = dst;
         if (dst == null) {
             renderer.markLost();
@@ -141,11 +158,11 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         this.setDestNativeBounds(dst.getPhysicalWidth(), dst.getPhysicalHeight());
 
         final ArrayList<float[]> coords = new ArrayList<>();
+        this.textureCoords.clear();
         final ArrayList<Integer> coordLength = new ArrayList<>();
         final ArrayList<Texture> textures = new ArrayList<>();
         for (int i = 0; i < Math.min(inputs.length, 2); i++) {
-            final Filterable srcFilterable = inputs[i].getUntransformedImage();
-            final PrTexture<? extends Texture> srcTexture = (PrTexture<? extends Texture>) srcFilterable;
+            final PrDrawable srcTexture = (PrDrawable) inputs[i].getUntransformedImage();
             if (srcTexture == null || srcTexture.getTextureObject() == null) {
                 renderer.markLost();
                 return new ImageData(this.getFilterContext(), dst, dstBounds);
@@ -158,8 +175,8 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
             this.setInputNativeBounds(i, srcTexture.getNativeBounds());
 
             final float[] srcRect = new float[8];
-            final int srcCoords = this.getTextureCoordinates(0, srcRect, srcBounds.x, srcBounds.y, srcFilterable.getPhysicalWidth(),
-                    srcFilterable.getPhysicalHeight(), dstBounds, srcTransform);
+            final int srcCoords = this.getTextureCoordinates(0, srcRect, srcBounds.x, srcBounds.y, srcTexture.getPhysicalWidth(),
+                    srcTexture.getPhysicalHeight(), dstBounds, srcTransform);
 
             final float txOff = ((float) prTexture.getContentX()) / prTexture.getPhysicalWidth();
             final float tyOff = ((float) prTexture.getContentY()) / prTexture.getPhysicalHeight();
@@ -167,15 +184,18 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
                 coords.add(new float[]{txOff + srcRect[0], tyOff + srcRect[1], txOff + srcRect[2], tyOff + srcRect[3], txOff + srcRect[2], tyOff + srcRect[1],
                         txOff + srcRect[0], tyOff + srcRect[3]});
                 coordLength.add(4);
+                this.textureCoords.add(new float[]{txOff + srcRect[0], tyOff + srcRect[1], txOff + srcRect[2], tyOff + srcRect[3]});
             } else {
                 coords.add(new float[]{txOff + srcRect[0], tyOff + srcRect[1], txOff + srcRect[2], tyOff + srcRect[3], txOff + srcRect[4], tyOff + srcRect[5],
                         txOff + srcRect[6], tyOff + srcRect[7]});
                 coordLength.add(8);
+                this.textureCoords.add(new float[]{txOff + srcRect[0], tyOff + srcRect[1], txOff + srcRect[4], tyOff + srcRect[5],
+                        txOff + srcRect[6], tyOff + srcRect[7], txOff + srcRect[2], tyOff + srcRect[3]});
             }
             textures.add(srcTexture.getTextureObject());
         }
         for (int i = 2; i < Math.min(inputs.length, 4); i++) {
-            final PrTexture<? extends Texture> srcTexture = (PrTexture<? extends Texture>) inputs[i].getUntransformedImage();
+            final PrDrawable srcTexture = (PrDrawable) inputs[i].getUntransformedImage();
             if (srcTexture == null || srcTexture.getTextureObject() == null) {
                 renderer.markLost();
                 return new ImageData(this.getFilterContext(), dst, dstBounds);
@@ -244,8 +264,9 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         }
     }
 
-    private PPSDrawable getCompatibleImage(int width, int height) {
-        if (this.config.getTargetFormat() == PixelFormat.INT_ARGB_PRE && !this.config.isTargetMipmaps() && this.config.getTargetPoolPolicy() == ImagePoolPolicy.LENIENT) {
+    public PPSDrawable getCompatibleImage(int width, int height, PixelFormat format, Texture.WrapMode wrapMode, boolean mipmaps,
+                                          ImagePoolPolicy poolPolicy) {
+        if (format == PixelFormat.INT_ARGB_PRE && !mipmaps && poolPolicy == ImagePoolPolicy.LENIENT) {
             return this.getRenderer().getCompatibleImage(width, height);
         } else {
             final BiFunction<Integer, Integer, PoolFilterable> imageFactory = (w, h) -> {
@@ -253,19 +274,41 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
                     return null;
                 }
                 try {
-                    return PPSDrawable.create(ShaderController.createRTTexture(this.getFilterContext(), this.config.getTargetFormat(),
-                            this.config.getTargetWrapMode(), w, h, this.config.isTargetMipmaps()));
+                    return PPSDrawable.create(ShaderController.createRTTexture(this.getFilterContext(), format, wrapMode, w, h, mipmaps));
                 } catch (TextureCreationException e) {
                     return null;
                 }
             };
-            if (!PPSMultiSamplerPeer.FORMAT_IMAGE_POOL_MAP.containsKey(this.config.getTargetFormat())) {
-                PPSMultiSamplerPeer.FORMAT_IMAGE_POOL_MAP.put(this.config.getTargetFormat(), new PolicyBasedImagePool());
+            if (!PPSMultiSamplerPeer.FORMAT_IMAGE_POOL_MAP.containsKey(format)) {
+                PPSMultiSamplerPeer.FORMAT_IMAGE_POOL_MAP.put(format, new PolicyBasedImagePool());
             }
-            final PolicyBasedImagePool pool = PPSMultiSamplerPeer.FORMAT_IMAGE_POOL_MAP.get(this.config.getTargetFormat());
-            return (PPSDrawable) pool.checkOut(this.getRenderer(), width, height, this.config.isTargetMipmaps(), imageFactory,
-                    this.config.getTargetPoolPolicy());
+            final PolicyBasedImagePool pool = PPSMultiSamplerPeer.FORMAT_IMAGE_POOL_MAP.get(format);
+            return (PPSDrawable) pool.checkOut(this.getRenderer(), width, height, mipmaps, imageFactory, poolPolicy);
         }
+    }
+
+    /**
+     * Clones the given texture and returns the clone with the specified dimensions and pixel format.
+     * <p>
+     * In JavaFX, the actual textures that are used for rendering are often larger than the content they contain due to the use of an internal texture pool.
+     * To render shader effects, the texture coordinates for the input textures are fitted to the content size, but the texture size is not.
+     * This may cause problems for shaders that modify the texture coordinates and rely on the texture coordinates being in the range [0, 1] for the whole
+     * input texture.
+     * By cloning the texture and setting the texture size to the content size, the texture coordinates will be in the range [0, 1].
+     * <p>
+     * Alternatively, the calculated texture coordinates can be loaded into the shader as a uniform variable.
+     *
+     * @see ImagePoolPolicy
+     */
+    public PrDrawable cloneTexture(PrDrawable srcTexture, int width, int height, PixelFormat dstFormat) {
+        final PrDrawable fittedTexture = this.getCompatibleImage(width, height, dstFormat,
+                srcTexture.getTextureObject().getWrapMode(),
+                srcTexture.getTextureObject().getUseMipmap(), ImagePoolPolicy.EXACT);
+        if (fittedTexture == null || fittedTexture.getTextureObject() == null || !this.validateRenderer()) {
+            return null;
+        }
+        fittedTexture.createGraphics().blit(srcTexture.getTextureObject(), null, 0, 0, width, height, 0, 0, width, height);
+        return fittedTexture;
     }
 
     private boolean validateRenderer() {

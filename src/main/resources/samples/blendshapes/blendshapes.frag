@@ -22,6 +22,7 @@ uniform int count;
 uniform vec4 rects[8];
 uniform vec4 ops[8];
 uniform float scale;
+uniform int invertMask;
 
 float map(float value, float min1, float max1, float min2, float max2) {
     return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
@@ -49,5 +50,8 @@ void main() {
         factor += insideRect(pixcoord * (1.0 / scale), rects[i], ops[i]) * ops[i].z;
     }
     factor = clamp(factor, 0.0, 1.0);
-    gl_FragColor = top * factor + bot * (1.0 - factor);
+    if (invertMask == 1) {
+        factor = 1.0 - factor;
+    }
+    gl_FragColor = bot * factor + top * (1.0 - factor);
 }

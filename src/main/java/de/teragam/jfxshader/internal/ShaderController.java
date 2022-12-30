@@ -34,6 +34,7 @@ import de.teragam.jfxshader.EffectPeer;
 import de.teragam.jfxshader.EffectRenderer;
 import de.teragam.jfxshader.IEffectRenderer;
 import de.teragam.jfxshader.ShaderDeclaration;
+import de.teragam.jfxshader.ShaderEffect;
 import de.teragam.jfxshader.ShaderEffectPeer;
 
 public final class ShaderController {
@@ -137,6 +138,16 @@ public final class ShaderController {
             return D3DRTTextureHelper.createD3DRTTexture(factory, formatHint, wrapMode, width, height, useMipmap);
         } else {
             throw new TextureCreationException("Unsupported GraphicsPipeline");
+        }
+    }
+
+    public static <T extends ShaderEffect> ShaderEffectPeer<T> getPeerInstance(Class<? extends ShaderEffectPeer<T>> peerClass, FilterContext fctx) {
+        final com.sun.scenario.effect.impl.EffectPeer<?> peer = Renderer.getRenderer(fctx)
+                .getPeerInstance(fctx, ShaderController.getPeerConfig(peerClass).value(), -1);
+        if (peer instanceof ShaderEffectPeer) {
+            return (ShaderEffectPeer<T>) peer;
+        } else {
+            throw new ShaderCreationException(String.format("Peer %s is not a ShaderEffectPeer", peer));
         }
     }
 

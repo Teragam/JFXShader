@@ -4,6 +4,7 @@ int count : register(c0);
 float4 rects[8] : register(c1);
 float4 ops[8] : register(c9);
 float scale : register(c17);
+int invertMask : register(c18);
 
 float map(float value, float min1, float max1, float min2, float max2) {
     return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
@@ -32,5 +33,8 @@ void main(in float2 pos0 : TEXCOORD0, in float2 pos1 : TEXCOORD1, in float2 pixc
         factor += insideRect(pixcoord * (1.0 / scale), rects[i], ops[i]) * ops[i].z;
     }
     factor = clamp(factor, 0.0, 1.0);
-    color = top * factor + bot * (1.0 - factor);
+    if (invertMask == 1) {
+        factor = 1.0 - factor;
+    }
+    color = bot * factor + top * (1.0 - factor);
 }

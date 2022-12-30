@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 
 import de.teragam.jfxshader.EffectDependencies;
@@ -13,6 +14,7 @@ import de.teragam.jfxshader.TwoSamplerEffect;
 public class BlendShapes extends TwoSamplerEffect {
 
     private final List<ObjectProperty<BlendShape>> shapes;
+    private BooleanProperty invertMask;
 
     public BlendShapes() {
         this.shapes = new ArrayList<>();
@@ -28,4 +30,18 @@ public class BlendShapes extends TwoSamplerEffect {
         return Collections.unmodifiableList(this.shapes);
     }
 
+    public boolean isInvertMask() {
+        return this.invertMaskProperty().get();
+    }
+
+    public BooleanProperty invertMaskProperty() {
+        if (this.invertMask == null) {
+            this.invertMask = super.createEffectBooleanProperty(false, "invertMask");
+        }
+        return this.invertMask;
+    }
+
+    public void setInvertMask(boolean invertMask) {
+        this.invertMaskProperty().set(invertMask);
+    }
 }

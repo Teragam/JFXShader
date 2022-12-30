@@ -13,13 +13,35 @@ import com.sun.prism.Texture;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EffectPeer {
+
+    /**
+     * The unique name of the peer.
+     */
     String value();
 
+    /**
+     * The pixel format of the target texture.
+     * Defaults to {@link PixelFormat#INT_ARGB_PRE}.
+     */
     PixelFormat targetFormat() default PixelFormat.INT_ARGB_PRE;
 
+    /**
+     * The wrap mode of the target texture.
+     * Defaults to {@link Texture.WrapMode#CLAMP_TO_ZERO}.
+     */
     Texture.WrapMode targetWrapMode() default Texture.WrapMode.CLAMP_TO_ZERO;
 
+    /**
+     * Enables mipmaps for the target texture.
+     * Defaults to {@code false}.
+     */
     boolean targetMipmaps() default false;
 
+    /**
+     * The image pool policy for the target texture.
+     * Defaults to {@link ImagePoolPolicy#LENIENT}.
+     *
+     * @see ImagePoolPolicy
+     */
     ImagePoolPolicy targetPoolPolicy() default ImagePoolPolicy.LENIENT;
 }

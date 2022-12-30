@@ -35,6 +35,7 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
         params.put("rects", 1);
         params.put("ops", 9);
         params.put("scale", 17);
+        params.put("invertMask", 18);
         return new ShaderDeclaration(samplers, params,
                 BlendShapes.class.getResourceAsStream("/samples/blendshapes/blendshapes.frag"),
                 BlendShapes.class.getResourceAsStream("/samples/blendshapes/blendshapes.obj"));
@@ -69,6 +70,7 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
         shader.setConstants("rects", this.rects, 0, 8);
         shader.setConstants("ops", this.ops, 0, 8);
         shader.setConstant("scale", (float) this.getTransform().getMxx()); // Very basic compensation for dpi scaling
+        shader.setConstant("invertMask", effect.isInvertMask() ? 1 : 0);
     }
 
 }

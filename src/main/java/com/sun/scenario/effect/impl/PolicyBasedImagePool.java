@@ -48,8 +48,9 @@ public class PolicyBasedImagePool extends ImagePool {
         if (w <= 0 || h <= 0) {
             w = h = 1;
         }
-        w = renderer.getCompatibleWidth(((w + QUANT - 1) / QUANT) * QUANT);
-        h = renderer.getCompatibleHeight(((h + QUANT - 1) / QUANT) * QUANT);
+        final int quant = policy.getQuantization();
+        w = renderer.getCompatibleWidth(((w + quant - 1) / quant) * quant);
+        h = renderer.getCompatibleHeight(((h + quant - 1) / quant) * quant);
 
         ImagePool.numAccessed++;
         ImagePool.pixelsAccessed += ((long) w) * h;
@@ -68,7 +69,7 @@ public class PolicyBasedImagePool extends ImagePool {
                 final int diff = (ew - w) * (eh - h);
                 final boolean lenient = ew >= w && eh >= h && ew * eh / 2 <= w * h && (chosenEntry == null || diff < minDiff);
                 final boolean exact = ew == w && eh == h;
-                if ((policy == ImagePoolPolicy.LENIENT && lenient) || (policy == ImagePoolPolicy.EXACT && exact)) {
+                if ((policy.isApproximateMatch() && lenient) || (!policy.isApproximateMatch() && exact)) {
                     final Texture tex = this.getTexture(filterable);
                     if (tex.getUseMipmap() == targetMipmaps) {
                         filterable.lock();
