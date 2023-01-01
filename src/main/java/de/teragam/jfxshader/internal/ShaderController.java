@@ -21,7 +21,6 @@ import com.sun.prism.RTTexture;
 import com.sun.prism.Texture;
 import com.sun.prism.d3d.D3DRTTextureHelper;
 import com.sun.prism.es2.ES2RTTextureHelper;
-import com.sun.prism.es2.ES2ResourceFactory;
 import com.sun.prism.impl.BaseResourceFactory;
 import com.sun.prism.impl.ps.BaseShaderContext;
 import com.sun.prism.ps.Shader;
@@ -153,7 +152,8 @@ public final class ShaderController {
                 throw new ShaderCreationException("Invalid FilterContext");
             }
             final BaseResourceFactory factory = (BaseResourceFactory) GraphicsPipeline.getPipeline().getResourceFactory((Screen) ref);
-            if (factory instanceof ES2ResourceFactory) {
+            final GraphicsPipeline pipe = GraphicsPipeline.getPipeline();
+            if (pipe != null && pipe.supportsShader(GraphicsPipeline.ShaderType.GLSL, GraphicsPipeline.ShaderModel.SM3)) {
                 final Object glContext = ES2RTTextureHelper.getGLContext(factory);
                 if (ShaderController.boundTexturesField == null) {
                     ShaderController.boundTexturesField = glContext.getClass().getDeclaredField("boundTextures");

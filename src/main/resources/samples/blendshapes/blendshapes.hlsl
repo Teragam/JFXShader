@@ -30,7 +30,7 @@ void main(in float2 pos0 : TEXCOORD0, in float2 pos1 : TEXCOORD1, in float2 pixc
             break;
         }
          // The scale is used to compensate for dpi scaling
-        factor += insideRect(pixcoord * (1.0 / scale), rects[i], ops[i]) * ops[i].z;
+        factor += insideRect(pixcoord / scale, rects[i], ops[i]) * ops[i].z;
     }
     factor = clamp(factor, 0.0, 1.0);
     if (invertMask == 1) {
