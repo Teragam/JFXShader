@@ -91,7 +91,7 @@ public final class ShaderController {
         } else if (pipe.supportsShader(GraphicsPipeline.ShaderType.GLSL, GraphicsPipeline.ShaderModel.SM3)) {
             shaderSource = shaderDeclaration.es2Source();
         } else {
-            throw new ShaderCreationException("Unsupported GraphicsPipeline");
+            throw new ShaderCreationException(String.format("Unsupported GraphicsPipeline (%s): Shaders are not supported", pipe.getClass().getSimpleName()));
         }
         final ShaderFactory factory = (ShaderFactory) GraphicsPipeline.getPipeline().getResourceFactory((Screen) ref);
         return factory.createShader(shaderSource, shaderDeclaration.samplers(), shaderDeclaration.params(),
@@ -156,7 +156,7 @@ public final class ShaderController {
             if (pipe != null && pipe.supportsShader(GraphicsPipeline.ShaderType.GLSL, GraphicsPipeline.ShaderModel.SM3)) {
                 final Object glContext = ES2RTTextureHelper.getGLContext(factory);
                 if (ShaderController.boundTexturesField == null) {
-                    ShaderController.boundTexturesField = glContext.getClass().getDeclaredField("boundTextures");
+                    ShaderController.boundTexturesField = Class.forName("com.sun.prism.es2.GLContext").getDeclaredField("boundTextures");
                     ShaderController.boundTexturesField.setAccessible(true);
                 }
                 final int[] boundTextures = (int[]) ShaderController.boundTexturesField.get(glContext);
@@ -183,7 +183,7 @@ public final class ShaderController {
         } else if (pipe.supportsShader(GraphicsPipeline.ShaderType.HLSL, GraphicsPipeline.ShaderModel.SM3)) {
             return D3DRTTextureHelper.createD3DRTTexture(factory, formatHint, wrapMode, width, height, useMipmap);
         } else {
-            throw new TextureCreationException("Unsupported GraphicsPipeline");
+            throw new ShaderCreationException(String.format("Unsupported GraphicsPipeline (%s): Shaders are not supported", pipe.getClass().getSimpleName()));
         }
     }
 

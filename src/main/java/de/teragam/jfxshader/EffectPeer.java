@@ -34,6 +34,9 @@ public @interface EffectPeer {
     /**
      * Enables mipmaps for the target texture.
      * Defaults to {@code false}.
+     * <p>
+     * <b>Note:</b> For Opengl, due to the use of deprecated functions, mipmaps are only generated if the
+     * version of OpenGL is below 3.1.
      */
     boolean targetMipmaps() default false;
 
