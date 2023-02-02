@@ -4,17 +4,33 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import javafx.scene.effect.ShaderEffectBase;
+import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.MeshView;
+import javafx.scene.shape.Shape3D;
 
 import com.sun.glass.ui.Screen;
+import com.sun.glass.utils.NativeLibLoader;
 import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
+import com.sun.javafx.scene.paint.MaterialHelper;
+import com.sun.javafx.scene.shape.BoxHelper;
+import com.sun.javafx.scene.shape.CylinderHelper;
+import com.sun.javafx.scene.shape.MeshViewHelper;
+import com.sun.javafx.scene.shape.Shape3DHelper;
+import com.sun.javafx.scene.shape.SphereHelper;
+import com.sun.javafx.sg.prism.NGPhongMaterial;
+import com.sun.javafx.sg.prism.NGShape3D;
+import com.sun.javafx.util.Utils;
+import com.sun.prism.Graphics;
 import com.sun.prism.GraphicsPipeline;
 import com.sun.prism.PixelFormat;
 import com.sun.prism.RTTexture;
@@ -37,30 +53,26 @@ import de.teragam.jfxshader.IEffectRenderer;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.ShaderEffect;
 import de.teragam.jfxshader.ShaderEffectPeer;
+import de.teragam.jfxshader.material.internal.InternalNGBox;
+import de.teragam.jfxshader.material.internal.InternalNGCylinder;
+import de.teragam.jfxshader.material.internal.InternalNGMeshView;
+import de.teragam.jfxshader.material.internal.InternalNGPhongMaterial;
+import de.teragam.jfxshader.material.internal.InternalNGSphere;
 
 public final class ShaderController {
 
     public static final int MAX_BOUND_TEXTURES = 16;
 
     private static final Map<Class<? extends ShaderEffectBase>, IEffectRenderer> EFFECT_RENDERER_MAP = Collections.synchronizedMap(new HashMap<>());
-    private static Field peerCacheField;
-    private static Field stateField;
-    private static Field lastTexturesField;
+    private static final Map<Long, IDirect3DDevice9Wrapper> D3D_DEVICE_MAP = new HashMap<>();
     private static Field boundTexturesField;
 
     private ShaderController() {}
 
-    @SuppressWarnings("unchecked")
     public static void register(FilterContext fctx, ShaderEffectBase effect) {
         final Renderer renderer = Renderer.getRenderer(Objects.requireNonNull(fctx, "FilterContext cannot be null"));
         try {
-            if (ShaderController.peerCacheField == null) {
-                ShaderController.peerCacheField = Renderer.class.getDeclaredField("peerCache");
-                ShaderController.peerCacheField.setAccessible(true);
-            }
-            final Map<String, com.sun.scenario.effect.impl.EffectPeer<?>> peerCache =
-                    (Map<String, com.sun.scenario.effect.impl.EffectPeer<?>>) ShaderController.peerCacheField.get(
-                            renderer);
+            final Map<String, com.sun.scenario.effect.impl.EffectPeer<?>> peerCache = ReflectionHelper.getFieldValue(Renderer.class, "peerCache", renderer);
             final List<Class<? extends ShaderEffectPeer<?>>> dependencies = ShaderController.getPeerDependencies(effect.getClass());
             for (final Class<? extends ShaderEffectPeer<?>> peer : dependencies) {
                 final EffectPeer peerConfig = ShaderController.getPeerConfig(peer);
@@ -72,8 +84,7 @@ public final class ShaderController {
                                     peerConfig.targetMipmaps(), peerConfig.targetPoolPolicy())));
                 }
             }
-        } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException | NoSuchMethodException |
-                 InstantiationException e) {
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
             throw new ShaderCreationException("Could not inject custom shaders", e);
         }
     }
@@ -133,18 +144,12 @@ public final class ShaderController {
 
     public static void ensureTextureCapacity(FilterContext fctx, BaseShaderContext shaderContext) {
         try {
-            if (ShaderController.stateField == null || ShaderController.lastTexturesField == null) {
-                ShaderController.stateField = BaseShaderContext.class.getDeclaredField("state");
-                ShaderController.stateField.setAccessible(true);
-                ShaderController.lastTexturesField = BaseShaderContext.State.class.getDeclaredField("lastTextures");
-                ShaderController.lastTexturesField.setAccessible(true);
-            }
-            final BaseShaderContext.State state = (BaseShaderContext.State) ShaderController.stateField.get(shaderContext);
-            final Texture[] lastTextures = (Texture[]) ShaderController.lastTexturesField.get(state);
+            final BaseShaderContext.State state = ReflectionHelper.getFieldValue(BaseShaderContext.class, "state", shaderContext);
+            final Texture[] lastTextures = ReflectionHelper.getFieldValue(BaseShaderContext.State.class, "lastTextures", state);
             if (lastTextures.length < MAX_BOUND_TEXTURES) {
                 final Texture[] newTextures = new Texture[ShaderController.MAX_BOUND_TEXTURES];
                 System.arraycopy(lastTextures, 0, newTextures, 0, lastTextures.length);
-                ShaderController.lastTexturesField.set(state, newTextures);
+                ReflectionHelper.setFieldValue(BaseShaderContext.State.class, "lastTextures", state, newTextures);
             }
 
             final Object ref = Objects.requireNonNull(fctx, "FilterContext cannot be null").getReferent();
@@ -156,8 +161,7 @@ public final class ShaderController {
             if (pipe != null && pipe.supportsShader(GraphicsPipeline.ShaderType.GLSL, GraphicsPipeline.ShaderModel.SM3)) {
                 final Object glContext = ES2RTTextureHelper.getGLContext(factory);
                 if (ShaderController.boundTexturesField == null) {
-                    ShaderController.boundTexturesField = Class.forName("com.sun.prism.es2.GLContext").getDeclaredField("boundTextures");
-                    ShaderController.boundTexturesField.setAccessible(true);
+                    ShaderController.boundTexturesField = ReflectionHelper.getField(Class.forName("com.sun.prism.es2.GLContext"), "boundTextures");
                 }
                 final int[] boundTextures = (int[]) ShaderController.boundTexturesField.get(glContext);
                 if (boundTextures.length < MAX_BOUND_TEXTURES) {
@@ -201,6 +205,55 @@ public final class ShaderController {
                                        RenderState rstate, ImageData... inputs) {
         return Renderer.getRenderer(fctx).getPeerInstance(fctx, Objects.requireNonNull(peerName, "Peer name cannot be null"), -1)
                 .filter(effect, rstate, transform, outputClip, inputs);
+    }
+
+    /**
+     * Replaces the internal {@link Shape3DHelper} accessors with custom accessors that support custom 3D shaders.
+     * To allow for custom shaders on default {@link MeshView} instances, this injection must be performed before any {@link Shape3D} is rendered.
+     * Otherwise, only {@link Shape3D} instances created after this injection will support custom shaders.
+     */
+    public static void ensure3DAccessorInjection() {
+        NativeLibLoader.loadLibrary("jfxshader");
+        ShaderController.injectMaterialAccessor();
+        ShaderController.injectShape3DAccessor(MeshViewHelper.class, "meshViewAccessor", InternalNGMeshView::new);
+        ShaderController.injectShape3DAccessor(SphereHelper.class, "sphereAccessor", InternalNGSphere::new);
+        ShaderController.injectShape3DAccessor(BoxHelper.class, "boxAccessor", InternalNGBox::new);
+        ShaderController.injectShape3DAccessor(CylinderHelper.class, "cylinderAccessor", InternalNGCylinder::new);
+    }
+
+    private static void injectMaterialAccessor() {
+        Utils.forceInit(MaterialHelper.class);
+        final MaterialHelper.MaterialAccessor accessor = ReflectionHelper.getFieldValue(MaterialHelper.class, "materialAccessor", null);
+        if (Proxy.isProxyClass(accessor.getClass())) {
+            return;
+        }
+        final Object proxy = Proxy.newProxyInstance(accessor.getClass().getClassLoader(), accessor.getClass().getInterfaces(), (p, method, args) -> {
+            if ("getNGMaterial".equals(method.getName()) && ReflectionHelper.<NGPhongMaterial>getFieldValue(PhongMaterial.class, "peer", args[0]) == null) {
+                ReflectionHelper.setFieldValue(PhongMaterial.class, "peer", args[0], new InternalNGPhongMaterial());
+            }
+            return method.invoke(accessor, args);
+        });
+        ReflectionHelper.setFieldValue(MaterialHelper.class, "materialAccessor", null, proxy);
+    }
+
+    private static void injectShape3DAccessor(Class<? extends Shape3DHelper> helper, String accessorField, Supplier<NGShape3D> shapeClassSupplier) {
+        Utils.forceInit(helper);
+        final Object accessor = ReflectionHelper.getFieldValue(helper, accessorField, null);
+        if (Proxy.isProxyClass(accessor.getClass())) {
+            return;
+        }
+        final Object proxy = Proxy.newProxyInstance(accessor.getClass().getClassLoader(), accessor.getClass().getInterfaces(), (p, method, args) -> {
+            if ("doCreatePeer".equals(method.getName())) {
+                return shapeClassSupplier.get();
+            } else {
+                return method.invoke(accessor, args);
+            }
+        });
+        ReflectionHelper.setFieldValue(helper, accessorField, null, proxy);
+    }
+
+    public static IDirect3DDevice9Wrapper getD3DDevice(Graphics graphics) {
+        return ShaderController.D3D_DEVICE_MAP.computeIfAbsent(D3DRTTextureHelper.getDevice(graphics.getResourceFactory()), IDirect3DDevice9Wrapper::new);
     }
 
 }

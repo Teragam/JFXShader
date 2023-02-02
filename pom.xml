@@ -6,7 +6,7 @@
 
     <groupId>de.teragam</groupId>
     <artifactId>jfxshader</artifactId>
-    <version>0.8.0</version>
+    <version>0.8.5</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -14,6 +14,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>19</javafx.version>
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
+        <maven.compiler.plugin.version>3.10.1</maven.compiler.plugin.version>
+        <codehaus.exec.plugin.version>3.1.0</codehaus.exec.plugin.version>
     </properties>
 
     <distributionManagement>
@@ -26,6 +28,17 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <compilerArgs>
+                        <arg>-h</arg>
+                        <arg>${project.build.directory}/generated-headers</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -41,7 +54,45 @@
                 </executions>
             </plugin>
         </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${codehaus.exec.plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>exec</id>
+                            <phase>compile</phase>
+                            <goals>
+                                <goal>exec</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <executable>make</executable>
+                        <arguments>
+                            <argument>JAVA_HOME=${java.home}</argument>
+                        </arguments>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>build-natives-win</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <dependencies>
         <dependency>

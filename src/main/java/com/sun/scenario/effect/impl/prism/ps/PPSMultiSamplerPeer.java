@@ -1,7 +1,5 @@
 package com.sun.scenario.effect.impl.prism.ps;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -33,6 +31,7 @@ import com.sun.scenario.effect.impl.state.RenderState;
 import de.teragam.jfxshader.ImagePoolPolicy;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.ShaderEffect;
+import de.teragam.jfxshader.internal.ReflectionHelper;
 import de.teragam.jfxshader.internal.ShaderController;
 import de.teragam.jfxshader.internal.ShaderEffectPeerConfig;
 import de.teragam.jfxshader.internal.ShaderException;
@@ -50,38 +49,13 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
     private final ArrayList<float[]> textureCoords;
     private final ShaderEffectPeerConfig config;
 
-    private final Field contextField;
-    private final Method checkStateMethod;
     private final int checkTextureOpMask;
-    private final Method setTextureMethod;
-    private final Method updatePerVertexColorMethod;
-    private final Method validateMethod;
 
     protected PPSMultiSamplerPeer(ShaderEffectPeerConfig options) {
         super(options.getFilterContext(), options.getRenderer(), options.getShaderName());
         this.textureCoords = new ArrayList<>();
         this.config = Objects.requireNonNull(options, "ShaderEffectPeerConfig must not be null");
-
-        try {
-            this.contextField = BaseGraphics.class.getDeclaredField("context");
-            this.checkStateMethod = BaseShaderContext.class.getDeclaredMethod("checkState", BaseShaderGraphics.class, int.class, BaseTransform.class,
-                    Shader.class);
-            this.setTextureMethod = BaseShaderContext.class.getDeclaredMethod("setTexture", int.class, Texture.class);
-            this.updatePerVertexColorMethod = BaseShaderContext.class.getDeclaredMethod("updatePerVertexColor", Paint.class, float.class);
-            this.validateMethod = PPSRenderer.class.getDeclaredMethod("validate");
-
-            this.contextField.setAccessible(true);
-            this.checkStateMethod.setAccessible(true);
-            this.setTextureMethod.setAccessible(true);
-            this.updatePerVertexColorMethod.setAccessible(true);
-            this.validateMethod.setAccessible(true);
-
-            final Field checkTextureOpMaskField = BaseShaderContext.class.getDeclaredField("CHECK_TEXTURE_OP_MASK");
-            checkTextureOpMaskField.setAccessible(true);
-            this.checkTextureOpMask = (int) checkTextureOpMaskField.get(null);
-        } catch (ReflectiveOperationException e) {
-            throw new ShaderException("Failed to initialize PPSMultiSamplerPeer", e);
-        }
+        this.checkTextureOpMask = ReflectionHelper.getFieldValue(BaseShaderContext.class, "CHECK_TEXTURE_OP_MASK", null);
     }
 
     @Override
@@ -226,41 +200,38 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         if (textures.isEmpty()) {
             return;
         }
-        try {
-            final BaseContext context = (BaseContext) this.contextField.get(g);
-            if (context.isDisposed() || !(context instanceof BaseShaderContext)) {
+        final BaseContext context = ReflectionHelper.getFieldValue(BaseGraphics.class, "context", g);
+        if (context.isDisposed() || !(context instanceof BaseShaderContext)) {
+            return;
+        }
+        ShaderController.ensureTextureCapacity(this.getFilterContext(), (BaseShaderContext) context);
+        ReflectionHelper.invokeMethod(BaseShaderContext.class, "checkState", BaseShaderGraphics.class, int.class, BaseTransform.class,
+                Shader.class).invoke(context, g, this.checkTextureOpMask, xform, this.shader);
+        for (int i = 0; i < Math.min(textures.size(), ShaderController.MAX_BOUND_TEXTURES); i++) {
+            ReflectionHelper.invokeMethod(BaseShaderContext.class, "setTexture", int.class, Texture.class).invoke(context, i, textures.get(i));
+        }
+        ReflectionHelper.invokeMethod(BaseShaderContext.class, "updatePerVertexColor", Paint.class, float.class).invoke(context, null, g.getExtraAlpha());
+        final VertexBuffer vb = context.getVertexBuffer();
+        switch (coords.size()) {
+            case 0:
                 return;
-            }
-            ShaderController.ensureTextureCapacity(this.getFilterContext(), (BaseShaderContext) context);
-            this.checkStateMethod.invoke(context, g, this.checkTextureOpMask, xform, this.shader);
-            for (int i = 0; i < Math.min(textures.size(), ShaderController.MAX_BOUND_TEXTURES); i++) {
-                this.setTextureMethod.invoke(context, i, textures.get(i));
-            }
-            this.updatePerVertexColorMethod.invoke(context, null, g.getExtraAlpha());
-            final VertexBuffer vb = context.getVertexBuffer();
-            switch (coords.size()) {
-                case 0:
-                    return;
-                case 1:
-                    final float[] c = coords.get(0);
-                    if (coordLength.get(0) < 8) {
-                        vb.addQuad(0, 0, dx2, dy2, c[0], c[1], c[2], c[3]);
-                    } else {
-                        vb.addMappedQuad(0, 0, dx2, dy2, c[0], c[1], c[4], c[5], c[6], c[7], c[2], c[3]);
-                    }
-                    break;
-                default:
-                    final float[] c1 = coords.get(0);
-                    final float[] c2 = coords.get(1);
-                    if (coordLength.get(0) < 8 && coordLength.get(1) < 8) {
-                        vb.addQuad(0, 0, dx2, dy2, c1[0], c1[1], c1[2], c1[3], c2[0], c2[1], c2[2], c2[3]);
-                    } else {
-                        vb.addMappedQuad(0, 0, dx2, dy2, c1[0], c1[1], c1[4], c1[5], c1[6], c1[7], c1[2], c1[3], c2[0], c2[1], c2[4], c2[5], c2[6], c2[7],
-                                c2[2], c2[3]);
-                    }
-            }
-        } catch (ReflectiveOperationException e) {
-            throw new ShaderException("Failed to draw textures", e);
+            case 1:
+                final float[] c = coords.get(0);
+                if (coordLength.get(0) < 8) {
+                    vb.addQuad(0, 0, dx2, dy2, c[0], c[1], c[2], c[3]);
+                } else {
+                    vb.addMappedQuad(0, 0, dx2, dy2, c[0], c[1], c[4], c[5], c[6], c[7], c[2], c[3]);
+                }
+                break;
+            default:
+                final float[] c1 = coords.get(0);
+                final float[] c2 = coords.get(1);
+                if (coordLength.get(0) < 8 && coordLength.get(1) < 8) {
+                    vb.addQuad(0, 0, dx2, dy2, c1[0], c1[1], c1[2], c1[3], c2[0], c2[1], c2[2], c2[3]);
+                } else {
+                    vb.addMappedQuad(0, 0, dx2, dy2, c1[0], c1[1], c1[4], c1[5], c1[6], c1[7], c1[2], c1[3], c2[0], c2[1], c2[4], c2[5], c2[6], c2[7],
+                            c2[2], c2[3]);
+                }
         }
     }
 
@@ -279,9 +250,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
                     return null;
                 }
             };
-            if (!PPSMultiSamplerPeer.FORMAT_IMAGE_POOL_MAP.containsKey(format)) {
-                PPSMultiSamplerPeer.FORMAT_IMAGE_POOL_MAP.put(format, new PolicyBasedImagePool());
-            }
+            PPSMultiSamplerPeer.FORMAT_IMAGE_POOL_MAP.computeIfAbsent(format, f -> new PolicyBasedImagePool());
             final PolicyBasedImagePool pool = PPSMultiSamplerPeer.FORMAT_IMAGE_POOL_MAP.get(format);
             return (PPSDrawable) pool.checkOut(this.getRenderer(), width, height, mipmaps, imageFactory, poolPolicy);
         }
@@ -313,8 +282,8 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
 
     private boolean validateRenderer() {
         try {
-            return (boolean) this.validateMethod.invoke(this.getRenderer());
-        } catch (ReflectiveOperationException ignored) {
+            return (boolean) ReflectionHelper.invokeMethod(PPSRenderer.class, "validate").invoke(this.getRenderer());
+        } catch (ShaderException ignored) {
             return false;
         }
     }

@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.renderstates;
+package de.teragam.jfxshader.renderstate;
 
 import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;

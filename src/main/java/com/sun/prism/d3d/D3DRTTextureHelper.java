@@ -1,11 +1,12 @@
 package com.sun.prism.d3d;
 
 import com.sun.prism.PixelFormat;
+import com.sun.prism.ResourceFactory;
 import com.sun.prism.Texture;
 import com.sun.prism.impl.BaseResourceFactory;
 import com.sun.prism.impl.PrismSettings;
 
-import de.teragam.jfxshader.internal.ReflectiveTextureHelper;
+import de.teragam.jfxshader.internal.ReflectionTextureHelper;
 import de.teragam.jfxshader.internal.TextureCreationException;
 
 public class D3DRTTextureHelper {
@@ -41,13 +42,20 @@ public class D3DRTTextureHelper {
 
         final int textureWidth = D3DResourceFactory.nGetTextureWidth(pResource);
         final int textureHeight = D3DResourceFactory.nGetTextureHeight(pResource);
-        final D3DRTTexture rtt = ReflectiveTextureHelper.getInstance().allocateInstance(D3DRTTexture.class);
+        final D3DRTTexture rtt = ReflectionTextureHelper.getInstance().allocateInstance(D3DRTTexture.class);
         final D3DTextureResource resource = new D3DTextureResource(new D3DTextureData(context, pResource, true, textureWidth, textureHeight, format, 0));
-        ReflectiveTextureHelper.getInstance().fillTexture(rtt, resource, PixelFormat.INT_ARGB_PRE, wrapMode, textureWidth, textureHeight, 0, 0, width, height,
+        ReflectionTextureHelper.getInstance().fillTexture(rtt, resource, PixelFormat.INT_ARGB_PRE, wrapMode, textureWidth, textureHeight, 0, 0, width, height,
                 textureWidth, textureHeight, useMipmap);
         rtt.setOpaque(false);
         rtt.createGraphics().clear();
         return rtt;
+    }
+
+    public static long getDevice(ResourceFactory factory) {
+        if (!(factory instanceof D3DResourceFactory)) {
+            throw new TextureCreationException("Factory is not a D3DResourceFactory");
+        }
+        return D3DResourceFactory.nGetDevice(((D3DResourceFactory) factory).getContext().getContextHandle());
     }
 
 }

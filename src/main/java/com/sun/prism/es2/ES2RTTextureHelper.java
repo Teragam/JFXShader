@@ -1,7 +1,5 @@
 package com.sun.prism.es2;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.nio.Buffer;
 
 import com.sun.prism.PixelFormat;
@@ -10,7 +8,8 @@ import com.sun.prism.impl.BaseResourceFactory;
 import com.sun.prism.impl.PrismSettings;
 import com.sun.prism.impl.PrismTrace;
 
-import de.teragam.jfxshader.internal.ReflectiveTextureHelper;
+import de.teragam.jfxshader.internal.ReflectionHelper;
+import de.teragam.jfxshader.internal.ReflectionTextureHelper;
 import de.teragam.jfxshader.internal.TextureCreationException;
 
 public class ES2RTTextureHelper {
@@ -21,7 +20,7 @@ public class ES2RTTextureHelper {
         if (!(factory instanceof ES2ResourceFactory)) {
             throw new TextureCreationException("Factory is not a ES2ResourceFactory");
         }
-        final ES2Context context = ReflectiveHelper.getInstance().getContext(factory);
+        final ES2Context context = ReflectionES2Helper.getInstance().getContext(factory);
         return context.getGLContext();
     }
 
@@ -31,7 +30,7 @@ public class ES2RTTextureHelper {
             throw new TextureCreationException("Factory is not a ES2ResourceFactory");
         }
 
-        final ES2Context context = ReflectiveHelper.getInstance().getContext(factory);
+        final ES2Context context = ReflectionES2Helper.getInstance().getContext(factory);
         final GLContext glContext = context.getGLContext();
         final boolean pad;
         switch (wrapMode) {
@@ -103,7 +102,7 @@ public class ES2RTTextureHelper {
             throw new TextureCreationException("Failed to create texture.");
         }
 
-        final boolean result = ReflectiveHelper.getInstance()
+        final boolean result = ReflectionES2Helper.getInstance()
                 .uploadPixels(glContext, GLContext.GL_TEXTURE_2D, null, format, texWidth, texHeight, contentX,
                         contentY, 0, 0, width, height, 0, true, useMipmap);
         if (!result) {
@@ -123,7 +122,7 @@ public class ES2RTTextureHelper {
         final int maxContentH = texHeight - padding;
         final ES2RTTextureData texData = new ES2RTTextureData(context, nativeTexID, nativeFBOID, texWidth, texHeight, size);
         final ES2TextureResource<ES2RTTextureData> texRes = new ES2TextureResource<>(texData);
-        final ES2RTTexture es2RTT = ReflectiveHelper.getInstance()
+        final ES2RTTexture es2RTT = ReflectionES2Helper.getInstance()
                 .createTexture(context, texRes, format, wrapMode, texWidth, texHeight, contentX, contentY, width, height, maxContentW, maxContentH, useMipmap);
 
         glContext.bindFBO(savedFBO);
@@ -131,69 +130,47 @@ public class ES2RTTextureHelper {
         return es2RTT;
     }
 
-    private static class ReflectiveHelper {
+    private static class ReflectionES2Helper {
 
-        private static ReflectiveHelper instance;
+        private static ReflectionES2Helper instance;
 
-        private final Field contextField;
-        private final Field factoryContextField;
-        private final Method uploadPixelsMethod;
+        private final ReflectionHelper.MethodInvocationWrapper<Boolean> uploadPixelsMethod;
 
-        public ReflectiveHelper() {
-            try {
-                this.contextField = ES2Texture.class.getDeclaredField("context");
-                this.contextField.setAccessible(true);
-                this.factoryContextField = ES2ResourceFactory.class.getDeclaredField("context");
-                this.factoryContextField.setAccessible(true);
-                this.uploadPixelsMethod = ES2Texture.class.getDeclaredMethod("uploadPixels", GLContext.class, int.class, Buffer.class, PixelFormat.class,
-                        int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, boolean.class, boolean.class);
-                this.uploadPixelsMethod.setAccessible(true);
-            } catch (ReflectiveOperationException e) {
-                throw new TextureCreationException("Cannot create RTT texture", e);
-            }
+        public ReflectionES2Helper() {
+            this.uploadPixelsMethod = ReflectionHelper.invokeMethod(ES2Texture.class, "uploadPixels", GLContext.class, int.class, Buffer.class,
+                    PixelFormat.class,
+                    int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, boolean.class, boolean.class);
         }
 
-        public static ReflectiveHelper getInstance() {
-            if (ReflectiveHelper.instance == null) {
-                ReflectiveHelper.instance = new ReflectiveHelper();
+        public static ReflectionES2Helper getInstance() {
+            if (ReflectionES2Helper.instance == null) {
+                ReflectionES2Helper.instance = new ReflectionES2Helper();
             }
-            return ReflectiveHelper.instance;
+            return ReflectionES2Helper.instance;
         }
 
         public ES2Context getContext(BaseResourceFactory factory) {
-            try {
-                return (ES2Context) this.factoryContextField.get(factory);
-            } catch (ReflectiveOperationException e) {
-                throw new TextureCreationException("Could not get context", e);
-            }
+            return ReflectionHelper.getFieldValue(ES2ResourceFactory.class, "context", factory);
         }
 
         public boolean uploadPixels(GLContext glCtx, int target, Buffer pixels, PixelFormat format, int texw, int texh, int dstx, int dsty, int srcx, int srcy,
                                     int srcw, int srch, int srcscan, boolean create, boolean useMipmap) {
-            try {
-                return (boolean) this.uploadPixelsMethod.invoke(null, glCtx, target, pixels, format, texw, texh, dstx, dsty, srcx, srcy, srcw, srch, srcscan,
-                        create, useMipmap);
-            } catch (ReflectiveOperationException e) {
-                throw new TextureCreationException("Could not upload pixels", e);
-            }
+            return this.uploadPixelsMethod.invoke(null, glCtx, target, pixels, format, texw, texh, dstx, dsty, srcx, srcy, srcw, srch, srcscan,
+                    create, useMipmap);
         }
 
         private ES2RTTexture createTexture(ES2Context context, ES2TextureResource<ES2RTTextureData> resource, PixelFormat format, Texture.WrapMode wrapMode,
                                            int physicalWidth, int physicalHeight, int contentX, int contentY, int contentWidth, int contentHeight,
                                            int maxContentWidth, int maxContentHeight, boolean useMipmap) {
-            try {
-                final ES2RTTexture texture = ReflectiveTextureHelper.getInstance().allocateInstance(ES2RTTexture.class);
-                texture.setOpaque(false);
-                this.contextField.set(texture, context);
-                ReflectiveTextureHelper.getInstance().fillTexture(texture, resource, PixelFormat.INT_ARGB_PRE, wrapMode, physicalWidth, physicalHeight,
-                        contentX, contentY, contentWidth, contentHeight, maxContentWidth, maxContentHeight, useMipmap);
-                PrismTrace.rttCreated(resource.getResource().getFboID(),
-                        physicalWidth, physicalHeight,
-                        format.getBytesPerPixelUnit());
-                return texture;
-            } catch (ReflectiveOperationException e) {
-                throw new TextureCreationException("Cannot create RTT texture", e);
-            }
+            final ES2RTTexture texture = ReflectionTextureHelper.getInstance().allocateInstance(ES2RTTexture.class);
+            texture.setOpaque(false);
+            ReflectionHelper.setFieldValue(ES2Texture.class, "context", texture, context);
+            ReflectionTextureHelper.getInstance().fillTexture(texture, resource, PixelFormat.INT_ARGB_PRE, wrapMode, physicalWidth, physicalHeight,
+                    contentX, contentY, contentWidth, contentHeight, maxContentWidth, maxContentHeight, useMipmap);
+            PrismTrace.rttCreated(resource.getResource().getFboID(),
+                    physicalWidth, physicalHeight,
+                    format.getBytesPerPixelUnit());
+            return texture;
         }
     }
 }
