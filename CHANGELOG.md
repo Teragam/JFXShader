@@ -3,6 +3,7 @@
 All notable changes to this project will be documented here.
 
 ## v0.8.0 - 2022-12-30
+
 ### Added
 - Shaders can now use up to 16 bound textures simultaneously.
 - Some refactoring and QoL improvements to ease the development of custom [IEffectRenderer](src/main/java/de/teragam/jfxshader/IEffectRenderer.java).

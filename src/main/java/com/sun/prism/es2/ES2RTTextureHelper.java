@@ -138,8 +138,8 @@ public class ES2RTTextureHelper {
 
         public ReflectionES2Helper() {
             this.uploadPixelsMethod = ReflectionHelper.invokeMethod(ES2Texture.class, "uploadPixels", GLContext.class, int.class, Buffer.class,
-                    PixelFormat.class,
-                    int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, boolean.class, boolean.class);
+                    PixelFormat.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, boolean.class,
+                    boolean.class);
         }
 
         public static ReflectionES2Helper getInstance() {
@@ -162,10 +162,10 @@ public class ES2RTTextureHelper {
         private ES2RTTexture createTexture(ES2Context context, ES2TextureResource<ES2RTTextureData> resource, PixelFormat format, Texture.WrapMode wrapMode,
                                            int physicalWidth, int physicalHeight, int contentX, int contentY, int contentWidth, int contentHeight,
                                            int maxContentWidth, int maxContentHeight, boolean useMipmap) {
-            final ES2RTTexture texture = ReflectionTextureHelper.getInstance().allocateInstance(ES2RTTexture.class);
+            final ES2RTTexture texture = ReflectionHelper.allocateInstance(ES2RTTexture.class);
             texture.setOpaque(false);
             ReflectionHelper.setFieldValue(ES2Texture.class, "context", texture, context);
-            ReflectionTextureHelper.getInstance().fillTexture(texture, resource, PixelFormat.INT_ARGB_PRE, wrapMode, physicalWidth, physicalHeight,
+            ReflectionTextureHelper.fillTexture(texture, resource, PixelFormat.INT_ARGB_PRE, wrapMode, physicalWidth, physicalHeight,
                     contentX, contentY, contentWidth, contentHeight, maxContentWidth, maxContentHeight, useMipmap);
             PrismTrace.rttCreated(resource.getResource().getFboID(),
                     physicalWidth, physicalHeight,

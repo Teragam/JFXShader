@@ -13,7 +13,6 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import javafx.scene.effect.ShaderEffectBase;
-import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.Shape3D;
 
@@ -21,19 +20,17 @@ import com.sun.glass.ui.Screen;
 import com.sun.glass.utils.NativeLibLoader;
 import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
-import com.sun.javafx.scene.paint.MaterialHelper;
 import com.sun.javafx.scene.shape.BoxHelper;
 import com.sun.javafx.scene.shape.CylinderHelper;
 import com.sun.javafx.scene.shape.MeshViewHelper;
 import com.sun.javafx.scene.shape.Shape3DHelper;
 import com.sun.javafx.scene.shape.SphereHelper;
-import com.sun.javafx.sg.prism.NGPhongMaterial;
 import com.sun.javafx.sg.prism.NGShape3D;
 import com.sun.javafx.util.Utils;
-import com.sun.prism.Graphics;
 import com.sun.prism.GraphicsPipeline;
 import com.sun.prism.PixelFormat;
 import com.sun.prism.RTTexture;
+import com.sun.prism.ResourceFactory;
 import com.sun.prism.Texture;
 import com.sun.prism.d3d.D3DRTTextureHelper;
 import com.sun.prism.es2.ES2RTTextureHelper;
@@ -53,10 +50,10 @@ import de.teragam.jfxshader.IEffectRenderer;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.ShaderEffect;
 import de.teragam.jfxshader.ShaderEffectPeer;
+import de.teragam.jfxshader.internal.d3d.IDirect3DDevice9;
 import de.teragam.jfxshader.material.internal.InternalNGBox;
 import de.teragam.jfxshader.material.internal.InternalNGCylinder;
 import de.teragam.jfxshader.material.internal.InternalNGMeshView;
-import de.teragam.jfxshader.material.internal.InternalNGPhongMaterial;
 import de.teragam.jfxshader.material.internal.InternalNGSphere;
 
 public final class ShaderController {
@@ -64,7 +61,7 @@ public final class ShaderController {
     public static final int MAX_BOUND_TEXTURES = 16;
 
     private static final Map<Class<? extends ShaderEffectBase>, IEffectRenderer> EFFECT_RENDERER_MAP = Collections.synchronizedMap(new HashMap<>());
-    private static final Map<Long, IDirect3DDevice9Wrapper> D3D_DEVICE_MAP = new HashMap<>();
+    private static final Map<Long, IDirect3DDevice9> D3D_DEVICE_MAP = new HashMap<>();
     private static Field boundTexturesField;
 
     private ShaderController() {}
@@ -214,26 +211,10 @@ public final class ShaderController {
      */
     public static void ensure3DAccessorInjection() {
         NativeLibLoader.loadLibrary("jfxshader");
-        ShaderController.injectMaterialAccessor();
         ShaderController.injectShape3DAccessor(MeshViewHelper.class, "meshViewAccessor", InternalNGMeshView::new);
         ShaderController.injectShape3DAccessor(SphereHelper.class, "sphereAccessor", InternalNGSphere::new);
         ShaderController.injectShape3DAccessor(BoxHelper.class, "boxAccessor", InternalNGBox::new);
         ShaderController.injectShape3DAccessor(CylinderHelper.class, "cylinderAccessor", InternalNGCylinder::new);
-    }
-
-    private static void injectMaterialAccessor() {
-        Utils.forceInit(MaterialHelper.class);
-        final MaterialHelper.MaterialAccessor accessor = ReflectionHelper.getFieldValue(MaterialHelper.class, "materialAccessor", null);
-        if (Proxy.isProxyClass(accessor.getClass())) {
-            return;
-        }
-        final Object proxy = Proxy.newProxyInstance(accessor.getClass().getClassLoader(), accessor.getClass().getInterfaces(), (p, method, args) -> {
-            if ("getNGMaterial".equals(method.getName()) && ReflectionHelper.<NGPhongMaterial>getFieldValue(PhongMaterial.class, "peer", args[0]) == null) {
-                ReflectionHelper.setFieldValue(PhongMaterial.class, "peer", args[0], new InternalNGPhongMaterial());
-            }
-            return method.invoke(accessor, args);
-        });
-        ReflectionHelper.setFieldValue(MaterialHelper.class, "materialAccessor", null, proxy);
     }
 
     private static void injectShape3DAccessor(Class<? extends Shape3DHelper> helper, String accessorField, Supplier<NGShape3D> shapeClassSupplier) {
@@ -252,8 +233,8 @@ public final class ShaderController {
         ReflectionHelper.setFieldValue(helper, accessorField, null, proxy);
     }
 
-    public static IDirect3DDevice9Wrapper getD3DDevice(Graphics graphics) {
-        return ShaderController.D3D_DEVICE_MAP.computeIfAbsent(D3DRTTextureHelper.getDevice(graphics.getResourceFactory()), IDirect3DDevice9Wrapper::new);
+    public static IDirect3DDevice9 getD3DDevice(ResourceFactory resourceFactory) {
+        return ShaderController.D3D_DEVICE_MAP.computeIfAbsent(D3DRTTextureHelper.getDevice(resourceFactory), IDirect3DDevice9::new);
     }
 
 }

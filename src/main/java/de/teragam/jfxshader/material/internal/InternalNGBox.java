@@ -6,6 +6,6 @@ import com.sun.prism.Graphics;
 public class InternalNGBox extends NGBox {
     @Override
     protected void renderContent(Graphics g) {
-        super.renderContent(g);
+        super.renderContent(MeshProxyHelper.createGraphicsProxy(g, this));
     }
 }

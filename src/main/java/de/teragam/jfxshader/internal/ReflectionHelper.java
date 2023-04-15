@@ -57,7 +57,6 @@ public class ReflectionHelper {
     }
 
     public static <T> MethodInvocationWrapper<T> invokeMethod(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
-
         final Method method = getMethod(clazz, methodName, parameterTypes);
         return (instance, args) -> {
             try {
@@ -66,7 +65,56 @@ public class ReflectionHelper {
                 throw new ShaderException(String.format("Could not invoke method %s of class %s", methodName, clazz.getName()), e);
             }
         };
+    }
 
+    public static Class<?> resolveClass(String className) {
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            throw new ShaderException(String.format("Could not resolve class %s", className), e);
+        }
+    }
+
+    public static <T> T allocateInstance(Class<T> clazz) {
+        final Class<?> unsafeClass = ReflectionHelper.resolveClass("sun.misc.Unsafe");
+        final Object unsafe = ReflectionHelper.getFieldValue(unsafeClass, "theUnsafe", null);
+        return ((MethodInvocationWrapper<T>) ReflectionHelper.invokeMethod(unsafeClass, "allocateInstance", Class.class)).invoke(unsafe, clazz);
+    }
+
+    public static void addOpens(String fullyQualifiedPackageName, String module, Module currentModule) {
+        addOpensOrExports(fullyQualifiedPackageName, module, currentModule, true);
+    }
+
+    public static void addExports(String fullyQualifiedPackageName, String module, Module currentModule) {
+        addOpensOrExports(fullyQualifiedPackageName, module, currentModule, false);
+    }
+
+    private static void addOpensOrExports(String fullyQualifiedPackageName, String module, Module currentModule, boolean open) {
+        try {
+            final Class<?> unsafeClass = ReflectionHelper.resolveClass("sun.misc.Unsafe");
+            final Object unsafe = ReflectionHelper.getFieldValue(unsafeClass, "theUnsafe", null);
+            final Class<?> bootModuleLayerClass = ReflectionHelper.resolveClass("java.lang.ModuleLayer");
+
+            final Object bootModuleLayer = ReflectionHelper.invokeMethod(bootModuleLayerClass, "boot").invoke(null);
+            final Object moduleOpt = ReflectionHelper.invokeMethod(bootModuleLayerClass, "findModule", String.class).invoke(bootModuleLayer, module);
+            if (ReflectionHelper.invokeMethod(moduleOpt.getClass(), "isPresent").invoke(moduleOpt).equals(Boolean.FALSE)) {
+                throw new IllegalStateException("Could not find module " + module);
+            }
+            final Object fMod = ReflectionHelper.invokeMethod(moduleOpt.getClass(), "get").invoke(moduleOpt);
+            final Class<?> moduleImpl = ReflectionHelper.resolveClass("java.lang.Module");
+            final String methodName = open ? "implAddOpens" : "implAddExports";
+            final Method addOpensMethodImpl = ReflectionHelper.getMethod(moduleImpl, methodName, String.class, moduleImpl);
+            class OffsetProvider {
+                int first;
+            }
+            final long firstFieldOffset = (long) ReflectionHelper.invokeMethod(unsafe.getClass(), "objectFieldOffset", Field.class)
+                    .invoke(unsafe, OffsetProvider.class.getDeclaredField("first"));
+            ReflectionHelper.invokeMethod(unsafe.getClass(), "putBooleanVolatile", Object.class, long.class, boolean.class)
+                    .invoke(unsafe, addOpensMethodImpl, firstFieldOffset, true);
+            addOpensMethodImpl.invoke(fMod, fullyQualifiedPackageName, currentModule);
+        } catch (ReflectiveOperationException ex) {
+            throw new ShaderException("Could not add opens or exports", ex);
+        }
     }
 
     public interface MethodInvocationWrapper<T> {
@@ -86,13 +134,17 @@ public class ReflectionHelper {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || this.getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || this.getClass() != o.getClass()) {
+                return false;
+            }
 
             final MethodCache that = (MethodCache) o;
-
-            if (!Objects.equals(this.clazz, that.clazz)) return false;
-            if (!Objects.equals(this.methodName, that.methodName)) return false;
+            if (!Objects.equals(this.clazz, that.clazz) || !Objects.equals(this.methodName, that.methodName)) {
+                return false;
+            }
             // Probably incorrect - comparing Object[] arrays with Arrays.equals
             return Arrays.equals(this.parameterTypes, that.parameterTypes);
         }

@@ -6,6 +6,7 @@ import com.sun.prism.Texture;
 import com.sun.prism.impl.BaseResourceFactory;
 import com.sun.prism.impl.PrismSettings;
 
+import de.teragam.jfxshader.internal.ReflectionHelper;
 import de.teragam.jfxshader.internal.ReflectionTextureHelper;
 import de.teragam.jfxshader.internal.TextureCreationException;
 
@@ -42,9 +43,9 @@ public class D3DRTTextureHelper {
 
         final int textureWidth = D3DResourceFactory.nGetTextureWidth(pResource);
         final int textureHeight = D3DResourceFactory.nGetTextureHeight(pResource);
-        final D3DRTTexture rtt = ReflectionTextureHelper.getInstance().allocateInstance(D3DRTTexture.class);
+        final D3DRTTexture rtt = ReflectionHelper.allocateInstance(D3DRTTexture.class);
         final D3DTextureResource resource = new D3DTextureResource(new D3DTextureData(context, pResource, true, textureWidth, textureHeight, format, 0));
-        ReflectionTextureHelper.getInstance().fillTexture(rtt, resource, PixelFormat.INT_ARGB_PRE, wrapMode, textureWidth, textureHeight, 0, 0, width, height,
+        ReflectionTextureHelper.fillTexture(rtt, resource, PixelFormat.INT_ARGB_PRE, wrapMode, textureWidth, textureHeight, 0, 0, width, height,
                 textureWidth, textureHeight, useMipmap);
         rtt.setOpaque(false);
         rtt.createGraphics().clear();

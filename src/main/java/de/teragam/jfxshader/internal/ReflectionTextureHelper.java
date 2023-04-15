@@ -7,35 +7,12 @@ import com.sun.prism.impl.ManagedResource;
 
 public class ReflectionTextureHelper {
 
-    private static ReflectionTextureHelper instance;
+    private ReflectionTextureHelper() {}
 
-    private final Object unsafe;
-    private final ReflectionHelper.MethodInvocationWrapper<?> allocateInstanceMethod;
-
-    private ReflectionTextureHelper() {
-        try {
-            final Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
-            this.unsafe = ReflectionHelper.getFieldValue(unsafeClass, "theUnsafe", null);
-            this.allocateInstanceMethod = ReflectionHelper.invokeMethod(unsafeClass, "allocateInstance", Class.class);
-        } catch (ReflectiveOperationException e) {
-            throw new ShaderException("Could not initialize ReflectiveTextureHelper", e);
-        }
-    }
-
-    public static ReflectionTextureHelper getInstance() {
-        if (ReflectionTextureHelper.instance == null) {
-            ReflectionTextureHelper.instance = new ReflectionTextureHelper();
-        }
-        return ReflectionTextureHelper.instance;
-    }
-
-    public <T> T allocateInstance(Class<T> clazz) {
-        return (T) this.allocateInstanceMethod.invoke(this.unsafe, clazz);
-    }
-
-    public <T extends ManagedResource<?>> void fillTexture(BaseTexture<T> texture, T resource, PixelFormat format, Texture.WrapMode wrapMode,
-                                                           int physicalWidth, int physicalHeight, int contentX, int contentY,
-                                                           int contentWidth, int contentHeight, int maxContentWidth, int maxContentHeight, boolean useMipmap) {
+    public static <T extends ManagedResource<?>> void fillTexture(BaseTexture<T> texture, T resource, PixelFormat format, Texture.WrapMode wrapMode,
+                                                                  int physicalWidth, int physicalHeight, int contentX, int contentY,
+                                                                  int contentWidth, int contentHeight, int maxContentWidth, int maxContentHeight,
+                                                                  boolean useMipmap) {
         try {
             ReflectionHelper.setFieldValue(BaseTexture.class, "resource", texture, resource);
             ReflectionHelper.setFieldValue(BaseTexture.class, "format", texture, format);
@@ -54,5 +31,4 @@ public class ReflectionTextureHelper {
             throw new ShaderException("Could not fill texture", e);
         }
     }
-
 }
