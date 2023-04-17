@@ -10,15 +10,15 @@ import com.sun.prism.Mesh;
 import com.sun.prism.MeshView;
 import com.sun.prism.ResourceFactory;
 
-import de.teragam.jfxshader.internal.ReflectionHelper;
+import de.teragam.jfxshader.internal.Reflect;
 
 public final class MeshProxyHelper {
 
     private MeshProxyHelper() {}
 
     public static Graphics createGraphicsProxy(Graphics g, NGShape3D shape) {
-        final NGPhongMaterial material = ReflectionHelper.getFieldValue(NGShape3D.class, "material", shape);
-        final MeshView meshView = ReflectionHelper.getFieldValue(NGShape3D.class, "meshView", shape);
+        final NGPhongMaterial material = Reflect.on(NGShape3D.class).getFieldValue("material", shape);
+        final MeshView meshView = Reflect.on(NGShape3D.class).getFieldValue("meshView", shape);
         if (!(material instanceof InternalNGPhongMaterial)) {
             if (meshView instanceof ShaderMeshView) {
                 MeshProxyHelper.resetShape(shape);
@@ -45,22 +45,22 @@ public final class MeshProxyHelper {
     }
 
     private static void resetShape(NGShape3D shape) {
-        final MeshView meshView = ReflectionHelper.getFieldValue(NGShape3D.class, "meshView", shape);
+        final MeshView meshView = Reflect.on(NGShape3D.class).getFieldValue("meshView", shape);
         if (meshView != null) {
             meshView.dispose();
-            ReflectionHelper.setFieldValue(NGShape3D.class, "meshView", shape, null);
-            final NGTriangleMesh mesh = ReflectionHelper.getFieldValue(NGShape3D.class, "mesh", shape);
+            Reflect.on(NGShape3D.class).setFieldValue("meshView", shape, null);
+            final NGTriangleMesh mesh = Reflect.on(NGShape3D.class).getFieldValue("mesh", shape);
             if (mesh != null) {
-                final Mesh internalMesh = ReflectionHelper.getFieldValue(NGTriangleMesh.class, "mesh", mesh);
+                final Mesh internalMesh = Reflect.on(NGTriangleMesh.class).getFieldValue("mesh", mesh);
                 if (internalMesh != null) {
                     internalMesh.dispose();
-                    ReflectionHelper.setFieldValue(NGTriangleMesh.class, "mesh", mesh, null);
+                    Reflect.on(NGTriangleMesh.class).setFieldValue("mesh", mesh, null);
                 }
             }
         }
-        final NGPhongMaterial material = ReflectionHelper.getFieldValue(NGShape3D.class, "material", shape);
-        if (material != null && ReflectionHelper.getFieldValue(NGPhongMaterial.class, "material", material) != null) {
-            ReflectionHelper.invokeMethod(NGPhongMaterial.class, "disposeMaterial").invoke(material);
+        final NGPhongMaterial material = Reflect.on(NGShape3D.class).getFieldValue("material", shape);
+        if (material != null && Reflect.on(NGPhongMaterial.class).getFieldValue("material", material) != null) {
+            Reflect.on(NGPhongMaterial.class).invokeMethod("disposeMaterial").invoke(material);
         }
     }
 

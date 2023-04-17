@@ -1,4 +1,4 @@
-package com.sun.scenario.effect.impl.prism.ps;
+package de.teragam.jfxshader.internal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,6 +10,7 @@ import java.util.function.BiFunction;
 import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
 import com.sun.prism.PixelFormat;
+import com.sun.prism.RTTexture;
 import com.sun.prism.Texture;
 import com.sun.prism.impl.BaseContext;
 import com.sun.prism.impl.BaseGraphics;
@@ -21,21 +22,16 @@ import com.sun.prism.ps.Shader;
 import com.sun.prism.ps.ShaderGraphics;
 import com.sun.scenario.effect.Effect;
 import com.sun.scenario.effect.ImageData;
-import com.sun.scenario.effect.InternalCoreEffectBase;
 import com.sun.scenario.effect.impl.EffectPeer;
-import com.sun.scenario.effect.impl.PolicyBasedImagePool;
 import com.sun.scenario.effect.impl.PoolFilterable;
 import com.sun.scenario.effect.impl.prism.PrDrawable;
+import com.sun.scenario.effect.impl.prism.ps.PPSDrawable;
+import com.sun.scenario.effect.impl.prism.ps.PPSRenderer;
 import com.sun.scenario.effect.impl.state.RenderState;
 
 import de.teragam.jfxshader.ImagePoolPolicy;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.ShaderEffect;
-import de.teragam.jfxshader.internal.ReflectionHelper;
-import de.teragam.jfxshader.internal.ShaderController;
-import de.teragam.jfxshader.internal.ShaderEffectPeerConfig;
-import de.teragam.jfxshader.internal.ShaderException;
-import de.teragam.jfxshader.internal.TextureCreationException;
 
 public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends ShaderEffect> extends EffectPeer<T> {
 
@@ -55,7 +51,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         super(options.getFilterContext(), options.getRenderer(), options.getShaderName());
         this.textureCoords = new ArrayList<>();
         this.config = Objects.requireNonNull(options, "ShaderEffectPeerConfig must not be null");
-        this.checkTextureOpMask = ReflectionHelper.getFieldValue(BaseShaderContext.class, "CHECK_TEXTURE_OP_MASK", null);
+        this.checkTextureOpMask = Reflect.on(BaseShaderContext.class).getFieldValue("CHECK_TEXTURE_OP_MASK", null);
     }
 
     @Override
@@ -126,7 +122,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
                 this.config.isTargetMipmaps(), this.config.getTargetPoolPolicy());
         this.drawable = dst;
         if (dst == null) {
-            renderer.markLost();
+            this.markLost(renderer);
             return new ImageData(this.getFilterContext(), null, dstBounds);
         }
         this.setDestNativeBounds(dst.getPhysicalWidth(), dst.getPhysicalHeight());
@@ -138,7 +134,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         for (int i = 0; i < Math.min(inputs.length, 2); i++) {
             final PrDrawable srcTexture = (PrDrawable) inputs[i].getUntransformedImage();
             if (srcTexture == null || srcTexture.getTextureObject() == null) {
-                renderer.markLost();
+                this.markLost(renderer);
                 return new ImageData(this.getFilterContext(), dst, dstBounds);
             }
             final Rectangle srcBounds = inputs[i].getUntransformedBounds();
@@ -171,21 +167,21 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         for (int i = 2; i < Math.min(inputs.length, ShaderController.MAX_BOUND_TEXTURES); i++) {
             final PrDrawable srcTexture = (PrDrawable) inputs[i].getUntransformedImage();
             if (srcTexture == null || srcTexture.getTextureObject() == null) {
-                renderer.markLost();
+                this.markLost(renderer);
                 return new ImageData(this.getFilterContext(), dst, dstBounds);
             }
             textures.add(srcTexture.getTextureObject());
         }
         final ShaderGraphics g = dst.createGraphics();
         if (g == null) {
-            renderer.markLost();
+            this.markLost(renderer);
             return new ImageData(this.getFilterContext(), dst, dstBounds);
         }
         if (this.shader == null) {
             this.shader = this.createShader();
         }
         if (this.shader == null || !this.shader.isValid()) {
-            renderer.markLost();
+            this.markLost(renderer);
             return new ImageData(this.getFilterContext(), dst, dstBounds);
         }
         g.setExternalShader(this.shader);
@@ -195,22 +191,26 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         return new ImageData(this.getFilterContext(), dst, dstBounds);
     }
 
+    private void markLost(PPSRenderer renderer) {
+        Reflect.on(PPSRenderer.class).invokeMethod("markLost").invoke(renderer);
+    }
+
     private void drawTextures(float dx2, float dy2, List<Texture> textures, List<float[]> coords, List<Integer> coordLength, BaseShaderGraphics g) {
         final BaseTransform xform = g.getTransformNoClone();
         if (textures.isEmpty()) {
             return;
         }
-        final BaseContext context = ReflectionHelper.getFieldValue(BaseGraphics.class, "context", g);
+        final BaseContext context = Reflect.on(BaseGraphics.class).getFieldValue("context", g);
         if (context.isDisposed() || !(context instanceof BaseShaderContext)) {
             return;
         }
         ShaderController.ensureTextureCapacity(this.getFilterContext(), (BaseShaderContext) context);
-        ReflectionHelper.invokeMethod(BaseShaderContext.class, "checkState", BaseShaderGraphics.class, int.class, BaseTransform.class,
+        Reflect.on(BaseShaderContext.class).invokeMethod("checkState", BaseShaderGraphics.class, int.class, BaseTransform.class,
                 Shader.class).invoke(context, g, this.checkTextureOpMask, xform, this.shader);
         for (int i = 0; i < Math.min(textures.size(), ShaderController.MAX_BOUND_TEXTURES); i++) {
-            ReflectionHelper.invokeMethod(BaseShaderContext.class, "setTexture", int.class, Texture.class).invoke(context, i, textures.get(i));
+            Reflect.on(BaseShaderContext.class).invokeMethod("setTexture", int.class, Texture.class).invoke(context, i, textures.get(i));
         }
-        ReflectionHelper.invokeMethod(BaseShaderContext.class, "updatePerVertexColor", Paint.class, float.class).invoke(context, null, g.getExtraAlpha());
+        Reflect.on(BaseShaderContext.class).invokeMethod("updatePerVertexColor", Paint.class, float.class).invoke(context, null, g.getExtraAlpha());
         final VertexBuffer vb = context.getVertexBuffer();
         switch (coords.size()) {
             case 0:
@@ -245,7 +245,8 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
                     return null;
                 }
                 try {
-                    return PPSDrawable.create(ShaderController.createRTTexture(this.getFilterContext(), format, wrapMode, w, h, mipmaps));
+                    return (PPSDrawable) Reflect.on(PPSDrawable.class).invokeMethod("create", RTTexture.class)
+                            .invoke(null, ShaderController.createRTTexture(this.getFilterContext(), format, wrapMode, w, h, mipmaps));
                 } catch (TextureCreationException e) {
                     return null;
                 }
@@ -282,7 +283,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
 
     private boolean validateRenderer() {
         try {
-            return (boolean) ReflectionHelper.invokeMethod(PPSRenderer.class, "validate").invoke(this.getRenderer());
+            return (boolean) Reflect.on(PPSRenderer.class).invokeMethod("validate").invoke(this.getRenderer());
         } catch (ShaderException ignored) {
             return false;
         }

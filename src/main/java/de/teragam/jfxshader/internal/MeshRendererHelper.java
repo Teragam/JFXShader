@@ -27,11 +27,11 @@ public final class MeshRendererHelper {
     private MeshRendererHelper() {}
 
     public static void renderMeshView(MeshView meshView, Graphics g) {
-        final PhongMaterial material = ReflectionHelper.getFieldValue(meshView.getClass(), "material", meshView);
+        final PhongMaterial material = Reflect.on(meshView.getClass()).getFieldValue("material", meshView);
         material.lockTextureMaps();
         if (g instanceof MeshProxyHelper.GraphicsHelper && meshView instanceof ShaderMeshView) {
-            final BaseContext context = ReflectionHelper.getFieldValue(BaseGraphics.class, "context", ((MeshProxyHelper.GraphicsHelper) g).getRawGraphics());
-            ReflectionHelper.invokeMethod(context.getClass(), "renderMeshView", long.class, Graphics.class).invoke(context, 0, g);
+            final BaseContext context = Reflect.on(BaseGraphics.class).getFieldValue("context", ((MeshProxyHelper.GraphicsHelper) g).getRawGraphics());
+            Reflect.on(context.getClass()).invokeMethod("renderMeshView", long.class, Graphics.class).invoke(context, 0, g);
             nativeRenderMeshView(((MeshProxyHelper.GraphicsHelper) g).getRawGraphics(), (ShaderBaseMesh) ((ShaderMeshView) meshView).getMesh(),
                     ((ShaderMeshView) meshView));
         }

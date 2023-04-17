@@ -6,7 +6,6 @@ import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
 import com.sun.scenario.effect.FilterContext;
 import com.sun.scenario.effect.ImageData;
-import com.sun.scenario.effect.InternalCoreEffectBase;
 import com.sun.scenario.effect.impl.state.RenderState;
 
 public class InternalEffect extends InternalCoreEffectBase {

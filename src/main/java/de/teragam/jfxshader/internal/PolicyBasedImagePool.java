@@ -1,4 +1,4 @@
-package com.sun.scenario.effect.impl;
+package de.teragam.jfxshader.internal;
 
 import java.lang.ref.SoftReference;
 import java.util.Iterator;
@@ -6,28 +6,30 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 import com.sun.prism.Texture;
+import com.sun.scenario.effect.impl.ImagePool;
+import com.sun.scenario.effect.impl.PoolFilterable;
+import com.sun.scenario.effect.impl.Renderer;
 import com.sun.scenario.effect.impl.prism.PrTexture;
 
 import de.teragam.jfxshader.ImagePoolPolicy;
-import de.teragam.jfxshader.internal.ReflectionHelper;
-import de.teragam.jfxshader.internal.ShaderException;
 
-public class PolicyBasedImagePool extends ImagePool {
+public class PolicyBasedImagePool {
 
+    private final ImagePool imagePool;
     private final List<SoftReference<PoolFilterable>> unlocked;
     private final List<SoftReference<PoolFilterable>> locked;
 
 
     public PolicyBasedImagePool() {
+        this.imagePool = Reflect.on(ImagePool.class).createInstance().create();
         try {
-            this.unlocked = ReflectionHelper.getFieldValue(ImagePool.class, "unlocked", this);
-            this.locked = ReflectionHelper.getFieldValue(ImagePool.class, "locked", this);
+            this.unlocked = Reflect.on(ImagePool.class).getFieldValue("unlocked", this.imagePool);
+            this.locked = Reflect.on(ImagePool.class).getFieldValue("locked", this.imagePool);
         } catch (ShaderException e) {
             throw new ShaderException("Failed to initialize PixelFormatImagePool", e);
         }
     }
 
-    @Override
     public synchronized PoolFilterable checkOut(Renderer renderer, int w, int h) {
         return this.checkOut(renderer, w, h, false, renderer::createCompatibleImage, ImagePoolPolicy.LENIENT);
     }
@@ -41,8 +43,12 @@ public class PolicyBasedImagePool extends ImagePool {
         w = renderer.getCompatibleWidth(((w + quant - 1) / quant) * quant);
         h = renderer.getCompatibleHeight(((h + quant - 1) / quant) * quant);
 
-        ImagePool.numAccessed++;
-        ImagePool.pixelsAccessed += ((long) w) * h;
+        final int finalW = w;
+        final int finalH = h;
+
+        Reflect.on(ImagePool.class).processFieldValue("numAccessed", null, numCheckedOut -> (long) numCheckedOut + 1);
+        Reflect.on(ImagePool.class).processFieldValue("pixelsAccessed", null, pixelsAccessed -> (long) pixelsAccessed + ((long) finalW) * finalH);
+
         SoftReference<PoolFilterable> chosenEntry = null;
         PoolFilterable chosenImage = null;
         int minDiff = Integer.MAX_VALUE;
@@ -59,7 +65,7 @@ public class PolicyBasedImagePool extends ImagePool {
                 final boolean lenient = ew >= w && eh >= h && ew * eh / 2 <= w * h && (chosenEntry == null || diff < minDiff);
                 final boolean exact = ew == w && eh == h;
                 if ((policy.isApproximateMatch() && lenient) || (!policy.isApproximateMatch() && exact)) {
-                    final Texture tex = ReflectionHelper.getFieldValue(PrTexture.class, "tex", filterable);
+                    final Texture tex = Reflect.on(PrTexture.class).getFieldValue("tex", filterable);
                     if (tex.getUseMipmap() == targetMipmaps) {
                         filterable.lock();
                         if (filterable.isLost()) {
@@ -93,7 +99,7 @@ public class PolicyBasedImagePool extends ImagePool {
         try {
             img = drawableSupplier.apply(w, h);
         } catch (OutOfMemoryError ignored) {
-            ReflectionHelper.invokeMethod(ImagePool.class, "pruneCache").invoke(null);
+            Reflect.on(ImagePool.class).invokeMethod("pruneCache").invoke(null);
             try {
                 img = drawableSupplier.apply(w, h);
             } catch (OutOfMemoryError ignoredEx) {
@@ -102,10 +108,10 @@ public class PolicyBasedImagePool extends ImagePool {
         }
 
         if (img != null) {
-            img.setImagePool(this);
+            img.setImagePool(this.imagePool);
             this.locked.add(new SoftReference<>(img));
-            ImagePool.numCreated++;
-            ImagePool.pixelsCreated += ((long) w) * h;
+            Reflect.on(ImagePool.class).processFieldValue("numCreated", null, numCreated -> (long) numCreated + 1);
+            Reflect.on(ImagePool.class).processFieldValue("pixelsCreated", null, pixelsCreated -> (long) pixelsCreated + ((long) finalW) * finalH);
         }
         return img;
     }

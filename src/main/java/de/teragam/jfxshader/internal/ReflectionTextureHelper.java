@@ -14,18 +14,19 @@ public class ReflectionTextureHelper {
                                                                   int contentWidth, int contentHeight, int maxContentWidth, int maxContentHeight,
                                                                   boolean useMipmap) {
         try {
-            ReflectionHelper.setFieldValue(BaseTexture.class, "resource", texture, resource);
-            ReflectionHelper.setFieldValue(BaseTexture.class, "format", texture, format);
-            ReflectionHelper.setFieldValue(BaseTexture.class, "wrapMode", texture, wrapMode);
-            ReflectionHelper.setFieldValue(BaseTexture.class, "physicalWidth", texture, physicalWidth);
-            ReflectionHelper.setFieldValue(BaseTexture.class, "physicalHeight", texture, physicalHeight);
-            ReflectionHelper.setFieldValue(BaseTexture.class, "contentX", texture, contentX);
-            ReflectionHelper.setFieldValue(BaseTexture.class, "contentY", texture, contentY);
-            ReflectionHelper.setFieldValue(BaseTexture.class, "contentWidth", texture, contentWidth);
-            ReflectionHelper.setFieldValue(BaseTexture.class, "contentHeight", texture, contentHeight);
-            ReflectionHelper.setFieldValue(BaseTexture.class, "maxContentWidth", texture, maxContentWidth);
-            ReflectionHelper.setFieldValue(BaseTexture.class, "maxContentHeight", texture, maxContentHeight);
-            ReflectionHelper.setFieldValue(BaseTexture.class, "useMipmap", texture, useMipmap);
+            final Reflect reflect = Reflect.on(BaseTexture.class);
+            reflect.setFieldValue("resource", texture, resource);
+            reflect.setFieldValue("format", texture, format);
+            reflect.setFieldValue("wrapMode", texture, wrapMode);
+            reflect.setFieldValue("physicalWidth", texture, physicalWidth);
+            reflect.setFieldValue("physicalHeight", texture, physicalHeight);
+            reflect.setFieldValue("contentX", texture, contentX);
+            reflect.setFieldValue("contentY", texture, contentY);
+            reflect.setFieldValue("contentWidth", texture, contentWidth);
+            reflect.setFieldValue("contentHeight", texture, contentHeight);
+            reflect.setFieldValue("maxContentWidth", texture, maxContentWidth);
+            reflect.setFieldValue("maxContentHeight", texture, maxContentHeight);
+            reflect.setFieldValue("useMipmap", texture, useMipmap);
             texture.setLinearFiltering(true);
         } catch (ShaderException e) {
             throw new ShaderException("Could not fill texture", e);
