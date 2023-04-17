@@ -19,8 +19,12 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
         return new ShaderDeclaration(null, null, es2Source, ShaderMaterialPeer.class.getResourceAsStream("/hlsl/Mtl1VS.obj"));
     }
 
+    public void filter(Shader vertexShader, Shader pixelShader, ShaderMaterial material) {
+        this.updateShader(vertexShader, pixelShader, (T) material);
+    }
+
     public abstract ShaderDeclaration createPixelShaderDeclaration();
 
-    public abstract void updateShader(Shader vertexShader, Shader pixelShader, T material);
+    protected abstract void updateShader(Shader vertexShader, Shader pixelShader, T material);
 
 }

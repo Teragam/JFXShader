@@ -2,33 +2,20 @@ package de.teragam.jfxshader.internal;
 
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 import javafx.scene.effect.ShaderEffectBase;
-import javafx.scene.shape.MeshView;
-import javafx.scene.shape.Shape3D;
 
 import com.sun.glass.ui.Screen;
-import com.sun.glass.utils.NativeLibLoader;
 import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
-import com.sun.javafx.scene.shape.BoxHelper;
-import com.sun.javafx.scene.shape.CylinderHelper;
-import com.sun.javafx.scene.shape.MeshViewHelper;
-import com.sun.javafx.scene.shape.Shape3DHelper;
-import com.sun.javafx.scene.shape.SphereHelper;
-import com.sun.javafx.sg.prism.NGShape3D;
-import com.sun.javafx.util.Utils;
 import com.sun.prism.GraphicsPipeline;
 import com.sun.prism.PixelFormat;
 import com.sun.prism.RTTexture;
-import com.sun.prism.ResourceFactory;
 import com.sun.prism.Texture;
 import com.sun.prism.impl.BaseResourceFactory;
 import com.sun.prism.impl.ps.BaseShaderContext;
@@ -47,19 +34,13 @@ import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.ShaderEffect;
 import de.teragam.jfxshader.ShaderEffectPeer;
 import de.teragam.jfxshader.internal.d3d.D3DRTTextureHelper;
-import de.teragam.jfxshader.internal.d3d.IDirect3DDevice9;
 import de.teragam.jfxshader.internal.es2.ES2RTTextureHelper;
-import de.teragam.jfxshader.material.internal.InternalNGBox;
-import de.teragam.jfxshader.material.internal.InternalNGCylinder;
-import de.teragam.jfxshader.material.internal.InternalNGMeshView;
-import de.teragam.jfxshader.material.internal.InternalNGSphere;
 
 public final class ShaderController {
 
     public static final int MAX_BOUND_TEXTURES = 16;
 
     private static final Map<Class<? extends ShaderEffectBase>, IEffectRenderer> EFFECT_RENDERER_MAP = Collections.synchronizedMap(new HashMap<>());
-    private static final Map<Long, IDirect3DDevice9> D3D_DEVICE_MAP = new HashMap<>();
     private static Field boundTexturesField;
 
     private ShaderController() {}
@@ -195,39 +176,6 @@ public final class ShaderController {
                                        RenderState rstate, ImageData... inputs) {
         return Renderer.getRenderer(fctx).getPeerInstance(fctx, Objects.requireNonNull(peerName, "Peer name cannot be null"), -1)
                 .filter(effect, rstate, transform, outputClip, inputs);
-    }
-
-    /**
-     * Replaces the internal {@link Shape3DHelper} accessors with custom accessors that support custom 3D shaders.
-     * To allow for custom shaders on default {@link MeshView} instances, this injection must be performed before any {@link Shape3D} is rendered.
-     * Otherwise, only {@link Shape3D} instances created after this injection will support custom shaders.
-     */
-    public static void ensure3DAccessorInjection() {
-        NativeLibLoader.loadLibrary("jfxshader");
-        ShaderController.injectShape3DAccessor(MeshViewHelper.class, "meshViewAccessor", InternalNGMeshView::new);
-        ShaderController.injectShape3DAccessor(SphereHelper.class, "sphereAccessor", InternalNGSphere::new);
-        ShaderController.injectShape3DAccessor(BoxHelper.class, "boxAccessor", InternalNGBox::new);
-        ShaderController.injectShape3DAccessor(CylinderHelper.class, "cylinderAccessor", InternalNGCylinder::new);
-    }
-
-    private static void injectShape3DAccessor(Class<? extends Shape3DHelper> helper, String accessorField, Supplier<NGShape3D> shapeClassSupplier) {
-        Utils.forceInit(helper);
-        final Object accessor = Reflect.on(helper).getFieldValue(accessorField, null);
-        if (Proxy.isProxyClass(accessor.getClass())) {
-            return;
-        }
-        final Object proxy = Proxy.newProxyInstance(accessor.getClass().getClassLoader(), accessor.getClass().getInterfaces(), (p, method, args) -> {
-            if ("doCreatePeer".equals(method.getName())) {
-                return shapeClassSupplier.get();
-            } else {
-                return method.invoke(accessor, args);
-            }
-        });
-        Reflect.on(helper).setFieldValue(accessorField, null, proxy);
-    }
-
-    public static IDirect3DDevice9 getD3DDevice(ResourceFactory resourceFactory) {
-        return ShaderController.D3D_DEVICE_MAP.computeIfAbsent(D3DRTTextureHelper.getDevice(resourceFactory), IDirect3DDevice9::new);
     }
 
 }

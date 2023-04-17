@@ -40,14 +40,15 @@ public class ES2RTTextureHelper {
         }
 
         final BaseShaderContext es2Context = ReflectionES2Helper.getInstance().getContext(factory);
-        final Object glContext = ES2RTTextureHelper.getGLContext(factory);
+        final GLContext proxy = Reflect.createProxy(ES2RTTextureHelper.getGLContext(factory), GLContext.class);
+
         final boolean pad;
         switch (wrapMode) {
             case CLAMP_NOT_NEEDED:
                 pad = false;
                 break;
             case CLAMP_TO_ZERO:
-                pad = !(boolean) Reflect.on(glContext.getClass()).invokeMethod("canClampToZero").invoke(glContext);
+                pad = !proxy.canClampToZero();
                 break;
             default:
             case CLAMP_TO_EDGE:
@@ -76,10 +77,10 @@ public class ES2RTTextureHelper {
             paddedH = height;
         }
 
-        final int maxSize = (int) Reflect.on(glContext.getClass()).invokeMethod("getMaxTextureSize").invoke(glContext);
+        final int maxSize = proxy.getMaxTextureSize();
         int texWidth;
         int texHeight;
-        if ((boolean) Reflect.on(glContext.getClass()).invokeMethod("canCreateNonPowTwoTextures").invoke(glContext)) {
+        if (proxy.canCreateNonPowTwoTextures()) {
             texWidth = (paddedW <= maxSize) ? paddedW : 0;
             texHeight = (paddedH <= maxSize) ? paddedH : 0;
         } else {
@@ -102,27 +103,27 @@ public class ES2RTTextureHelper {
             throw new TextureCreationException("Failed to create texture: Not enough VRAM.");
         }
 
-        Reflect.on(glContext.getClass()).invokeMethod("setActiveTextureUnit", int.class).invoke(glContext, 0);
-        final int savedFBO = (int) Reflect.on(glContext.getClass()).invokeMethod("getBoundFBO").invoke(glContext);
-        final int savedTex = (int) Reflect.on(glContext.getClass()).invokeMethod("getBoundTexture").invoke(glContext);
+        proxy.setActiveTextureUnit(0);
+        final int savedFBO = proxy.getBoundFBO();
+        final int savedTex = proxy.getBoundTexture();
 
-        final int nativeTexID = (int) Reflect.on(glContext.getClass()).invokeMethod("genAndBindTexture").invoke(glContext);
+        final int nativeTexID = proxy.genAndBindTexture();
         if (nativeTexID == 0L) {
             throw new TextureCreationException("Failed to create texture.");
         }
 
         final boolean result = ReflectionES2Helper.getInstance()
-                .uploadPixels(glContext, GL_TEXTURE_2D, null, format, texWidth, texHeight, contentX,
+                .uploadPixels(proxy.getObject(), GL_TEXTURE_2D, null, format, texWidth, texHeight, contentX,
                         contentY, 0, 0, width, height, 0, true, useMipmap);
         if (!result) {
             throw new TextureCreationException("Failed to create texture.");
         }
 
-        Reflect.on(glContext.getClass()).invokeMethod("texParamsMinMax").invoke(glContext, GL_LINEAR, useMipmap);
+        proxy.texParamsMinMax(GL_LINEAR, useMipmap);
 
-        final int nativeFBOID = (int) Reflect.on(glContext.getClass()).invokeMethod("createFBO").invoke(glContext, nativeTexID);
+        final int nativeFBOID = proxy.createFBO(nativeTexID);
         if (nativeFBOID == 0) {
-            Reflect.on(glContext.getClass()).invokeMethod("deleteTexture").invoke(glContext, nativeTexID);
+            proxy.deleteTexture(nativeTexID);
             throw new TextureCreationException("Failed to attach FBO to texture.");
         }
 
@@ -137,8 +138,8 @@ public class ES2RTTextureHelper {
                 .createTexture(es2Context, texRes, format, wrapMode, texWidth, texHeight, contentX, contentY, width, height, maxContentW, maxContentH,
                         useMipmap);
 
-        Reflect.on(glContext.getClass()).invokeMethod("bindFBO").invoke(glContext, savedFBO);
-        Reflect.on(glContext.getClass()).invokeMethod("setBoundTexture").invoke(glContext, savedTex);
+        proxy.bindFBO(savedFBO);
+        proxy.setBoundTexture(savedTex);
         return es2RTT;
     }
 

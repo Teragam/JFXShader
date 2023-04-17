@@ -3,6 +3,7 @@ package de.teragam.jfxshader.internal;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -238,6 +239,26 @@ public class Reflect<C> {
             result = 31 * result + Arrays.hashCode(this.parameterTypes);
             return result;
         }
+    }
+
+    public interface ReflectProxy {
+
+        /**
+         * @return the object that is proxied by this proxy
+         */
+        Object getObject();
+
+    }
+
+    public static <P extends ReflectProxy> P createProxy(Object object, Class<P> proxyInterface) {
+        final Reflect<?> reflect = Reflect.on(object.getClass());
+        return (P) Proxy.newProxyInstance(proxyInterface.getClassLoader(), proxyInterface.getInterfaces(), (proxy, method, args) -> {
+            if ("getObject".equals(method.getName())) {
+                return object;
+            } else {
+                return reflect.invokeMethod(method.getName(), method.getParameterTypes()).invoke(object, args);
+            }
+        });
     }
 
 }

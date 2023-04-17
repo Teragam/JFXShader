@@ -6,6 +6,8 @@ import com.sun.prism.Texture;
 import com.sun.prism.TextureMap;
 import com.sun.prism.impl.BasePhongMaterial;
 
+import de.teragam.jfxshader.material.ShaderMaterial;
+
 //TODO: Temporary implementation to test the shader material
 public class InternalBasePhongMaterial extends BasePhongMaterial {
     static int count = 0;
@@ -13,10 +15,17 @@ public class InternalBasePhongMaterial extends BasePhongMaterial {
 
     private final ResourceFactory factory;
 
-    public InternalBasePhongMaterial(ResourceFactory factory) {
+    private final ShaderMaterial material;
+
+    public InternalBasePhongMaterial(ResourceFactory factory, ShaderMaterial material) {
         super(() -> {});
         this.factory = factory;
         count++;
+        this.material = material;
+    }
+
+    public ShaderMaterial getShaderMaterial() {
+        return this.material;
     }
 
     @Override

@@ -3,7 +3,7 @@ package de.teragam.jfxshader.material.internal;
 import com.sun.prism.ResourceFactory;
 import com.sun.prism.impl.BaseMesh;
 
-import de.teragam.jfxshader.internal.ShaderController;
+import de.teragam.jfxshader.internal.MaterialController;
 
 public class ShaderBaseMesh extends BaseMesh {
 
@@ -22,7 +22,7 @@ public class ShaderBaseMesh extends BaseMesh {
     }
 
     public static ShaderBaseMesh create(ResourceFactory resourceFactory) {
-        return new ShaderBaseMesh(new D3DBaseMeshHelper(ShaderController.getD3DDevice(resourceFactory)));
+        return new ShaderBaseMesh(new D3DBaseMeshHelper(MaterialController.getD3DDevice(resourceFactory)));
     }
 
     @Override

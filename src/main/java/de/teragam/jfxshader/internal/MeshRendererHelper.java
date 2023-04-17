@@ -17,6 +17,8 @@ import com.sun.scenario.effect.impl.prism.PrFilterContext;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.internal.d3d.D3D9Types;
 import de.teragam.jfxshader.internal.d3d.IDirect3DDevice9;
+import de.teragam.jfxshader.material.ShaderMaterial;
+import de.teragam.jfxshader.material.ShaderMaterialPeer;
 import de.teragam.jfxshader.material.internal.D3DBaseMeshHelper;
 import de.teragam.jfxshader.material.internal.MeshProxyHelper;
 import de.teragam.jfxshader.material.internal.ShaderBaseMesh;
@@ -30,10 +32,11 @@ public final class MeshRendererHelper {
         final PhongMaterial material = Reflect.on(meshView.getClass()).getFieldValue("material", meshView);
         material.lockTextureMaps();
         if (g instanceof MeshProxyHelper.GraphicsHelper && meshView instanceof ShaderMeshView) {
-            final BaseContext context = Reflect.on(BaseGraphics.class).getFieldValue("context", ((MeshProxyHelper.GraphicsHelper) g).getRawGraphics());
+            final ShaderMeshView shaderMeshView = (ShaderMeshView) meshView;
+            final Graphics rawGraphics = ((MeshProxyHelper.GraphicsHelper) g).getRawGraphics();
+            final BaseContext context = Reflect.on(BaseGraphics.class).getFieldValue("context", rawGraphics);
             Reflect.on(context.getClass()).invokeMethod("renderMeshView", long.class, Graphics.class).invoke(context, 0, g);
-            nativeRenderMeshView(((MeshProxyHelper.GraphicsHelper) g).getRawGraphics(), (ShaderBaseMesh) ((ShaderMeshView) meshView).getMesh(),
-                    ((ShaderMeshView) meshView));
+            nativeRenderMeshView(rawGraphics, shaderMeshView);
         }
         material.unlockTextureMaps();
     }
@@ -43,7 +46,7 @@ public final class MeshRendererHelper {
 
     private static long getVertexShader(Graphics g) {
         if (vertexShader == 0) {
-            final IDirect3DDevice9 device = ShaderController.getD3DDevice(g.getResourceFactory());
+            final IDirect3DDevice9 device = MaterialController.getD3DDevice(g.getResourceFactory());
             final InputStream shader = ShaderController.class.getResourceAsStream("/hlsl/Mtl1VS.obj");
             try {
                 vertexShader = device.createVertexShader(shader.readAllBytes());
@@ -75,8 +78,12 @@ public final class MeshRendererHelper {
      */
     private static final int PRIMITIVE_VERTEX_SIZE = 4 * 3 + 4 * 2 + 4 * 4;
 
-    private static void nativeRenderMeshView(Graphics g, ShaderBaseMesh mesh, ShaderMeshView meshView) {
-        final IDirect3DDevice9 device = ShaderController.getD3DDevice(g.getResourceFactory());
+    private static void nativeRenderMeshView(Graphics g, ShaderMeshView meshView) {
+        final ShaderBaseMesh mesh = meshView.getMesh();
+
+//        final ShaderMaterialPeer<? extends ShaderMaterial> peer = MaterialController.getPeer(meshView.getMaterial().getShaderMaterial()); //TODO
+//        peer.filter(null, null, meshView.getMaterial().getShaderMaterial());
+        final IDirect3DDevice9 device = MaterialController.getD3DDevice(g.getResourceFactory());
         device.setFVF(D3D9Types.D3DFVF_XYZ | (2 << D3D9Types.D3DFVF_TEXCOUNT_SHIFT) | D3D9Types.D3DFVF_TEXCOORDSIZE4(1));
         if (device.getResultCode() != 0) {
             throw new ShaderException("Failed to set FVF");

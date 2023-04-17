@@ -11,6 +11,7 @@ import com.sun.prism.MeshView;
 import com.sun.prism.ResourceFactory;
 
 import de.teragam.jfxshader.internal.Reflect;
+import de.teragam.jfxshader.material.ShaderMaterial;
 
 public final class MeshProxyHelper {
 
@@ -28,7 +29,7 @@ public final class MeshProxyHelper {
             if (!(meshView instanceof ShaderMeshView) && meshView != null) {
                 MeshProxyHelper.resetShape(shape);
             }
-            final Object proxyFactory = MeshProxyHelper.createResourceFactoryProxy(g.getResourceFactory());
+            final Object proxyFactory = MeshProxyHelper.createResourceFactoryProxy(g.getResourceFactory(), ((InternalNGPhongMaterial) material).getMaterial());
             final Object proxyGraphics = Proxy.newProxyInstance(Graphics.class.getClassLoader(), new Class<?>[]{Graphics.class, GraphicsHelper.class},
                     (proxy, method, args) -> {
                         if ("getResourceFactory".equals(method.getName())) {
@@ -64,17 +65,17 @@ public final class MeshProxyHelper {
         }
     }
 
-    private static ResourceFactory createResourceFactoryProxy(ResourceFactory rf) {
+    private static ResourceFactory createResourceFactoryProxy(ResourceFactory rf, ShaderMaterial material) {
         final Object proxyFactory = Proxy.newProxyInstance(ResourceFactory.class.getClassLoader(), new Class<?>[]{ResourceFactory.class},
                 (proxy, method, args) -> {
                     if ("createMesh".equals(method.getName())) {
                         return ShaderBaseMesh.create(rf);
                     }
                     if ("createMeshView".equals(method.getName())) {
-                        return new ShaderMeshView((Mesh) args[0]);
+                        return new ShaderMeshView((ShaderBaseMesh) args[0]);
                     }
                     if ("createPhongMaterial".equals(method.getName())) {
-                        return new InternalBasePhongMaterial(rf);
+                        return new InternalBasePhongMaterial(rf, material);
                     }
                     return method.invoke(rf, args);
                 });

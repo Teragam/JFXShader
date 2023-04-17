@@ -2,19 +2,18 @@ package de.teragam.jfxshader.material.internal;
 
 import com.sun.prism.Graphics;
 import com.sun.prism.Material;
-import com.sun.prism.Mesh;
 import com.sun.prism.MeshView;
 
 import de.teragam.jfxshader.internal.MeshRendererHelper;
 
 public class ShaderMeshView implements MeshView {
 
-    private final Mesh mesh;
-    private Material material;
+    private final ShaderBaseMesh mesh;
+    private InternalBasePhongMaterial material;
     private int cullingMode;
     private boolean wireframe;
 
-    public ShaderMeshView(Mesh mesh) {
+    public ShaderMeshView(ShaderBaseMesh mesh) {
         this.mesh = mesh;
     }
 
@@ -25,7 +24,7 @@ public class ShaderMeshView implements MeshView {
 
     @Override
     public void setMaterial(Material material) {
-        this.material = material;
+        this.material = (InternalBasePhongMaterial) material;
     }
 
     @Override
@@ -59,7 +58,7 @@ public class ShaderMeshView implements MeshView {
         this.material = null;
     }
 
-    public Mesh getMesh() {
+    public ShaderBaseMesh getMesh() {
         return this.mesh;
     }
 
@@ -70,4 +69,9 @@ public class ShaderMeshView implements MeshView {
     public boolean isWireframe() {
         return this.wireframe;
     }
+
+    public InternalBasePhongMaterial getMaterial() {
+        return this.material;
+    }
+
 }
