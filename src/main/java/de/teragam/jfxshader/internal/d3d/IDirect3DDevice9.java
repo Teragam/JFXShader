@@ -3,6 +3,8 @@ package de.teragam.jfxshader.internal.d3d;
 public class IDirect3DDevice9 {
 
     private final long handle;
+
+    // The HRESULT code of the last operation.
     private int resultCode;
 
     public IDirect3DDevice9(long handle) {

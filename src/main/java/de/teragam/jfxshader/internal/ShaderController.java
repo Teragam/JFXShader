@@ -97,7 +97,7 @@ public final class ShaderController {
             final IDirect3DDevice9 device = MaterialController.getD3DDevice(factory);
             return new D3DVertexShader(device, D3DVertexShader.init(device, shaderDeclaration.d3dSource()), shaderDeclaration.params());
         } else if (pipe.supportsShader(GraphicsPipeline.ShaderType.GLSL, GraphicsPipeline.ShaderModel.SM3)) {
-            throw new UnsupportedOperationException("Vertex shaders are not supported on OpenGL ES 2.0");
+            throw new UnsupportedOperationException("Vertex shaders are not supported on OpenGL ES 2.0"); // TODO: Implement
         } else {
             throw new ShaderCreationException(String.format("Unsupported GraphicsPipeline (%s): Shaders are not supported", pipe.getClass().getSimpleName()));
         }

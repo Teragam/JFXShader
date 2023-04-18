@@ -19,7 +19,7 @@ public class ToonShaderMaterialPeer extends ShaderMaterialPeer<ToonShaderMateria
         samplers.put("baseImg", 0);
         final Map<String, Integer> params = new HashMap<>();
         params.put("edgeWidth", 0);
-        return new ShaderDeclaration(samplers, params, null, ToonShaderMaterialPeer.class.getResourceAsStream("/hlsl/Mtl1PS.obj"));
+        return new ShaderDeclaration(samplers, params, null, ToonShaderMaterialPeer.class.getResourceAsStream("/samples/materials/toonshading/toonshader.obj"));
     }
 
     private final FloatBuffer buf = BufferUtil.newFloatBuffer(12);
