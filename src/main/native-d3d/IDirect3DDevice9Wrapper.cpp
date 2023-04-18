@@ -41,6 +41,12 @@ JNIEXPORT void JNICALL Java_de_teragam_jfxshader_internal_d3d_IDirect3DDevice9_s
     env->ReleaseFloatArrayElements(pConstantData, pConstantDataFloats, JNI_ABORT);
 }
 
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_internal_d3d_IDirect3DDevice9_setVertexShaderConstantI(JNIEnv *env, jobject obj, jint startRegister, jintArray pConstantData, jint vector4iCount) {
+    jint* pConstantDataInts = env->GetIntArrayElements(pConstantData, NULL);
+    setResultCode(env, obj, getDevice(env, obj)->SetVertexShaderConstantI(startRegister, (int*) pConstantDataInts, vector4iCount));
+    env->ReleaseIntArrayElements(pConstantData, pConstantDataInts, JNI_ABORT);
+}
+
 JNIEXPORT void JNICALL Java_de_teragam_jfxshader_internal_d3d_IDirect3DDevice9_setPixelShader(JNIEnv *env, jobject obj, jlong pShader) {
     setResultCode(env, obj, getDevice(env, obj)->SetPixelShader((IDirect3DPixelShader9*) pShader));
 }

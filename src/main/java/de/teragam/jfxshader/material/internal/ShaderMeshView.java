@@ -3,8 +3,11 @@ package de.teragam.jfxshader.material.internal;
 import com.sun.prism.Graphics;
 import com.sun.prism.Material;
 import com.sun.prism.MeshView;
+import com.sun.prism.impl.BaseContext;
+import com.sun.prism.impl.BaseGraphics;
 
-import de.teragam.jfxshader.internal.MeshRendererHelper;
+import de.teragam.jfxshader.internal.MaterialController;
+import de.teragam.jfxshader.internal.Reflect;
 
 public class ShaderMeshView implements MeshView {
 
@@ -45,7 +48,14 @@ public class ShaderMeshView implements MeshView {
 
     @Override
     public void render(Graphics g) {
-        MeshRendererHelper.renderMeshView(this, g);
+        this.material.lockTextureMaps();
+        if (g instanceof MeshProxyHelper.GraphicsHelper) {
+            final Graphics rawGraphics = ((MeshProxyHelper.GraphicsHelper) g).getRawGraphics();
+            final BaseContext context = Reflect.on(BaseGraphics.class).getFieldValue("context", rawGraphics);
+            Reflect.on(context.getClass()).invokeMethod("renderMeshView", long.class, Graphics.class).invoke(context, 0, g);
+            MaterialController.getPeer(this.getMaterial().getShaderMaterial()).filter(rawGraphics, this);
+        }
+        this.material.unlockTextureMaps();
     }
 
     @Override

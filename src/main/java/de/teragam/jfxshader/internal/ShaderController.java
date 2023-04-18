@@ -34,6 +34,8 @@ import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.ShaderEffect;
 import de.teragam.jfxshader.ShaderEffectPeer;
 import de.teragam.jfxshader.internal.d3d.D3DRTTextureHelper;
+import de.teragam.jfxshader.internal.d3d.D3DVertexShader;
+import de.teragam.jfxshader.internal.d3d.IDirect3DDevice9;
 import de.teragam.jfxshader.internal.es2.ES2RTTextureHelper;
 
 public final class ShaderController {
@@ -81,6 +83,24 @@ public final class ShaderController {
         final ShaderFactory factory = (ShaderFactory) GraphicsPipeline.getPipeline().getResourceFactory((Screen) ref);
         return factory.createShader(shaderSource, shaderDeclaration.samplers(), shaderDeclaration.params(),
                 shaderDeclaration.samplers().keySet().size() - 1, true, false);
+    }
+
+    public static Shader createVertexShader(FilterContext fctx, ShaderDeclaration shaderDeclaration) {
+        Objects.requireNonNull(shaderDeclaration, "ShaderDeclaration cannot be null");
+        final Object ref = Objects.requireNonNull(fctx, "FilterContext cannot be null").getReferent();
+        final GraphicsPipeline pipe = GraphicsPipeline.getPipeline();
+        if (pipe == null || !(ref instanceof Screen)) {
+            return null;
+        }
+        final ShaderFactory factory = (ShaderFactory) GraphicsPipeline.getPipeline().getResourceFactory((Screen) ref);
+        if (pipe.supportsShader(GraphicsPipeline.ShaderType.HLSL, GraphicsPipeline.ShaderModel.SM3)) {
+            final IDirect3DDevice9 device = MaterialController.getD3DDevice(factory);
+            return new D3DVertexShader(device, D3DVertexShader.init(device, shaderDeclaration.d3dSource()), shaderDeclaration.params());
+        } else if (pipe.supportsShader(GraphicsPipeline.ShaderType.GLSL, GraphicsPipeline.ShaderModel.SM3)) {
+            throw new UnsupportedOperationException("Vertex shaders are not supported on OpenGL ES 2.0");
+        } else {
+            throw new ShaderCreationException(String.format("Unsupported GraphicsPipeline (%s): Shaders are not supported", pipe.getClass().getSimpleName()));
+        }
     }
 
     static IEffectRenderer getEffectRenderer(ShaderEffectBase effect) {

@@ -28,6 +28,8 @@ public class IDirect3DDevice9 {
 
     public native void setVertexShaderConstantF(int startRegister, float[] pConstantData, int vector4fCount);
 
+    public native void setVertexShaderConstantI(int startRegister, int[] pConstantData, int vector4iCount);
+
     public native void setPixelShader(long pShader);
 
     public native void setPixelShaderConstantF(int startRegister, float[] pConstantData, int vector4fCount);

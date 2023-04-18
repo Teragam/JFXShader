@@ -1,15 +1,9 @@
 package de.teragam.jfxshader.material.internal;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javafx.scene.image.Image;
 import javafx.scene.paint.Material;
 import javafx.scene.paint.PhongMaterial;
 
-import com.sun.javafx.scene.paint.MaterialHelper;
 import com.sun.javafx.sg.prism.NGPhongMaterial;
-import com.sun.javafx.tk.Toolkit;
 
 import de.teragam.jfxshader.internal.Reflect;
 import de.teragam.jfxshader.material.ShaderMaterial;
