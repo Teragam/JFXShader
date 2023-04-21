@@ -192,7 +192,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
     }
 
     private void markLost(PPSRenderer renderer) {
-        Reflect.on(PPSRenderer.class).invokeMethod("markLost").invoke(renderer);
+        Reflect.on(PPSRenderer.class).method("markLost").invoke(renderer);
     }
 
     private void drawTextures(float dx2, float dy2, List<Texture> textures, List<float[]> coords, List<Integer> coordLength, BaseShaderGraphics g) {
@@ -205,12 +205,12 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
             return;
         }
         ShaderController.ensureTextureCapacity(this.getFilterContext(), (BaseShaderContext) context);
-        Reflect.on(BaseShaderContext.class).invokeMethod("checkState", BaseShaderGraphics.class, int.class, BaseTransform.class,
+        Reflect.on(BaseShaderContext.class).method("checkState", BaseShaderGraphics.class, int.class, BaseTransform.class,
                 Shader.class).invoke(context, g, this.checkTextureOpMask, xform, this.shader);
         for (int i = 0; i < Math.min(textures.size(), ShaderController.MAX_BOUND_TEXTURES); i++) {
-            Reflect.on(BaseShaderContext.class).invokeMethod("setTexture", int.class, Texture.class).invoke(context, i, textures.get(i));
+            Reflect.on(BaseShaderContext.class).method("setTexture", int.class, Texture.class).invoke(context, i, textures.get(i));
         }
-        Reflect.on(BaseShaderContext.class).invokeMethod("updatePerVertexColor", Paint.class, float.class).invoke(context, null, g.getExtraAlpha());
+        Reflect.on(BaseShaderContext.class).method("updatePerVertexColor", Paint.class, float.class).invoke(context, null, g.getExtraAlpha());
         final VertexBuffer vb = context.getVertexBuffer();
         switch (coords.size()) {
             case 0:
@@ -245,7 +245,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
                     return null;
                 }
                 try {
-                    return (PPSDrawable) Reflect.on(PPSDrawable.class).invokeMethod("create", RTTexture.class)
+                    return (PPSDrawable) Reflect.on(PPSDrawable.class).method("create", RTTexture.class)
                             .invoke(null, ShaderController.createRTTexture(this.getFilterContext(), format, wrapMode, w, h, mipmaps));
                 } catch (TextureCreationException e) {
                     return null;
@@ -283,7 +283,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
 
     private boolean validateRenderer() {
         try {
-            return (boolean) Reflect.on(PPSRenderer.class).invokeMethod("validate").invoke(this.getRenderer());
+            return (boolean) Reflect.on(PPSRenderer.class).method("validate").invoke(this.getRenderer());
         } catch (ShaderException ignored) {
             return false;
         }

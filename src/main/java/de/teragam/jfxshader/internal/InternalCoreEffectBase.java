@@ -61,13 +61,13 @@ public class InternalCoreEffectBase extends Blend {
 
     @Override
     public Point2D transform(Point2D p, Effect defaultInput) {
-        final Effect input = Reflect.on(Effect.class).<Effect>invokeMethod("getDefaultedInput", int.class, Effect.class).invoke(this, 0, defaultInput);
+        final Effect input = Reflect.on(Effect.class).<Effect>method("getDefaultedInput", int.class, Effect.class).invoke(this, 0, defaultInput);
         return input.transform(p, defaultInput);
     }
 
     @Override
     public Point2D untransform(Point2D p, Effect defaultInput) {
-        final Effect input = Reflect.on(Effect.class).<Effect>invokeMethod("getDefaultedInput", int.class, Effect.class).invoke(this, 0, defaultInput);
+        final Effect input = Reflect.on(Effect.class).<Effect>method("getDefaultedInput", int.class, Effect.class).invoke(this, 0, defaultInput);
         return input.untransform(p, defaultInput);
     }
 

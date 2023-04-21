@@ -59,7 +59,7 @@ public final class ShaderController {
                 if (!peerCache.containsKey(peerConfig.value())) {
                     final ShaderEffectPeerConfig peerConfigInstance = new ShaderEffectPeerConfig(fctx, renderer, peerConfig.value(), peerConfig.targetFormat(),
                             peerConfig.targetWrapMode(), peerConfig.targetMipmaps(), peerConfig.targetPoolPolicy());
-                    peerCache.put(peerConfig.value(), Reflect.on(peer).createInstance(ShaderEffectPeerConfig.class).create(peerConfigInstance));
+                    peerCache.put(peerConfig.value(), Reflect.on(peer).constructor(ShaderEffectPeerConfig.class).create(peerConfigInstance));
                 }
             }
         } catch (ShaderException e) {
@@ -93,10 +93,10 @@ public final class ShaderController {
         final ShaderFactory factory = ShaderController.getBaseShaderFactory(fctx);
         if (ShaderController.isGLSLSupported()) {
             final BaseShaderContext es2Context = Reflect.on(ES2ResourceFactory.class).getFieldValue("context", factory);
-            final String vertexShader = Reflect.on("com.sun.prism.es2.ES2Shader").<String>invokeMethod("readStreamIntoString", InputStream.class)
+            final String vertexShader = Reflect.on("com.sun.prism.es2.ES2Shader").<String>method("readStreamIntoString", InputStream.class)
                     .invoke(null, Objects.requireNonNull(vertexShaderDeclaration.es2Source(), "ES2 vertex shader source cannot be null"));
             return Reflect.on("com.sun.prism.es2.ES2Shader")
-                    .<ES2Shader>invokeMethod("createFromSource", Reflect.resolveClass("com.sun.prism.es2.ES2Context"), String.class, InputStream.class,
+                    .<ES2Shader>method("createFromSource", Reflect.resolveClass("com.sun.prism.es2.ES2Context"), String.class, InputStream.class,
                             Map.class, Map.class, int.class, boolean.class)
                     .invoke(null, es2Context, vertexShader,
                             Objects.requireNonNull(pixelShaderDeclaration.es2Source(), "ES2 pixel shader source cannot be null"),
@@ -112,7 +112,7 @@ public final class ShaderController {
         }
         final Class<? extends IEffectRenderer> rendererClass = effect.getClass().getAnnotation(EffectRenderer.class).value();
         try {
-            final IEffectRenderer effectRenderer = Reflect.on(rendererClass).createInstance().create();
+            final IEffectRenderer effectRenderer = Reflect.on(rendererClass).constructor().create();
             ShaderController.EFFECT_RENDERER_MAP.put(effect.getClass(), effectRenderer);
             return effectRenderer;
         } catch (ShaderException e) {

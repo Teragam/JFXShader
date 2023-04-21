@@ -19,10 +19,9 @@ public class InternalES2BasePhongMaterial extends InternalBasePhongMaterial {
 
     public static InternalES2BasePhongMaterial create(ES2ResourceFactory rf, ShaderMaterial material) {
         final BaseShaderContext es2Context = Reflect.on(rf.getClass()).getFieldValue("context", rf);
-        final long nativeHandle = Reflect.on(es2Context.getClass()).<Long>invokeMethod("createES2PhongMaterial").invoke(es2Context);
+        final long nativeHandle = Reflect.on(es2Context.getClass()).<Long>method("createES2PhongMaterial").invoke(es2Context);
         return new InternalES2BasePhongMaterial(rf, nativeHandle, material, new ES2PhongMaterialDisposerRecord(es2Context, nativeHandle));
     }
-
 
     public long getNativeHandle() {
         return this.nativeHandle;
@@ -41,7 +40,7 @@ public class InternalES2BasePhongMaterial extends InternalBasePhongMaterial {
         @Override
         public void dispose() {
             if (this.nativeHandle != 0L) {
-                Reflect.on(this.context.getClass()).invokeMethod("releaseES2PhongMaterial").invoke(this.context, this.nativeHandle);
+                Reflect.on(this.context.getClass()).method("releaseES2PhongMaterial").invoke(this.context, this.nativeHandle);
                 this.nativeHandle = 0L;
             }
         }

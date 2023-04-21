@@ -21,20 +21,20 @@ public class ES2ShaderMeshView extends ShaderMeshView {
 
     public static ES2ShaderMeshView create(ES2ResourceFactory rf, BaseMesh mesh) {
         final BaseShaderContext es2Context = Reflect.on(rf.getClass()).getFieldValue("context", rf);
-        final long nativeHandle = Reflect.on(es2Context.getClass()).<Long>invokeMethod("createES2MeshView").invoke(es2Context, mesh);
+        final long nativeHandle = Reflect.on(es2Context.getClass()).<Long>method("createES2MeshView").invoke(es2Context, mesh);
         return new ES2ShaderMeshView(nativeHandle, mesh, new ES2MeshViewDisposerRecord(es2Context, nativeHandle), es2Context);
     }
 
     @Override
     public void setCullingMode(int mode) {
         super.setCullingMode(mode);
-        Reflect.on(this.es2Context.getClass()).invokeMethod("setCullingMode").invoke(this.es2Context, this.nativeHandle, mode);
+        Reflect.on(this.es2Context.getClass()).method("setCullingMode").invoke(this.es2Context, this.nativeHandle, mode);
     }
 
     @Override
     public void setWireframe(boolean wireframe) {
         super.setWireframe(wireframe);
-        Reflect.on(this.es2Context.getClass()).invokeMethod("setWireframe").invoke(this.es2Context, this.nativeHandle, wireframe);
+        Reflect.on(this.es2Context.getClass()).method("setWireframe").invoke(this.es2Context, this.nativeHandle, wireframe);
     }
 
     @Override
@@ -42,8 +42,8 @@ public class ES2ShaderMeshView extends ShaderMeshView {
         super.setMaterial(material);
         final Reflect<?> contextReflect = Reflect.on(this.es2Context.getClass());
         final Object glContext = contextReflect.getFieldValue("glContext", this.es2Context);
-        Reflect.on(glContext.getClass()).invokeMethod("setMaterial")
-                .invoke(this.es2Context, this.nativeHandle, ((InternalES2BasePhongMaterial) material).getNativeHandle());
+        Reflect.on("com.sun.prism.es2.GLContext").method("setMaterial")
+                .invoke(glContext, this.nativeHandle, ((InternalES2BasePhongMaterial) material).getNativeHandle());
     }
 
     public long getNativeHandle() {
@@ -63,7 +63,7 @@ public class ES2ShaderMeshView extends ShaderMeshView {
         @Override
         public void dispose() {
             if (this.nativeHandle != 0L) {
-                Reflect.on(this.context.getClass()).invokeMethod("releaseES2MeshView").invoke(this.context, this.nativeHandle);
+                Reflect.on(this.context.getClass()).method("releaseES2MeshView").invoke(this.context, this.nativeHandle);
                 this.nativeHandle = 0L;
             }
         }

@@ -130,10 +130,10 @@ public class ES2RTTextureHelper {
         final int padding = pad ? 2 : 0;
         final int maxContentW = texWidth - padding;
         final int maxContentH = texHeight - padding;
-        final Object texData = Reflect.on("com.sun.prism.es2.ES2RTTextureData").createInstance()
+        final Object texData = Reflect.on("com.sun.prism.es2.ES2RTTextureData").constructor()
                 .create(es2Context, nativeTexID, nativeFBOID, texWidth, texHeight, size);
         final DisposerManagedResource<?> texRes = (DisposerManagedResource<?>) Reflect.on("com.sun.prism.es2.ES2TextureResource")
-                .createInstance(texData.getClass()).create(texData);
+                .constructor(texData.getClass()).create(texData);
         final RTTexture es2RTT = ReflectionES2Helper.getInstance()
                 .createTexture(es2Context, texRes, format, wrapMode, texWidth, texHeight, contentX, contentY, width, height, maxContentW, maxContentH,
                         useMipmap);
@@ -161,7 +161,7 @@ public class ES2RTTextureHelper {
         private final Reflect.MethodInvocationWrapper<Boolean> uploadPixelsMethod;
 
         public ReflectionES2Helper() {
-            this.uploadPixelsMethod = Reflect.on("com.sun.prism.es2.ES2Texture").invokeMethod("uploadPixels",
+            this.uploadPixelsMethod = Reflect.on("com.sun.prism.es2.ES2Texture").method("uploadPixels",
                     Reflect.resolveClass("com.sun.prism.es2.GLContext"), int.class, Buffer.class,
                     PixelFormat.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, boolean.class,
                     boolean.class);

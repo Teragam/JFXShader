@@ -84,7 +84,7 @@ public class Reflect<C> {
         }
     }
 
-    public <T> MethodInvocationWrapper<T> invokeMethod(String methodName, Class<?>... parameterTypes) {
+    public <T> MethodInvocationWrapper<T> method(String methodName, Class<?>... parameterTypes) {
         return (instance, args) -> {
             try {
                 if (parameterTypes.length == 0 && args.length != 0) {
@@ -112,7 +112,7 @@ public class Reflect<C> {
     public C allocateInstance() {
         final Reflect<?> unsafeReflect = Reflect.on("sun.misc.Unsafe");
         final Object unsafe = unsafeReflect.getFieldValue("theUnsafe", null);
-        return ((MethodInvocationWrapper<C>) unsafeReflect.invokeMethod("allocateInstance", Class.class)).invoke(unsafe, this.clazz);
+        return ((MethodInvocationWrapper<C>) unsafeReflect.method("allocateInstance", Class.class)).invoke(unsafe, this.clazz);
     }
 
     public Constructor<C> getConstructor(Class<?>... parameterTypes) {
@@ -125,7 +125,7 @@ public class Reflect<C> {
         }
     }
 
-    public ConstructorInvocationWrapper<C> createInstance(Class<?>... parameterTypes) {
+    public ConstructorInvocationWrapper<C> constructor(Class<?>... parameterTypes) {
         return args -> {
             try {
                 if (parameterTypes.length == 0 && args.length != 0) {
@@ -155,21 +155,21 @@ public class Reflect<C> {
             final Object unsafe = Reflect.on("sun.misc.Unsafe").getFieldValue("theUnsafe", null);
             final Class<?> bootModuleLayerClass = Reflect.resolveClass("java.lang.ModuleLayer");
 
-            final Object bootModuleLayer = Reflect.on(bootModuleLayerClass).invokeMethod("boot").invoke(null);
-            final Object moduleOpt = Reflect.on(bootModuleLayerClass).invokeMethod("findModule", String.class).invoke(bootModuleLayer, module);
-            if (Reflect.on(moduleOpt.getClass()).invokeMethod("isPresent").invoke(moduleOpt).equals(Boolean.FALSE)) {
+            final Object bootModuleLayer = Reflect.on(bootModuleLayerClass).method("boot").invoke(null);
+            final Object moduleOpt = Reflect.on(bootModuleLayerClass).method("findModule", String.class).invoke(bootModuleLayer, module);
+            if (Reflect.on(moduleOpt.getClass()).method("isPresent").invoke(moduleOpt).equals(Boolean.FALSE)) {
                 throw new IllegalStateException("Could not find module " + module);
             }
-            final Object fMod = Reflect.on(moduleOpt.getClass()).invokeMethod("get").invoke(moduleOpt);
+            final Object fMod = Reflect.on(moduleOpt.getClass()).method("get").invoke(moduleOpt);
             final Class<?> moduleImpl = Reflect.resolveClass("java.lang.Module");
             final String methodName = open ? "implAddOpens" : "implAddExports";
             final Method addOpensMethodImpl = Reflect.on(moduleImpl).getMethod(methodName, String.class, moduleImpl);
             class OffsetProvider {
                 int first;
             }
-            final long firstFieldOffset = (long) Reflect.on(unsafe.getClass()).invokeMethod("objectFieldOffset", Field.class)
+            final long firstFieldOffset = (long) Reflect.on(unsafe.getClass()).method("objectFieldOffset", Field.class)
                     .invoke(unsafe, OffsetProvider.class.getDeclaredField("first"));
-            Reflect.on(unsafe.getClass()).invokeMethod("putBooleanVolatile", Object.class, long.class, boolean.class)
+            Reflect.on(unsafe.getClass()).method("putBooleanVolatile", Object.class, long.class, boolean.class)
                     .invoke(unsafe, addOpensMethodImpl, firstFieldOffset, true);
             addOpensMethodImpl.invoke(fMod, fullyQualifiedPackageName, currentModule);
         } catch (ReflectiveOperationException ex) {
@@ -260,7 +260,7 @@ public class Reflect<C> {
             if ("getObject".equals(method.getName())) {
                 return object;
             } else {
-                return reflect.invokeMethod(method.getName(), method.getParameterTypes()).invoke(object, args);
+                return reflect.method(method.getName(), method.getParameterTypes()).invoke(object, args);
             }
         });
     }

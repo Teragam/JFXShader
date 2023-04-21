@@ -45,7 +45,7 @@ public final class MaterialController {
     private static ShaderMaterialPeer<?> createPeer(Class<? extends ShaderMaterial> material) {
         if (material.isAnnotationPresent(MaterialDependency.class)) {
             final Class<? extends ShaderMaterialPeer<?>> peerClass = material.getAnnotation(MaterialDependency.class).value();
-            return Reflect.on(peerClass).createInstance().create();
+            return Reflect.on(peerClass).constructor().create();
         } else {
             throw new IllegalArgumentException(String.format("%s is not annotated with %s", material, MaterialDependency.class));
         }

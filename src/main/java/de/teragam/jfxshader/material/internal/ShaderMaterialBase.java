@@ -19,11 +19,11 @@ public class ShaderMaterialBase extends PhongMaterial {
     }
 
     public void setDirty(boolean value) {
-        Reflect.on(Material.class).invokeMethod("setDirty", boolean.class).invoke(this, value);
+        Reflect.on(Material.class).method("setDirty", boolean.class).invoke(this, value);
     }
 
     public boolean isDirty() {
-        return (boolean) Reflect.on(Material.class).invokeMethod("isDirty").invoke(this);
+        return (boolean) Reflect.on(Material.class).method("isDirty").invoke(this);
     }
 
     public ShaderMaterial getJFXShaderMaterial() {

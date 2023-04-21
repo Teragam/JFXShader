@@ -65,7 +65,7 @@ public final class MeshProxyHelper {
         }
         final NGPhongMaterial material = Reflect.on(NGShape3D.class).getFieldValue("material", shape);
         if (material != null && Reflect.on(NGPhongMaterial.class).getFieldValue("material", material) != null) {
-            Reflect.on(NGPhongMaterial.class).invokeMethod("disposeMaterial").invoke(material);
+            Reflect.on(NGPhongMaterial.class).method("disposeMaterial").invoke(material);
         }
     }
 
@@ -90,7 +90,7 @@ public final class MeshProxyHelper {
                     return ES2ShaderMeshView.create((ES2ResourceFactory) rf, (BaseMesh) args[0]);
                 }
                 if ("createPhongMaterial".equals(method.getName())) {
-                    return InternalES2BasePhongMaterial.create(rf, material);
+                    return InternalES2BasePhongMaterial.create((ES2ResourceFactory) rf, material);
                 }
                 return method.invoke(rf, args);
             };

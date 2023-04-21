@@ -77,7 +77,7 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
 
     public void filterD3D(Graphics g, ShaderMeshView meshView, BaseShaderContext context) {
 //        final Vec3d cameraPos = Reflect.on(context.getClass()).getFieldValue("cameraPos", context);
-        Reflect.on(context.getClass()).invokeMethod("renderMeshView", long.class, Graphics.class).invoke(context, 0, g);
+        Reflect.on(context.getClass()).method("renderMeshView", long.class, Graphics.class).invoke(context, 0, g);
         if (this.vertexShader == null) {
             this.vertexShader = this.createVertexShader(g);
         }
@@ -137,9 +137,9 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
         if (pixelScaleFactorX != 1.0 || pixelScaleFactorY != 1.0) {
             scratchTx.set(projViewTx);
             scratchTx.scale(pixelScaleFactorX, pixelScaleFactorY, 1.0);
-            contextReflect.invokeMethod("updateRawMatrix", GeneralTransform3D.class).invoke(context, scratchTx);
+            contextReflect.method("updateRawMatrix", GeneralTransform3D.class).invoke(context, scratchTx);
         } else {
-            contextReflect.invokeMethod("updateRawMatrix", GeneralTransform3D.class).invoke(context, projViewTx);
+            contextReflect.method("updateRawMatrix", GeneralTransform3D.class).invoke(context, projViewTx);
         }
         this.es2Shader.setMatrix("viewProjectionMatrix", rawMatrix);
         final Vec3d cameraPos = Reflect.on(context.getClass()).getFieldValue("cameraPos", context);
@@ -150,18 +150,18 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
             scratchAffine3DTx.setToIdentity();
             scratchAffine3DTx.scale(1.0 / pixelScaleFactorX, 1.0 / pixelScaleFactorY);
             scratchAffine3DTx.concatenate(xform);
-            contextReflect.invokeMethod("updateWorldTransform", BaseTransform.class).invoke(context, scratchAffine3DTx);
+            contextReflect.method("updateWorldTransform", BaseTransform.class).invoke(context, scratchAffine3DTx);
         } else {
-            contextReflect.invokeMethod("updateWorldTransform", BaseTransform.class).invoke(context, xform);
+            contextReflect.method("updateWorldTransform", BaseTransform.class).invoke(context, xform);
         }
-        contextReflect.invokeMethod("updateRawMatrix", GeneralTransform3D.class).invoke(context, worldTx);
+        contextReflect.method("updateRawMatrix", GeneralTransform3D.class).invoke(context, worldTx);
 
         this.es2Shader.setMatrix("worldMatrix", rawMatrix);
 
         this.updateShader(this.es2Shader, this.es2Shader, (T) meshView.getMaterial().getShaderMaterial());
 
         final Object glContext = contextReflect.getFieldValue("glContext", context);
-        Reflect.on(glContext.getClass()).invokeMethod("renderMeshView").invoke(glContext, meshView.getNativeHandle());
+        Reflect.on("com.sun.prism.es2.GLContext").method("renderMeshView").invoke(glContext, meshView.getNativeHandle());
     }
 
     private Shader createPixelShader(Graphics g) {

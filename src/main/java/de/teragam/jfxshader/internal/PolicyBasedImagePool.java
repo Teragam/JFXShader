@@ -21,7 +21,7 @@ public class PolicyBasedImagePool {
 
 
     public PolicyBasedImagePool() {
-        this.imagePool = Reflect.on(ImagePool.class).createInstance().create();
+        this.imagePool = Reflect.on(ImagePool.class).constructor().create();
         try {
             this.unlocked = Reflect.on(ImagePool.class).getFieldValue("unlocked", this.imagePool);
             this.locked = Reflect.on(ImagePool.class).getFieldValue("locked", this.imagePool);
@@ -99,7 +99,7 @@ public class PolicyBasedImagePool {
         try {
             img = drawableSupplier.apply(w, h);
         } catch (OutOfMemoryError ignored) {
-            Reflect.on(ImagePool.class).invokeMethod("pruneCache").invoke(null);
+            Reflect.on(ImagePool.class).method("pruneCache").invoke(null);
             try {
                 img = drawableSupplier.apply(w, h);
             } catch (OutOfMemoryError ignoredEx) {
