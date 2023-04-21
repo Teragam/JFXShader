@@ -88,7 +88,9 @@ public class Reflect<C> {
         return (instance, args) -> {
             try {
                 if (parameterTypes.length == 0 && args.length != 0) {
-                    final Class<?>[] runtimeParameterTypes = Arrays.stream(args).map(Objects::requireNonNull).map(Object::getClass)
+                    final Class<?>[] runtimeParameterTypes = Arrays.stream(args)
+                            .map(obj -> Objects.requireNonNull(obj, "Argument cannot be null"))
+                            .map(Object::getClass)
                             .map(Reflect::convertToPrimitiveClass).toArray(Class<?>[]::new);
                     return (T) this.getMethod(methodName, runtimeParameterTypes).invoke(instance, args);
                 }
@@ -127,7 +129,9 @@ public class Reflect<C> {
         return args -> {
             try {
                 if (parameterTypes.length == 0 && args.length != 0) {
-                    final Class<?>[] runtimeParameterTypes = Arrays.stream(args).map(Objects::requireNonNull).map(Object::getClass)
+                    final Class<?>[] runtimeParameterTypes = Arrays.stream(args)
+                            .map(obj -> Objects.requireNonNull(obj, "Argument cannot be null"))
+                            .map(Object::getClass)
                             .map(Reflect::convertToPrimitiveClass).toArray(Class<?>[]::new);
                     return this.getConstructor(runtimeParameterTypes).newInstance(args);
                 }

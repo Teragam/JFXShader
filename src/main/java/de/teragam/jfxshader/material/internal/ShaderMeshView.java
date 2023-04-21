@@ -2,22 +2,29 @@ package de.teragam.jfxshader.material.internal;
 
 import com.sun.prism.Graphics;
 import com.sun.prism.Material;
-import com.sun.prism.MeshView;
 import com.sun.prism.impl.BaseGraphics;
+import com.sun.prism.impl.BaseMesh;
+import com.sun.prism.impl.BaseMeshView;
+import com.sun.prism.impl.Disposer;
 import com.sun.prism.impl.ps.BaseShaderContext;
 
 import de.teragam.jfxshader.internal.MaterialController;
 import de.teragam.jfxshader.internal.Reflect;
 
-public class ShaderMeshView implements MeshView {
+public class ShaderMeshView extends BaseMeshView {
 
-    private final ShaderBaseMesh mesh;
+    private final BaseMesh mesh;
     private InternalBasePhongMaterial material;
     private int cullingMode;
     private boolean wireframe;
 
-    public ShaderMeshView(ShaderBaseMesh mesh) {
+    public ShaderMeshView(BaseMesh mesh, Disposer.Record disposerRecord) {
+        super(disposerRecord);
         this.mesh = mesh;
+    }
+
+    public static ShaderMeshView create(BaseMesh mesh) {
+        return new ShaderMeshView(mesh, () -> {});
     }
 
     @Override
@@ -64,10 +71,13 @@ public class ShaderMeshView implements MeshView {
 
     @Override
     public void dispose() {
+        if (this.mesh != null) {
+            this.mesh.dispose();
+        }
         this.material = null;
     }
 
-    public ShaderBaseMesh getMesh() {
+    public BaseMesh getMesh() {
         return this.mesh;
     }
 

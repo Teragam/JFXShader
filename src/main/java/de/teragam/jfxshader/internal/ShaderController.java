@@ -93,10 +93,14 @@ public final class ShaderController {
         final ShaderFactory factory = ShaderController.getBaseShaderFactory(fctx);
         if (ShaderController.isGLSLSupported()) {
             final BaseShaderContext es2Context = Reflect.on(ES2ResourceFactory.class).getFieldValue("context", factory);
-            final String vertexShader = Reflect.on("com.sun.prism.es2.ES2Shader").<String>invokeMethod("readStreamIntoString")
-                    .invoke(null, vertexShaderDeclaration.es2Source());
-            return Reflect.on("com.sun.prism.es2.ES2Shader").<ES2Shader>invokeMethod("createFromSource")
-                    .invoke(null, es2Context, vertexShader, pixelShaderDeclaration.es2Source(), pixelShaderDeclaration.samplers(), attributes, 1, false);
+            final String vertexShader = Reflect.on("com.sun.prism.es2.ES2Shader").<String>invokeMethod("readStreamIntoString", InputStream.class)
+                    .invoke(null, Objects.requireNonNull(vertexShaderDeclaration.es2Source(), "ES2 vertex shader source cannot be null"));
+            return Reflect.on("com.sun.prism.es2.ES2Shader")
+                    .<ES2Shader>invokeMethod("createFromSource", Reflect.resolveClass("com.sun.prism.es2.ES2Context"), String.class, InputStream.class,
+                            Map.class, Map.class, int.class, boolean.class)
+                    .invoke(null, es2Context, vertexShader,
+                            Objects.requireNonNull(pixelShaderDeclaration.es2Source(), "ES2 pixel shader source cannot be null"),
+                            Objects.requireNonNull(pixelShaderDeclaration.samplers(), "ES2 pixel shader samplers cannot be null"), attributes, 1, false);
         } else {
             throw new ShaderCreationException("ES2 shader programs are not supported on DirectX 9.0");
         }

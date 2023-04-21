@@ -77,10 +77,10 @@ public final class MeshProxyHelper {
                     return ShaderBaseMesh.create(rf);
                 }
                 if ("createMeshView".equals(method.getName())) {
-                    return new ShaderMeshView((ShaderBaseMesh) args[0]);
+                    return ShaderMeshView.create((ShaderBaseMesh) args[0]);
                 }
                 if ("createPhongMaterial".equals(method.getName())) {
-                    return new InternalBasePhongMaterial(rf, material);
+                    return InternalBasePhongMaterial.create(rf, material);
                 }
                 return method.invoke(rf, args);
             };
@@ -90,7 +90,7 @@ public final class MeshProxyHelper {
                     return ES2ShaderMeshView.create((ES2ResourceFactory) rf, (BaseMesh) args[0]);
                 }
                 if ("createPhongMaterial".equals(method.getName())) {
-                    return new InternalBasePhongMaterial(rf, material);
+                    return InternalES2BasePhongMaterial.create(rf, material);
                 }
                 return method.invoke(rf, args);
             };

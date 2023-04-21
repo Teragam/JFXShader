@@ -1,5 +1,6 @@
 package de.teragam.jfxshader.samples.materials.toonshading;
 
+import java.io.InputStream;
 import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,15 +10,23 @@ import com.sun.prism.ps.Shader;
 import com.sun.scenario.effect.impl.BufferUtil;
 
 import de.teragam.jfxshader.ShaderDeclaration;
+import de.teragam.jfxshader.internal.Reflect;
+import de.teragam.jfxshader.internal.ShaderController;
 import de.teragam.jfxshader.material.ShaderMaterialPeer;
 
 public class ToonShaderMaterialPeer extends ShaderMaterialPeer<ToonShaderMaterial> {
 
     @Override
     public ShaderDeclaration createVertexShaderDeclaration() {
+        final InputStream es2Source;
+        if (ShaderController.isGLSLSupported()) {
+            es2Source = Reflect.resolveClass("com.sun.prism.es2.ES2ResourceFactory").getResourceAsStream("glsl/main.vert");
+        } else {
+            es2Source = null;
+        }
         final Map<String, Integer> params = new HashMap<>();
         params.put("VSR_WORLDMATRIX", 35);
-        return new ShaderDeclaration(null, params, null, ShaderMaterialPeer.class.getResourceAsStream("/samples/materials/toonshading/toonshader.vs.obj"));
+        return new ShaderDeclaration(null, params, es2Source, ShaderMaterialPeer.class.getResourceAsStream("/samples/materials/toonshading/toonshader.vs.obj"));
     }
 
     @Override
@@ -26,7 +35,7 @@ public class ToonShaderMaterialPeer extends ShaderMaterialPeer<ToonShaderMateria
         samplers.put("baseImg", 0);
         final Map<String, Integer> params = new HashMap<>();
         params.put("edgeWidth", 0);
-        return new ShaderDeclaration(samplers, params, null,
+        return new ShaderDeclaration(samplers, params, ToonShaderMaterialPeer.class.getResourceAsStream("/samples/materials/toonshading/toonshader.frag"),
                 ToonShaderMaterialPeer.class.getResourceAsStream("/samples/materials/toonshading/toonshader.ps.obj"));
     }
 
