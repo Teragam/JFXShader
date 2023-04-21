@@ -1,5 +1,6 @@
 package de.teragam.jfxshader.material.internal;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 
 import com.sun.javafx.sg.prism.NGPhongMaterial;
@@ -9,8 +10,11 @@ import com.sun.prism.Graphics;
 import com.sun.prism.Mesh;
 import com.sun.prism.MeshView;
 import com.sun.prism.ResourceFactory;
+import com.sun.prism.es2.ES2ResourceFactory;
+import com.sun.prism.impl.BaseMesh;
 
 import de.teragam.jfxshader.internal.Reflect;
+import de.teragam.jfxshader.internal.ShaderController;
 import de.teragam.jfxshader.material.ShaderMaterial;
 
 public final class MeshProxyHelper {
@@ -66,20 +70,32 @@ public final class MeshProxyHelper {
     }
 
     private static ResourceFactory createResourceFactoryProxy(ResourceFactory rf, ShaderMaterial material) {
-        final Object proxyFactory = Proxy.newProxyInstance(ResourceFactory.class.getClassLoader(), new Class<?>[]{ResourceFactory.class},
-                (proxy, method, args) -> {
-                    if ("createMesh".equals(method.getName())) {
-                        return ShaderBaseMesh.create(rf);
-                    }
-                    if ("createMeshView".equals(method.getName())) {
-                        return new ShaderMeshView((ShaderBaseMesh) args[0]);
-                    }
-                    if ("createPhongMaterial".equals(method.getName())) {
-                        return new InternalBasePhongMaterial(rf, material);
-                    }
-                    return method.invoke(rf, args);
-                });
-
+        final InvocationHandler handler;
+        if (ShaderController.isHLSLSupported()) {
+            handler = (proxy, method, args) -> {
+                if ("createMesh".equals(method.getName())) {
+                    return ShaderBaseMesh.create(rf);
+                }
+                if ("createMeshView".equals(method.getName())) {
+                    return new ShaderMeshView((ShaderBaseMesh) args[0]);
+                }
+                if ("createPhongMaterial".equals(method.getName())) {
+                    return new InternalBasePhongMaterial(rf, material);
+                }
+                return method.invoke(rf, args);
+            };
+        } else {
+            handler = (proxy, method, args) -> {
+                if ("createMeshView".equals(method.getName())) {
+                    return ES2ShaderMeshView.create((ES2ResourceFactory) rf, (BaseMesh) args[0]);
+                }
+                if ("createPhongMaterial".equals(method.getName())) {
+                    return new InternalBasePhongMaterial(rf, material);
+                }
+                return method.invoke(rf, args);
+            };
+        }
+        final Object proxyFactory = Proxy.newProxyInstance(ResourceFactory.class.getClassLoader(), new Class<?>[]{ResourceFactory.class}, handler);
         return (ResourceFactory) proxyFactory;
     }
 

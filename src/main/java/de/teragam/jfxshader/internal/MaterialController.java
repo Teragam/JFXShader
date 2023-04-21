@@ -31,10 +31,12 @@ import de.teragam.jfxshader.material.internal.InternalNGMeshView;
 import de.teragam.jfxshader.material.internal.InternalNGSphere;
 import de.teragam.jfxshader.material.internal.ShaderMaterialBase;
 
-public class MaterialController {
+public final class MaterialController {
 
     private static final HashMap<Class<? extends ShaderMaterial>, ShaderMaterialPeer<?>> MATERIAL_PEER_MAP = new HashMap<>();
     private static final Map<Long, IDirect3DDevice9> D3D_DEVICE_MAP = new HashMap<>();
+
+    private MaterialController() {}
 
     public static ShaderMaterialPeer<?> getPeer(ShaderMaterial material) {
         return MATERIAL_PEER_MAP.computeIfAbsent(material.getClass(), MaterialController::createPeer);
@@ -56,11 +58,11 @@ public class MaterialController {
      */
     public static void ensure3DAccessorInjection() {
         NativeLibLoader.loadLibrary("jfxshader");
-        injectMaterialAccessor();
-        injectShape3DAccessor(MeshViewHelper.class, "meshViewAccessor", InternalNGMeshView::new);
-        injectShape3DAccessor(SphereHelper.class, "sphereAccessor", InternalNGSphere::new);
-        injectShape3DAccessor(BoxHelper.class, "boxAccessor", InternalNGBox::new);
-        injectShape3DAccessor(CylinderHelper.class, "cylinderAccessor", InternalNGCylinder::new);
+        MaterialController.injectMaterialAccessor();
+        MaterialController.injectShape3DAccessor(MeshViewHelper.class, "meshViewAccessor", InternalNGMeshView::new);
+        MaterialController.injectShape3DAccessor(SphereHelper.class, "sphereAccessor", InternalNGSphere::new);
+        MaterialController.injectShape3DAccessor(BoxHelper.class, "boxAccessor", InternalNGBox::new);
+        MaterialController.injectShape3DAccessor(CylinderHelper.class, "cylinderAccessor", InternalNGCylinder::new);
     }
 
     private static void injectMaterialAccessor() {
@@ -75,7 +77,7 @@ public class MaterialController {
                     Reflect.on(PhongMaterial.class).setFieldValue("peer", args[0], ((ShaderMaterialBase) args[0]).getInternalNGMaterial());
                 }
             } else if ("updatePG".equals(method.getName()) && (args[0] instanceof ShaderMaterialBase)) {
-                    ((ShaderMaterialBase) args[0]).updateMaterial();
+                ((ShaderMaterialBase) args[0]).updateMaterial();
             }
             return method.invoke(accessor, args);
         });
