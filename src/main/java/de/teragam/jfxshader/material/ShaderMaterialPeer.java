@@ -15,17 +15,17 @@ import com.sun.prism.impl.ps.BaseShaderContext;
 import com.sun.prism.ps.Shader;
 import com.sun.scenario.effect.impl.prism.PrFilterContext;
 
+import de.teragam.jfxshader.MaterialController;
+import de.teragam.jfxshader.ShaderController;
 import de.teragam.jfxshader.ShaderDeclaration;
-import de.teragam.jfxshader.internal.MaterialController;
-import de.teragam.jfxshader.internal.Reflect;
-import de.teragam.jfxshader.internal.ShaderController;
-import de.teragam.jfxshader.internal.ShaderException;
-import de.teragam.jfxshader.internal.d3d.D3D9Types;
-import de.teragam.jfxshader.internal.d3d.IDirect3DDevice9;
-import de.teragam.jfxshader.material.internal.D3DBaseMeshHelper;
-import de.teragam.jfxshader.material.internal.ES2ShaderMeshView;
+import de.teragam.jfxshader.exception.ShaderException;
 import de.teragam.jfxshader.material.internal.ShaderBaseMesh;
 import de.teragam.jfxshader.material.internal.ShaderMeshView;
+import de.teragam.jfxshader.material.internal.d3d.D3D9Types;
+import de.teragam.jfxshader.material.internal.d3d.D3DBaseMeshHelper;
+import de.teragam.jfxshader.material.internal.d3d.IDirect3DDevice9;
+import de.teragam.jfxshader.material.internal.es2.ES2ShaderMeshView;
+import de.teragam.jfxshader.util.Reflect;
 
 public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
 

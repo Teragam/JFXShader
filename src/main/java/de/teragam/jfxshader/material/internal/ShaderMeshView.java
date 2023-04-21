@@ -8,8 +8,8 @@ import com.sun.prism.impl.BaseMeshView;
 import com.sun.prism.impl.Disposer;
 import com.sun.prism.impl.ps.BaseShaderContext;
 
-import de.teragam.jfxshader.internal.MaterialController;
-import de.teragam.jfxshader.internal.Reflect;
+import de.teragam.jfxshader.MaterialController;
+import de.teragam.jfxshader.util.Reflect;
 
 public class ShaderMeshView extends BaseMeshView {
 

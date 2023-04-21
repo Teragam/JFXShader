@@ -5,7 +5,7 @@ import javafx.scene.paint.PhongMaterial;
 
 import com.sun.javafx.sg.prism.NGPhongMaterial;
 
-import de.teragam.jfxshader.internal.Reflect;
+import de.teragam.jfxshader.util.Reflect;
 import de.teragam.jfxshader.material.ShaderMaterial;
 
 

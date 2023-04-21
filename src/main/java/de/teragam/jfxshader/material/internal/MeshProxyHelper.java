@@ -13,9 +13,11 @@ import com.sun.prism.ResourceFactory;
 import com.sun.prism.es2.ES2ResourceFactory;
 import com.sun.prism.impl.BaseMesh;
 
-import de.teragam.jfxshader.internal.Reflect;
-import de.teragam.jfxshader.internal.ShaderController;
+import de.teragam.jfxshader.util.Reflect;
+import de.teragam.jfxshader.ShaderController;
 import de.teragam.jfxshader.material.ShaderMaterial;
+import de.teragam.jfxshader.material.internal.es2.ES2ShaderMeshView;
+import de.teragam.jfxshader.material.internal.es2.InternalES2BasePhongMaterial;
 
 public final class MeshProxyHelper {
 

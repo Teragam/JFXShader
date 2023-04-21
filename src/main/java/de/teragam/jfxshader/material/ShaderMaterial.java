@@ -10,7 +10,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ObjectPropertyBase;
 import javafx.scene.paint.Material;
 
-import de.teragam.jfxshader.internal.MaterialController;
+import de.teragam.jfxshader.MaterialController;
 import de.teragam.jfxshader.material.internal.ShaderMaterialBase;
 
 public abstract class ShaderMaterial {

@@ -19,10 +19,9 @@ import com.sun.javafx.geom.transform.BaseTransform;
 import com.sun.javafx.scene.BoundsAccessor;
 import com.sun.scenario.effect.impl.state.RenderState;
 
-import de.teragam.jfxshader.EffectRenderer;
-import de.teragam.jfxshader.internal.DefaultEffectRenderer;
-import de.teragam.jfxshader.internal.InternalCoreEffectBase;
-import de.teragam.jfxshader.internal.InternalEffect;
+import de.teragam.jfxshader.effect.EffectRenderer;
+import de.teragam.jfxshader.effect.internal.DefaultEffectRenderer;
+import de.teragam.jfxshader.effect.internal.InternalEffect;
 
 @EffectRenderer(DefaultEffectRenderer.class)
 public class ShaderEffectBase extends Effect {
@@ -32,7 +31,7 @@ public class ShaderEffectBase extends Effect {
     private final List<ObjectProperty<Effect>> inputProperties;
 
     @Override
-    protected InternalCoreEffectBase createPeer() {
+    protected InternalEffect createPeer() {
         return new InternalEffect(this, this.inputProperties.size());
     }
 
@@ -73,7 +72,7 @@ public class ShaderEffectBase extends Effect {
 
     @Override
     protected void update() {
-        final InternalCoreEffectBase peer = ((InternalCoreEffectBase) this.getPeer());
+        final InternalEffect peer = ((InternalEffect) this.getPeer());
         final List<ObjectProperty<Effect>> properties = this.inputProperties;
         for (int i = 0; i < properties.size(); i++) {
             final ObjectProperty<Effect> property = properties.get(i);

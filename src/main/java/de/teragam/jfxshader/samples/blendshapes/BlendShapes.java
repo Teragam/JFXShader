@@ -7,8 +7,8 @@ import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 
-import de.teragam.jfxshader.EffectDependencies;
-import de.teragam.jfxshader.TwoSamplerEffect;
+import de.teragam.jfxshader.effect.EffectDependencies;
+import de.teragam.jfxshader.effect.TwoSamplerEffect;
 
 @EffectDependencies(BlendShapesEffectPeer.class)
 public class BlendShapes extends TwoSamplerEffect {
