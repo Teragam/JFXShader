@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.UnaryOperator;
 
@@ -53,7 +53,11 @@ public class Reflect<C> {
                 method.trySetAccessible();
                 return method;
             } catch (NoSuchMethodException e) {
-                throw new ShaderException(String.format("Could not get declared method %s of class %s", methodName, this.clazz.getName()), e);
+                final Optional<Method> methodOpt = Arrays.stream(this.clazz.getDeclaredMethods()).filter(m -> m.getName().equals(methodName)).findFirst();
+                final Method method = methodOpt.orElseThrow(
+                        () -> new ShaderException(String.format("Could not get declared method %s of class %s", methodName, this.clazz.getName()), e));
+                method.trySetAccessible();
+                return method;
             }
         });
     }
@@ -86,13 +90,6 @@ public class Reflect<C> {
     public <T> MethodInvocationWrapper<T> method(String methodName, Class<?>... parameterTypes) {
         return (instance, args) -> {
             try {
-                if (parameterTypes.length == 0 && args.length != 0) {
-                    final Class<?>[] runtimeParameterTypes = Arrays.stream(args)
-                            .map(obj -> Objects.requireNonNull(obj, "Argument cannot be null"))
-                            .map(Object::getClass)
-                            .map(Reflect::convertToPrimitiveClass).toArray(Class<?>[]::new);
-                    return (T) this.getMethod(methodName, runtimeParameterTypes).invoke(instance, args);
-                }
                 return (T) this.getMethod(methodName, parameterTypes).invoke(instance, args);
             } catch (ReflectiveOperationException e) {
                 throw new ShaderException(String.format("Could not invoke method %s of class %s", methodName, this.clazz.getName()), e);
@@ -127,13 +124,6 @@ public class Reflect<C> {
     public ConstructorInvocationWrapper<C> constructor(Class<?>... parameterTypes) {
         return args -> {
             try {
-                if (parameterTypes.length == 0 && args.length != 0) {
-                    final Class<?>[] runtimeParameterTypes = Arrays.stream(args)
-                            .map(obj -> Objects.requireNonNull(obj, "Argument cannot be null"))
-                            .map(Object::getClass)
-                            .map(Reflect::convertToPrimitiveClass).toArray(Class<?>[]::new);
-                    return this.getConstructor(runtimeParameterTypes).newInstance(args);
-                }
                 return this.getConstructor(parameterTypes).newInstance(args);
             } catch (ReflectiveOperationException e) {
                 throw new ShaderException(String.format("Could not create instance of class %s", this.clazz.getName()), e);

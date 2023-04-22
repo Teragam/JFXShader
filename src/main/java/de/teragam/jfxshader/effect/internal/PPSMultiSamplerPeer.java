@@ -17,7 +17,6 @@ import com.sun.prism.impl.BaseGraphics;
 import com.sun.prism.impl.VertexBuffer;
 import com.sun.prism.impl.ps.BaseShaderContext;
 import com.sun.prism.impl.ps.BaseShaderGraphics;
-import com.sun.prism.paint.Paint;
 import com.sun.prism.ps.Shader;
 import com.sun.prism.ps.ShaderGraphics;
 import com.sun.scenario.effect.Effect;
@@ -209,12 +208,11 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
             return;
         }
         ShaderController.ensureTextureCapacity(this.getFilterContext(), (BaseShaderContext) context);
-        Reflect.on(BaseShaderContext.class).method("checkState", BaseShaderGraphics.class, int.class, BaseTransform.class,
-                Shader.class).invoke(context, g, this.checkTextureOpMask, xform, this.shader);
+        Reflect.on(BaseShaderContext.class).method("checkState").invoke(context, g, this.checkTextureOpMask, xform, this.shader);
         for (int i = 0; i < Math.min(textures.size(), ShaderController.MAX_BOUND_TEXTURES); i++) {
-            Reflect.on(BaseShaderContext.class).method("setTexture", int.class, Texture.class).invoke(context, i, textures.get(i));
+            Reflect.on(BaseShaderContext.class).method("setTexture").invoke(context, i, textures.get(i));
         }
-        Reflect.on(BaseShaderContext.class).method("updatePerVertexColor", Paint.class, float.class).invoke(context, null, g.getExtraAlpha());
+        Reflect.on(BaseShaderContext.class).method("updatePerVertexColor").invoke(context, null, g.getExtraAlpha());
         final VertexBuffer vb = context.getVertexBuffer();
         switch (coords.size()) {
             case 0:

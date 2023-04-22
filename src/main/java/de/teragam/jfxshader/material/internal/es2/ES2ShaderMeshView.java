@@ -6,8 +6,8 @@ import com.sun.prism.impl.BaseMesh;
 import com.sun.prism.impl.Disposer;
 import com.sun.prism.impl.ps.BaseShaderContext;
 
-import de.teragam.jfxshader.util.Reflect;
 import de.teragam.jfxshader.material.internal.ShaderMeshView;
+import de.teragam.jfxshader.util.Reflect;
 
 public class ES2ShaderMeshView extends ShaderMeshView {
 

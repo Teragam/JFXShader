@@ -10,8 +10,8 @@ import javafx.geometry.Rectangle2D;
 import com.sun.prism.ps.Shader;
 import com.sun.scenario.effect.impl.BufferUtil;
 
-import de.teragam.jfxshader.effect.EffectPeer;
 import de.teragam.jfxshader.ShaderDeclaration;
+import de.teragam.jfxshader.effect.EffectPeer;
 import de.teragam.jfxshader.effect.ShaderEffectPeer;
 import de.teragam.jfxshader.effect.internal.ShaderEffectPeerConfig;
 

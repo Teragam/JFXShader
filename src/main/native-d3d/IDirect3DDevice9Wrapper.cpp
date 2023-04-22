@@ -51,6 +51,16 @@ JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3D
     setResultCode(env, obj, getDevice(env, obj)->SetPixelShader((IDirect3DPixelShader9*) pShader));
 }
 
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_setPixelShaderConstantF(JNIEnv *env, jobject obj, jint startRegister, jfloatArray pConstantData, jint vector4fCount) {
+    jfloat* pConstantDataFloats = env->GetFloatArrayElements(pConstantData, NULL);
+    setResultCode(env, obj, getDevice(env, obj)->SetPixelShaderConstantF(startRegister, (float*) pConstantDataFloats, vector4fCount));
+    env->ReleaseFloatArrayElements(pConstantData, pConstantDataFloats, JNI_ABORT);
+}
+
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_setTexture(JNIEnv *env, jobject obj, jint stage, jlong pTexture) {
+    setResultCode(env, obj, getDevice(env, obj)->SetTexture(stage, (IDirect3DBaseTexture9*) pTexture));
+}
+
 JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_setRenderState(JNIEnv *env, jobject obj, jint state, jint value) {
     setResultCode(env, obj, getDevice(env, obj)->SetRenderState((D3DRENDERSTATETYPE) state, value));
 }

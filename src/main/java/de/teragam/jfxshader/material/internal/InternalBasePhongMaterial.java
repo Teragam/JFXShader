@@ -1,26 +1,22 @@
 package de.teragam.jfxshader.material.internal;
 
-import com.sun.prism.ResourceFactory;
 import com.sun.prism.TextureMap;
 import com.sun.prism.impl.BasePhongMaterial;
 import com.sun.prism.impl.Disposer;
 
 import de.teragam.jfxshader.material.ShaderMaterial;
 
-//TODO: Temporary implementation to test the shader material
 public class InternalBasePhongMaterial extends BasePhongMaterial {
-    static int count = 0;
 
     private final ShaderMaterial material;
 
-    public InternalBasePhongMaterial(ResourceFactory factory, ShaderMaterial material, Disposer.Record disposerRecord) {
+    public InternalBasePhongMaterial(ShaderMaterial material, Disposer.Record disposerRecord) {
         super(disposerRecord);
-        count++;
         this.material = material;
     }
 
-    public static InternalBasePhongMaterial create(ResourceFactory rf, ShaderMaterial material) {
-        return new InternalBasePhongMaterial(rf, material, () -> {});
+    public static InternalBasePhongMaterial create(ShaderMaterial material) {
+        return new InternalBasePhongMaterial(material, () -> {});
     }
 
     public ShaderMaterial getShaderMaterial() {
@@ -44,16 +40,17 @@ public class InternalBasePhongMaterial extends BasePhongMaterial {
 
     @Override
     public void lockTextureMaps() {
+        // Not needed
     }
 
     @Override
     public void unlockTextureMaps() {
+        // Not needed
     }
 
     @Override
     public void dispose() {
-        disposerRecord.dispose();
-        count--;
+        this.disposerRecord.dispose();
     }
 
 }

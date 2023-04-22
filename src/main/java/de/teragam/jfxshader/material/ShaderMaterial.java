@@ -1,14 +1,19 @@
 package de.teragam.jfxshader.material;
 
+import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.BooleanPropertyBase;
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.DoublePropertyBase;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.IntegerPropertyBase;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ObjectPropertyBase;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Material;
+
+import com.sun.javafx.beans.event.AbstractNotifyListener;
+import com.sun.javafx.tk.Toolkit;
 
 import de.teragam.jfxshader.MaterialController;
 import de.teragam.jfxshader.material.internal.ShaderMaterialBase;
@@ -31,83 +36,74 @@ public abstract class ShaderMaterial {
     }
 
     protected DoubleProperty createMaterialDoubleProperty(double value, String name) {
-        return new DoublePropertyBase(value) {
-
+        return new SimpleDoubleProperty(ShaderMaterial.this, name, value) {
             @Override
             public void invalidated() {
                 ShaderMaterial.this.markDirty();
-            }
-
-            @Override
-            public Object getBean() {
-                return ShaderMaterial.this;
-            }
-
-            @Override
-            public String getName() {
-                return name;
             }
         };
     }
 
     protected IntegerProperty createMaterialIntegerProperty(int value, String name) {
-        return new IntegerPropertyBase(value) {
-
+        return new SimpleIntegerProperty(ShaderMaterial.this, name, value) {
             @Override
             public void invalidated() {
                 ShaderMaterial.this.markDirty();
-            }
-
-            @Override
-            public Object getBean() {
-                return ShaderMaterial.this;
-            }
-
-            @Override
-            public String getName() {
-                return name;
             }
         };
     }
 
     protected BooleanProperty createMaterialBooleanProperty(boolean value, String name) {
-        return new BooleanPropertyBase(value) {
-
+        return new SimpleBooleanProperty(ShaderMaterial.this, name, value) {
             @Override
             public void invalidated() {
                 ShaderMaterial.this.markDirty();
-            }
-
-            @Override
-            public Object getBean() {
-                return ShaderMaterial.this;
-            }
-
-            @Override
-            public String getName() {
-                return name;
             }
         };
     }
 
     protected <T> ObjectProperty<T> createMaterialObjectProperty(T value, String name) {
-        return new ObjectPropertyBase<>(value) {
-
+        return new SimpleObjectProperty<>(ShaderMaterial.this, name, value) {
             @Override
             public void invalidated() {
                 ShaderMaterial.this.markDirty();
             }
+        };
+    }
+
+    protected ObjectProperty<Image> createMaterialImageProperty(Image value, String name) {
+        return new SimpleObjectProperty<>(ShaderMaterial.this, name, value) {
+
+            private boolean needsListeners;
+            private Image lastImage;
 
             @Override
-            public Object getBean() {
-                return ShaderMaterial.this;
-            }
+            public void invalidated() {
+                final Image image = this.get();
 
-            @Override
-            public String getName() {
-                return name;
+                if (this.needsListeners) {
+                    Toolkit.getImageAccessor().getImageProperty(this.lastImage)
+                            .removeListener(ShaderMaterial.this.platformImageChangeListener.getWeakListener());
+                }
+
+                this.needsListeners = image != null && (Toolkit.getImageAccessor().isAnimation(image) || image.getProgress() < 1);
+                if (this.needsListeners) {
+                    Toolkit.getImageAccessor().getImageProperty(image).
+                            addListener(ShaderMaterial.this.platformImageChangeListener.getWeakListener());
+                }
+
+                this.lastImage = image;
+
+                ShaderMaterial.this.markDirty();
             }
         };
     }
+
+    private final AbstractNotifyListener platformImageChangeListener = new AbstractNotifyListener() {
+        @Override
+        public void invalidated(Observable valueModel) {
+            ShaderMaterial.this.markDirty();
+        }
+    };
 
 }

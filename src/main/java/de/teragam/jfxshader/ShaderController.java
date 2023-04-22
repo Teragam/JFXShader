@@ -97,7 +97,7 @@ public final class ShaderController {
         final ShaderFactory factory = ShaderController.getBaseShaderFactory(fctx);
         if (ShaderController.isGLSLSupported()) {
             final BaseShaderContext es2Context = Reflect.on(ES2ResourceFactory.class).getFieldValue("context", factory);
-            final String vertexShader = Reflect.on("com.sun.prism.es2.ES2Shader").<String>method("readStreamIntoString", InputStream.class)
+            final String vertexShader = Reflect.on("com.sun.prism.es2.ES2Shader").<String>method("readStreamIntoString")
                     .invoke(null, Objects.requireNonNull(vertexShaderDeclaration.es2Source(), "ES2 vertex shader source cannot be null"));
             return Reflect.on("com.sun.prism.es2.ES2Shader")
                     .<ES2Shader>method("createFromSource", Reflect.resolveClass("com.sun.prism.es2.ES2Context"), String.class, InputStream.class,

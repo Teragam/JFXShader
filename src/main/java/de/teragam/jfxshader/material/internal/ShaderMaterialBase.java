@@ -5,11 +5,9 @@ import javafx.scene.paint.PhongMaterial;
 
 import com.sun.javafx.sg.prism.NGPhongMaterial;
 
-import de.teragam.jfxshader.util.Reflect;
 import de.teragam.jfxshader.material.ShaderMaterial;
+import de.teragam.jfxshader.util.Reflect;
 
-
-//TODO: Temporary class to test the shader material
 public class ShaderMaterialBase extends PhongMaterial {
 
     private final ShaderMaterial material;
@@ -19,7 +17,7 @@ public class ShaderMaterialBase extends PhongMaterial {
     }
 
     public void setDirty(boolean value) {
-        Reflect.on(Material.class).method("setDirty", boolean.class).invoke(this, value);
+        Reflect.on(Material.class).method("setDirty").invoke(this, value);
     }
 
     public boolean isDirty() {

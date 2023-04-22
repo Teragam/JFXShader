@@ -10,6 +10,7 @@ import javafx.scene.shape.MeshView;
 import javafx.scene.shape.Shape3D;
 
 import com.sun.glass.utils.NativeLibLoader;
+import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.scene.paint.MaterialHelper;
 import com.sun.javafx.scene.shape.BoxHelper;
 import com.sun.javafx.scene.shape.CylinderHelper;
@@ -62,7 +63,7 @@ public final class MaterialController {
      * Otherwise, only {@link Shape3D} instances created after this injection will support custom shaders.
      */
     public static void ensure3DAccessorInjection() {
-        if (ShaderController.isHLSLSupported()) {
+        if (PlatformUtil.isWindows()) {
             NativeLibLoader.loadLibrary("jfxshader");
         }
         MaterialController.injectMaterialAccessor();

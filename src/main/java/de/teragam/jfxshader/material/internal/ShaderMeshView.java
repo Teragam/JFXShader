@@ -55,13 +55,11 @@ public class ShaderMeshView extends BaseMeshView {
 
     @Override
     public void render(Graphics g) {
-        this.material.lockTextureMaps();
         if (g instanceof MeshProxyHelper.GraphicsHelper) {
             final Graphics rawGraphics = ((MeshProxyHelper.GraphicsHelper) g).getRawGraphics();
             final BaseShaderContext context = Reflect.on(BaseGraphics.class).getFieldValue("context", rawGraphics);
             MaterialController.getPeer(this.getMaterial().getShaderMaterial()).filter(rawGraphics, this, context);
         }
-        this.material.unlockTextureMaps();
     }
 
     @Override

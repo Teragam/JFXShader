@@ -13,11 +13,11 @@ import com.sun.prism.ResourceFactory;
 import com.sun.prism.es2.ES2ResourceFactory;
 import com.sun.prism.impl.BaseMesh;
 
-import de.teragam.jfxshader.util.Reflect;
 import de.teragam.jfxshader.ShaderController;
 import de.teragam.jfxshader.material.ShaderMaterial;
 import de.teragam.jfxshader.material.internal.es2.ES2ShaderMeshView;
 import de.teragam.jfxshader.material.internal.es2.InternalES2BasePhongMaterial;
+import de.teragam.jfxshader.util.Reflect;
 
 public final class MeshProxyHelper {
 
@@ -82,7 +82,7 @@ public final class MeshProxyHelper {
                     return ShaderMeshView.create((ShaderBaseMesh) args[0]);
                 }
                 if ("createPhongMaterial".equals(method.getName())) {
-                    return InternalBasePhongMaterial.create(rf, material);
+                    return InternalBasePhongMaterial.create(material);
                 }
                 return method.invoke(rf, args);
             };
@@ -97,8 +97,7 @@ public final class MeshProxyHelper {
                 return method.invoke(rf, args);
             };
         }
-        final Object proxyFactory = Proxy.newProxyInstance(ResourceFactory.class.getClassLoader(), new Class<?>[]{ResourceFactory.class}, handler);
-        return (ResourceFactory) proxyFactory;
+        return (ResourceFactory) Proxy.newProxyInstance(ResourceFactory.class.getClassLoader(), new Class<?>[]{ResourceFactory.class}, handler);
     }
 
     public interface GraphicsHelper {

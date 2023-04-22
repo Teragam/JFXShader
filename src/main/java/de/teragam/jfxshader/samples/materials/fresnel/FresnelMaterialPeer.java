@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.samples.materials.toonshader;
+package de.teragam.jfxshader.samples.materials.fresnel;
 
 import java.nio.FloatBuffer;
 import java.util.HashMap;
@@ -11,14 +11,14 @@ import com.sun.scenario.effect.impl.BufferUtil;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.material.ShaderMaterialPeer;
 
-public class ToonShaderMaterialPeer extends ShaderMaterialPeer<ToonShaderMaterial> {
+public class FresnelMaterialPeer extends ShaderMaterialPeer<FresnelMaterial> {
 
     @Override
     public ShaderDeclaration createVertexShaderDeclaration() {
         final Map<String, Integer> params = new HashMap<>();
         params.put("VSR_WORLDMATRIX", 35);
-        return new ShaderDeclaration(null, params, ShaderMaterialPeer.class.getResourceAsStream("/samples/materials/toonshading/toonshader.vert"),
-                ShaderMaterialPeer.class.getResourceAsStream("/samples/materials/toonshading/toonshader.vs.obj"));
+        return new ShaderDeclaration(null, params, ShaderMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.vert"),
+                ShaderMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.vs.obj"));
     }
 
     @Override
@@ -26,15 +26,15 @@ public class ToonShaderMaterialPeer extends ShaderMaterialPeer<ToonShaderMateria
         final Map<String, Integer> samplers = new HashMap<>();
         samplers.put("baseImg", 0);
         final Map<String, Integer> params = new HashMap<>();
-        params.put("edgeWidth", 0);
-        return new ShaderDeclaration(samplers, params, ToonShaderMaterialPeer.class.getResourceAsStream("/samples/materials/toonshading/toonshader.frag"),
-                ToonShaderMaterialPeer.class.getResourceAsStream("/samples/materials/toonshading/toonshader.ps.obj"));
+        params.put("glowStrength", 0);
+        return new ShaderDeclaration(samplers, params, FresnelMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.frag"),
+                FresnelMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.ps.obj"));
     }
 
     private final FloatBuffer buf = BufferUtil.newFloatBuffer(12);
 
     @Override
-    public void updateShader(Shader vertexShader, Shader pixelShader, ToonShaderMaterial material) {
+    public void updateShader(Shader vertexShader, Shader pixelShader, FresnelMaterial material) {
         final float[] transform = new float[12];
         final BaseTransform baseTransform = this.getTransform();
         transform[0] = (float) baseTransform.getMxx();
@@ -54,7 +54,9 @@ public class ToonShaderMaterialPeer extends ShaderMaterialPeer<ToonShaderMateria
         this.buf.rewind();
         vertexShader.setConstants("VSR_WORLDMATRIX", this.buf, 0, 3);
 
-        pixelShader.setConstant("edgeWidth", (float) material.getEdgeWidth());
+        this.setTexture(material.getDiffuseImage(), 0);
+
+        pixelShader.setConstant("glowStrength", (float) material.getGlowStrength());
     }
 
 }

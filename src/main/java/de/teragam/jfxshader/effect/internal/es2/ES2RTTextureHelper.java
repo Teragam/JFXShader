@@ -15,9 +15,9 @@ import com.sun.prism.impl.TextureResourcePool;
 import com.sun.prism.impl.ps.BaseShaderContext;
 
 import de.teragam.jfxshader.effect.internal.RTTTextureHelper;
+import de.teragam.jfxshader.exception.TextureCreationException;
 import de.teragam.jfxshader.util.MethodInvocationWrapper;
 import de.teragam.jfxshader.util.Reflect;
-import de.teragam.jfxshader.exception.TextureCreationException;
 
 public class ES2RTTextureHelper extends RTTTextureHelper {
 
@@ -41,7 +41,7 @@ public class ES2RTTextureHelper extends RTTTextureHelper {
         }
 
         final BaseShaderContext es2Context = ReflectionES2Helper.getInstance().getContext(factory);
-        final GLContext proxy = Reflect.createProxy(ES2RTTextureHelper.getGLContext(factory), GLContext.class);
+        final GLContext glContext = Reflect.createProxy(ES2RTTextureHelper.getGLContext(factory), GLContext.class);
 
         final boolean pad;
         switch (wrapMode) {
@@ -49,7 +49,7 @@ public class ES2RTTextureHelper extends RTTTextureHelper {
                 pad = false;
                 break;
             case CLAMP_TO_ZERO:
-                pad = !proxy.canClampToZero();
+                pad = !glContext.canClampToZero();
                 break;
             default:
             case CLAMP_TO_EDGE:
@@ -78,10 +78,10 @@ public class ES2RTTextureHelper extends RTTTextureHelper {
             paddedH = height;
         }
 
-        final int maxSize = proxy.getMaxTextureSize();
+        final int maxSize = glContext.getMaxTextureSize();
         int texWidth;
         int texHeight;
-        if (proxy.canCreateNonPowTwoTextures()) {
+        if (glContext.canCreateNonPowTwoTextures()) {
             texWidth = (paddedW <= maxSize) ? paddedW : 0;
             texHeight = (paddedH <= maxSize) ? paddedH : 0;
         } else {
@@ -104,27 +104,27 @@ public class ES2RTTextureHelper extends RTTTextureHelper {
             throw new TextureCreationException("Failed to create texture: Not enough VRAM.");
         }
 
-        proxy.setActiveTextureUnit(0);
-        final int savedFBO = proxy.getBoundFBO();
-        final int savedTex = proxy.getBoundTexture();
+        glContext.setActiveTextureUnit(0);
+        final int savedFBO = glContext.getBoundFBO();
+        final int savedTex = glContext.getBoundTexture();
 
-        final int nativeTexID = proxy.genAndBindTexture();
+        final int nativeTexID = glContext.genAndBindTexture();
         if (nativeTexID == 0L) {
             throw new TextureCreationException("Failed to create texture.");
         }
 
         final boolean result = ReflectionES2Helper.getInstance()
-                .uploadPixels(proxy.getObject(), GL_TEXTURE_2D, null, format, texWidth, texHeight, contentX,
+                .uploadPixels(glContext.getObject(), GL_TEXTURE_2D, null, format, texWidth, texHeight, contentX,
                         contentY, 0, 0, width, height, 0, true, useMipmap);
         if (!result) {
             throw new TextureCreationException("Failed to create texture.");
         }
 
-        proxy.texParamsMinMax(GL_LINEAR, useMipmap);
+        glContext.texParamsMinMax(GL_LINEAR, useMipmap);
 
-        final int nativeFBOID = proxy.createFBO(nativeTexID);
+        final int nativeFBOID = glContext.createFBO(nativeTexID);
         if (nativeFBOID == 0) {
-            proxy.deleteTexture(nativeTexID);
+            glContext.deleteTexture(nativeTexID);
             throw new TextureCreationException("Failed to attach FBO to texture.");
         }
 
@@ -139,8 +139,8 @@ public class ES2RTTextureHelper extends RTTTextureHelper {
                 .createTexture(es2Context, texRes, format, wrapMode, texWidth, texHeight, contentX, contentY, width, height, maxContentW, maxContentH,
                         useMipmap);
 
-        proxy.bindFBO(savedFBO);
-        proxy.setBoundTexture(savedTex);
+        glContext.bindFBO(savedFBO);
+        glContext.setBoundTexture(savedTex);
         return es2RTT;
     }
 

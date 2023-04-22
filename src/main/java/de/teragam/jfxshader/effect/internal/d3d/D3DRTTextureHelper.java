@@ -13,8 +13,8 @@ import com.sun.prism.impl.PrismSettings;
 import com.sun.prism.impl.ps.BaseShaderContext;
 
 import de.teragam.jfxshader.effect.internal.RTTTextureHelper;
-import de.teragam.jfxshader.util.Reflect;
 import de.teragam.jfxshader.exception.TextureCreationException;
+import de.teragam.jfxshader.util.Reflect;
 
 public final class D3DRTTextureHelper extends RTTTextureHelper {
 
