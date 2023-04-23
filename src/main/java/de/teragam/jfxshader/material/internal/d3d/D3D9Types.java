@@ -14,7 +14,7 @@ public final class D3D9Types {
     public static final int D3DFVF_TEXTUREFORMAT4 = 0x2;
 
     public static int D3DFVF_TEXCOORDSIZE4(int coordIndex) {
-        return (0x4 << (D3DFVF_TEXTUREFORMAT4 << (coordIndex * 2 + 16)));
+        return D3DFVF_TEXTUREFORMAT4 << (coordIndex * 2 + 16);
     }
 
     // D3DUSAGE constants

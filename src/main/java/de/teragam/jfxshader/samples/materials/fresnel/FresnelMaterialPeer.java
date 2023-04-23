@@ -24,9 +24,10 @@ public class FresnelMaterialPeer extends ShaderMaterialPeer<FresnelMaterial> {
     @Override
     public ShaderDeclaration createPixelShaderDeclaration() {
         final Map<String, Integer> samplers = new HashMap<>();
-        samplers.put("baseImg", 0);
+        samplers.put("diffuseImage", 0);
         final Map<String, Integer> params = new HashMap<>();
-        params.put("glowStrength", 0);
+        params.put("color", 0);
+        params.put("strength", 1);
         return new ShaderDeclaration(samplers, params, FresnelMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.frag"),
                 FresnelMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.ps.obj"));
     }
@@ -56,7 +57,9 @@ public class FresnelMaterialPeer extends ShaderMaterialPeer<FresnelMaterial> {
 
         this.setTexture(material.getDiffuseImage(), 0);
 
-        pixelShader.setConstant("glowStrength", (float) material.getGlowStrength());
+        pixelShader.setConstant("strength", (float) material.getPower());
+        pixelShader.setConstant("color", (float) material.getGlowColor().getRed(), (float) material.getGlowColor().getGreen(),
+                (float) material.getGlowColor().getBlue(), (float) material.getGlowColor().getOpacity());
     }
 
 }

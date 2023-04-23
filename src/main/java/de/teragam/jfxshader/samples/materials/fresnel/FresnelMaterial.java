@@ -11,31 +11,31 @@ import de.teragam.jfxshader.material.ShaderMaterial;
 @MaterialDependency(FresnelMaterialPeer.class)
 public class FresnelMaterial extends ShaderMaterial {
 
-    private DoubleProperty glowStrength;
+    private DoubleProperty power;
     private ObjectProperty<Image> diffuseImage;
-    private ObjectProperty<Color> diffuseColor;
+    private ObjectProperty<Color> glowColor;
 
     public FresnelMaterial() {
-        this(0.1);
+        this(2.0);
     }
 
-    public FresnelMaterial(double glowStrength) {
-        this.setGlowStrength(glowStrength);
+    public FresnelMaterial(double power) {
+        this.setPower(power);
     }
 
-    public double getGlowStrength() {
-        return this.glowStrengthProperty().get();
+    public double getPower() {
+        return this.powerProperty().get();
     }
 
-    public DoubleProperty glowStrengthProperty() {
-        if (this.glowStrength == null) {
-            this.glowStrength = super.createMaterialDoubleProperty(0.1, "glowStrength");
+    public DoubleProperty powerProperty() {
+        if (this.power == null) {
+            this.power = super.createMaterialDoubleProperty(2.0, "power");
         }
-        return this.glowStrength;
+        return this.power;
     }
 
-    public void setGlowStrength(double glowStrength) {
-        this.glowStrengthProperty().set(glowStrength);
+    public void setPower(double power) {
+        this.powerProperty().set(power);
     }
 
     public Image getDiffuseImage() {
@@ -53,19 +53,19 @@ public class FresnelMaterial extends ShaderMaterial {
         this.diffuseImageProperty().set(diffuseImage);
     }
 
-    public Color getDiffuseColor() {
-        return this.diffuseColorProperty().get();
+    public Color getGlowColor() {
+        return this.glowColorProperty().get();
     }
 
-    public ObjectProperty<Color> diffuseColorProperty() {
-        if (this.diffuseColor == null) {
-            this.diffuseColor = super.createMaterialObjectProperty(Color.WHITE, "diffuseColor");
+    public ObjectProperty<Color> glowColorProperty() {
+        if (this.glowColor == null) {
+            this.glowColor = super.createMaterialObjectProperty(Color.WHITE, "diffuseColor");
         }
-        return this.diffuseColor;
+        return this.glowColor;
     }
 
-    public void setDiffuseColor(Color diffuseColor) {
-        this.diffuseColorProperty().set(diffuseColor);
+    public void setGlowColor(Color glowColor) {
+        this.glowColorProperty().set(glowColor);
     }
 
 }
