@@ -8,10 +8,9 @@ import java.util.Map;
 
 import javafx.scene.image.Image;
 
-import com.sun.javafx.geom.Vec3d;
-import com.sun.javafx.geom.transform.Affine3D;
 import com.sun.javafx.geom.transform.BaseTransform;
-import com.sun.javafx.geom.transform.GeneralTransform3D;
+import com.sun.javafx.sg.prism.NGCamera;
+import com.sun.javafx.sg.prism.NGLightBase;
 import com.sun.javafx.tk.Toolkit;
 import com.sun.prism.Graphics;
 import com.sun.prism.MeshView;
@@ -25,11 +24,14 @@ import de.teragam.jfxshader.MaterialController;
 import de.teragam.jfxshader.ShaderController;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.exception.ShaderException;
+import de.teragam.jfxshader.material.internal.AbstractShaderMaterialPeerRenderer;
 import de.teragam.jfxshader.material.internal.ShaderBaseMesh;
 import de.teragam.jfxshader.material.internal.ShaderMeshView;
 import de.teragam.jfxshader.material.internal.d3d.D3D9Types;
 import de.teragam.jfxshader.material.internal.d3d.D3DBaseMeshHelper;
+import de.teragam.jfxshader.material.internal.d3d.D3DShaderMaterialPeerRenderer;
 import de.teragam.jfxshader.material.internal.d3d.IDirect3DDevice9;
+import de.teragam.jfxshader.material.internal.es2.ES2ShaderMaterialPeerRenderer;
 import de.teragam.jfxshader.material.internal.es2.ES2ShaderMeshView;
 import de.teragam.jfxshader.util.Reflect;
 
@@ -40,8 +42,11 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
     private ES2Shader es2Shader;
 
     private BaseTransform transform;
+    private NGLightBase[] lights;
+    private NGCamera camera;
 
-    private final Map<Image, Integer> textureImageMap;
+    private final Map<Integer, Image> imageIndexMap;
+    private final AbstractShaderMaterialPeerRenderer peerRenderer;
 
     /**
      * Size of a vertex in bytes.
@@ -54,19 +59,24 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
     private static final int PRIMITIVE_VERTEX_SIZE = 4 * 3 + 4 * 2 + 4 * 4;
 
     protected ShaderMaterialPeer() {
-        this.textureImageMap = new HashMap<>();
+        this.imageIndexMap = new HashMap<>();
+        if (ShaderController.isGLSLSupported()) {
+            this.peerRenderer = new ES2ShaderMaterialPeerRenderer();
+        } else {
+            this.peerRenderer = new D3DShaderMaterialPeerRenderer();
+        }
     }
 
     public ShaderDeclaration createVertexShaderDeclaration() {
         InputStream es2Source = null;
         if (ShaderController.isGLSLSupported()) {
-            // TODO: Check whether a different class can be used here
             es2Source = Reflect.resolveClass("com.sun.prism.es2.ES2ResourceFactory").getResourceAsStream("glsl/main.vert");
         }
         final Map<String, Integer> params = new HashMap<>();
+        params.put("viewProjectionMatrix", 0);
         params.put("VSR_LIGHT_POS", 10);
         params.put("VSR_LIGHT_DIRS", 20);
-        params.put("VSR_WORLDMATRIX", 35);
+        params.put("worldMatrix", 35);
         return new ShaderDeclaration(null, params, es2Source, ShaderMaterialPeer.class.getResourceAsStream("/hlsl/Mtl1VS.obj"));
     }
 
@@ -78,12 +88,15 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
         return attributes;
     }
 
-    protected void setTexture(Image image, int index) {
-        this.textureImageMap.put(image, index);
+    protected void setSamplerImage(Image image, int index) {
+        this.imageIndexMap.put(index, image);
     }
 
-    public final void filter(Graphics g, MeshView meshView, BaseShaderContext context) { //TODO combine in ShaderMeshView / ES2ShaderMeshView
+    public final void filter(Graphics g, MeshView meshView, BaseShaderContext context) {
         this.transform = g.getTransformNoClone();
+        this.lights = g.getLights();
+        this.camera = g.getCameraNoClone();
+
         if (ShaderController.isHLSLSupported()) {
             this.filterD3D(g, (ShaderMeshView) meshView, context);
         } else if (ShaderController.isGLSLSupported()) {
@@ -92,9 +105,6 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
     }
 
     public void filterD3D(Graphics g, ShaderMeshView meshView, BaseShaderContext context) {
-//        final Vec3d cameraPos = Reflect.on(context.getClass()).getFieldValue("cameraPos", context);
-        //TODO replace with implementation
-        Reflect.on(context.getClass()).method("renderMeshView").invoke(context, 0, g);
         if (this.vertexShader == null) {
             this.vertexShader = this.createVertexShader(g);
         }
@@ -103,17 +113,19 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
         }
         final ShaderBaseMesh mesh = (ShaderBaseMesh) meshView.getMesh();
 
+        this.vertexShader.enable();
+        this.pixelShader.enable();
+        this.imageIndexMap.clear();
+        this.peerRenderer.updateMatrices(g, context);
+        this.updateShader(this.vertexShader, this.pixelShader, (T) meshView.getMaterial().getShaderMaterial());
+
         final IDirect3DDevice9 device = MaterialController.getD3DDevice(g.getResourceFactory());
         device.setFVF(D3D9Types.D3DFVF_XYZ | (2 << D3D9Types.D3DFVF_TEXCOUNT_SHIFT) | D3D9Types.D3DFVF_TEXCOORDSIZE4(1));
         if (device.getResultCode() != 0) {
             throw new ShaderException("Failed to set FVF");
         }
-        this.vertexShader.enable();
-        this.pixelShader.enable();
-        this.updateShader(this.vertexShader, this.pixelShader, (T) meshView.getMaterial().getShaderMaterial());
-
         final List<Texture> textures = new ArrayList<>();
-        this.textureImageMap.forEach((image, index) -> {
+        this.imageIndexMap.forEach((index, image) -> {
             final Texture texture = this.getTexture(context, image, false);
             device.setTexture(index, this.getD3DTextureHandle(texture));
             if (texture != null) {
@@ -152,51 +164,19 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
             this.es2Shader = this.createES2ShaderProgram(g);
         }
         this.es2Shader.enable();
-
-        final Reflect<? extends BaseShaderContext> contextReflect = Reflect.on(context.getClass());
-        final GeneralTransform3D scratchTx = contextReflect.getFieldValue("scratchTx", null);
-        final Affine3D scratchAffine3DTx = contextReflect.getFieldValue("scratchAffine3DTx", null);
-        final GeneralTransform3D projViewTx = contextReflect.getFieldValue("projViewTx", context);
-        final GeneralTransform3D worldTx = contextReflect.getFieldValue("worldTx", context);
-        final float[] rawMatrix = contextReflect.getFieldValue("rawMatrix", context);
-
-        final float pixelScaleFactorX = g.getPixelScaleFactorX();
-        final float pixelScaleFactorY = g.getPixelScaleFactorY();
-        if (pixelScaleFactorX != 1.0 || pixelScaleFactorY != 1.0) {
-            scratchTx.set(projViewTx);
-            scratchTx.scale(pixelScaleFactorX, pixelScaleFactorY, 1.0);
-            contextReflect.method("updateRawMatrix").invoke(context, scratchTx);
-        } else {
-            contextReflect.method("updateRawMatrix").invoke(context, projViewTx);
-        }
-        this.es2Shader.setMatrix("viewProjectionMatrix", rawMatrix);
-        final Vec3d cameraPos = Reflect.on(context.getClass()).getFieldValue("cameraPos", context);
-        this.es2Shader.setConstant("camPos", (float) cameraPos.x, (float) cameraPos.y, (float) cameraPos.z);
-
-        final BaseTransform xform = g.getTransformNoClone();
-        if (pixelScaleFactorX != 1.0 || pixelScaleFactorY != 1.0) {
-            scratchAffine3DTx.setToIdentity();
-            scratchAffine3DTx.scale(1.0 / pixelScaleFactorX, 1.0 / pixelScaleFactorY);
-            scratchAffine3DTx.concatenate(xform);
-            contextReflect.method("updateWorldTransform").invoke(context, scratchAffine3DTx);
-        } else {
-            contextReflect.method("updateWorldTransform").invoke(context, xform);
-        }
-        contextReflect.method("updateRawMatrix").invoke(context, worldTx);
-
-        this.es2Shader.setMatrix("worldMatrix", rawMatrix);
+        this.peerRenderer.updateMatrices(g, context);
+        this.imageIndexMap.clear();
+        this.updateShader(this.es2Shader, this.es2Shader, (T) meshView.getMaterial().getShaderMaterial());
 
         final List<Texture> textures = new ArrayList<>();
-        this.textureImageMap.forEach((image, index) -> {
+        this.imageIndexMap.forEach((index, image) -> {
             final Texture texture = this.getTexture(context, image, false);
             Reflect.on(BaseShaderContext.class).method("updateTexture").invoke(context, index, texture);
             if (texture != null) {
                 textures.add(texture);
             }
         });
-
-        this.updateShader(this.es2Shader, this.es2Shader, (T) meshView.getMaterial().getShaderMaterial());
-
+        final Reflect<? extends BaseShaderContext> contextReflect = Reflect.on(context.getClass());
         final Object glContext = contextReflect.getFieldValue("glContext", context);
         Reflect.on("com.sun.prism.es2.GLContext").method("renderMeshView").invoke(glContext, meshView.getNativeHandle());
 
@@ -246,6 +226,22 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
 
     protected BaseTransform getTransform() {
         return this.transform;
+    }
+
+    protected NGLightBase[] getLights() {
+        return this.lights;
+    }
+
+    protected NGCamera getCamera() {
+        return this.camera;
+    }
+
+    protected float[] getWorldMatrix() {
+        return this.peerRenderer.getWorldMatrix();
+    }
+
+    protected float[] getViewProjectionMatrix() {
+        return this.peerRenderer.getViewProjectionMatrix();
     }
 
     public abstract ShaderDeclaration createPixelShaderDeclaration();
