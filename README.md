@@ -1,7 +1,36 @@
 # JFXShader
 Allows custom effect shaders in JavaFX using OpenGL (GLSL) or DirectX (HLSL).
 
+## Usage
+Examples can be found in the [wiki](https://github.com/Teragam/JFXShader/wiki/Examples) and in the [samples](src/main/java/de/teragam/jfxshader/samples) package.
+### 2D shader effects
+A custom shader can be applied to any JavaFX node hierarchy by using `setEffect`:
+```java
+StackPane pane = new StackPane(getOtherContent());
 
+// Instead of using existing JavaFX effects like SepiaTone or ColorAdjust,
+// we can apply our own effect with custom shaders:
+MyCustomShaderEffect effect = new MyCustomShaderEffect(); 
+pane.setEffect(effect);
+// Custom parameters can be set and used in the shader:
+effect.setMyCustomParameter(2.0);
+```
+Instructions on how to implement a custom shader effect can be found in the [wiki](https://github.com/Teragam/JFXShader/wiki/Examples).
+
+### 3D shader materials
+A custom material can be applied to any Shape3D by using `setMaterial`:
+```java
+Sphere sphere = new Sphere(100);
+
+// Instead of being limited to PhongMaterial,
+// we can apply our own material with custom shaders:
+MyCustomShaderMaterial material = new MyCustomShaderMaterial();
+sphere.setMaterial(material.getFXMaterial());
+// Custom parameters or textures can be set and used in the shader:
+material.setMyCustomParameter(3.0);
+material.setMyCustomTexture(new Image("myCustomTexture.png"));
+```
+        
 ## Maven
 How to include JFXShader in a Maven project:
 
@@ -20,30 +49,14 @@ Then, add the following dependency:
 <dependency>
     <groupId>de.teragam</groupId>
     <artifactId>jfxshader</artifactId>
-    <version>0.8.0</version>
+    <version>1.0.0</version>
 </dependency>
 ```
-
-## Usage
-Examples can be found in the [wiki](https://github.com/Teragam/JFXShader/wiki/Examples) and in the [samples](src/main/java/de/teragam/jfxshader/samples) package.
-
-A custom shader can be applied to any JavaFX node hierarchy by using `setEffect`:
-```java
-StackPane pane = new StackPane(getOtherContent());
-
-// Instead of using existing JavaFX effects like SepiaTone or ColorAdjust,
-// we can apply our own effect with custom shaders:
-MyCustomShaderEffect effect = new MyCustomShaderEffect(); 
-pane.setEffect(effect);
-// Custom parameters can be set and used in the shader:
-effect.setMyCustomParameter(2.0);
-```
-Instructions on how to implement a custom shader effect can be found in the [wiki](https://github.com/Teragam/JFXShader/wiki/Examples).
 
 ## Limitations
 This library is bound to the restrictions of the JavaFX effects system. The following limitations apply:
 
-- **Non-modular** JavaFX version 17 or higher is required.
+- **Non-modular** JavaFX version 18 or higher is required.
 - Only fragment/pixel shaders are supported. The vertex shaders of effects cannot be overwritten.
 - The fragment/pixel shaders only support one active render target (output texture).
 - It is not possible to use OpenGL shaders on Windows.

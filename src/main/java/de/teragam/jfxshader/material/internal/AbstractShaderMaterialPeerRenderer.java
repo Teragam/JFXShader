@@ -1,9 +1,15 @@
 package de.teragam.jfxshader.material.internal;
 
+import java.util.Map;
+
+import javafx.scene.image.Image;
+
 import com.sun.javafx.geom.transform.Affine3D;
 import com.sun.javafx.geom.transform.BaseTransform;
 import com.sun.javafx.geom.transform.GeneralTransform3D;
+import com.sun.javafx.tk.Toolkit;
 import com.sun.prism.Graphics;
+import com.sun.prism.Texture;
 import com.sun.prism.impl.ps.BaseShaderContext;
 
 import de.teragam.jfxshader.util.Reflect;
@@ -40,14 +46,24 @@ public abstract class AbstractShaderMaterialPeerRenderer {
         this.worldMatrix = this.convertMatrix(this.worldTx);
     }
 
+    public abstract void render(Graphics g, ShaderMeshView meshView, BaseShaderContext context, Map<Integer, Image> imageIndexMap);
+
+    protected abstract float[] convertMatrix(GeneralTransform3D src);
+
+    protected Texture getTexture(BaseShaderContext context, Image image, boolean useMipmap) {
+        if (image == null) {
+            return null;
+        }
+        final com.sun.prism.Image platformImage = (com.sun.prism.Image) Toolkit.getImageAccessor().getPlatformImage(image);
+        return platformImage == null ? null : context.getResourceFactory().getCachedTexture(platformImage, Texture.WrapMode.REPEAT, useMipmap);
+    }
+
     private void updateWorldTransform(BaseTransform xform) {
         this.worldTx.setIdentity();
         if ((xform != null) && (!xform.isIdentity())) {
             this.worldTx.mul(xform);
         }
     }
-
-    protected abstract float[] convertMatrix(GeneralTransform3D src);
 
     public float[] getWorldMatrix() {
         return this.worldMatrix;

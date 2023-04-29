@@ -16,16 +16,6 @@ import de.teragam.jfxshader.material.ShaderMaterialPeer;
 public class FresnelMaterialPeer extends ShaderMaterialPeer<FresnelMaterial> {
 
     @Override
-    public ShaderDeclaration createVertexShaderDeclaration() {
-        final Map<String, Integer> params = new HashMap<>();
-        params.put("viewProjectionMatrix", 0);
-        params.put("camPos", 4);
-        params.put("worldMatrix", 35);
-        return new ShaderDeclaration(null, params, ShaderMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.vert"),
-                ShaderMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.vs.obj"));
-    }
-
-    @Override
     public ShaderDeclaration createPixelShaderDeclaration() {
         final Map<String, Integer> samplers = new HashMap<>();
         samplers.put("diffuseImage", 0);
@@ -34,6 +24,16 @@ public class FresnelMaterialPeer extends ShaderMaterialPeer<FresnelMaterial> {
         params.put("strength", 1);
         return new ShaderDeclaration(samplers, params, FresnelMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.frag"),
                 FresnelMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.ps.obj"));
+    }
+
+    @Override
+    public ShaderDeclaration createVertexShaderDeclaration() {
+        final Map<String, Integer> params = new HashMap<>();
+        params.put("viewProjectionMatrix", 0);
+        params.put("camPos", 4);
+        params.put("worldMatrix", 35);
+        return new ShaderDeclaration(null, params, ShaderMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.vert"),
+                ShaderMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.vs.obj"));
     }
 
     private final FloatBuffer buf = BufferUtil.newFloatBuffer(16);
