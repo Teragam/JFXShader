@@ -78,4 +78,14 @@ public class InternalEffect extends Blend {
         final Effect input = Reflect.on(Effect.class).<Effect>method("getDefaultedInput", int.class, Effect.class).invoke(this, 0, defaultInput);
         return input.untransform(p, defaultInput);
     }
+
+    @Override
+    public void setBottomInput(Effect bottomInput) {
+        // no-op
+    }
+
+    @Override
+    public void setTopInput(Effect topInput) {
+        // no-op
+    }
 }
