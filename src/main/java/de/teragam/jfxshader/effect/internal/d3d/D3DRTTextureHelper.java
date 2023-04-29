@@ -43,7 +43,7 @@ public final class D3DRTTextureHelper extends RTTTextureHelper {
         final BaseShaderContext context = Reflect.on(d3DResourceFactoryClass).getFieldValue("context", factory);
         final long contextHandle = Reflect.on("com.sun.prism.d3d.D3DContext").getFieldValue("pContext", context);
         final long pResource = (long) Reflect.on(d3DResourceFactoryClass).method("nCreateTexture")
-                .invoke(contextHandle, format.ordinal(), Texture.Usage.DEFAULT.ordinal(), true, createWidth, createHeight, 0, useMipmap);
+                .invoke(null, contextHandle, format.ordinal(), Texture.Usage.DEFAULT.ordinal(), true, createWidth, createHeight, 0, useMipmap);
 
         if (pResource == 0L) {
             throw new TextureCreationException("Failed to create texture.");
