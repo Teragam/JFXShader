@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.UnaryOperator;
@@ -124,6 +125,13 @@ public class Reflect<C> {
     public ConstructorInvocationWrapper<C> constructor(Class<?>... parameterTypes) {
         return args -> {
             try {
+                if (parameterTypes.length == 0 && args.length != 0) {
+                    final Class<?>[] runtimeParameterTypes = Arrays.stream(args)
+                            .map(obj -> Objects.requireNonNull(obj, "Argument cannot be null"))
+                            .map(Object::getClass)
+                            .map(Reflect::convertToPrimitiveClass).toArray(Class<?>[]::new);
+                    return this.getConstructor(runtimeParameterTypes).newInstance(args);
+                }
                 return this.getConstructor(parameterTypes).newInstance(args);
             } catch (ReflectiveOperationException e) {
                 throw new ShaderException(String.format("Could not create instance of class %s", this.clazz.getName()), e);
