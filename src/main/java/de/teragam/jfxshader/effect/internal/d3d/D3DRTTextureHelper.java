@@ -70,7 +70,7 @@ public final class D3DRTTextureHelper extends RTTTextureHelper {
         }
         final BaseShaderContext context = Reflect.on(d3DResourceFactoryClass).getFieldValue("context", factory);
         final long contextHandle = Reflect.on("com.sun.prism.d3d.D3DContext").getFieldValue("pContext", context);
-        return (long) Reflect.on(d3DResourceFactoryClass).method("nGetDevice").invoke(factory, contextHandle);
+        return (long) Reflect.on(d3DResourceFactoryClass).method("nGetDevice").invoke(null, contextHandle);
     }
 
     public static long estimateTextureSize(long width, long height, PixelFormat format) {
