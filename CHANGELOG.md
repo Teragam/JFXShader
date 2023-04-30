@@ -2,7 +2,21 @@
 
 All notable changes to this project will be documented here.
 
+## v1.0.0 - 2023-04-30
+
+### Added
+- Added support for custom 3D shader materials.
+  - Applicable to any `Shape3D` by using `setMaterial`.
+  - Custom parameters and textures can be set and used in the shader.
+  - Pixel shaders as well as vertex shaders are supported.
+- Added `FresnelMaterial` as an example for a custom 3D shader material.
+
+### Changed
+- Restructured classes and packages.
+- Reduced reliability on internal JavaFX package-private classes for future modularity support.
+
 ## v0.8.0 - 2022-12-30
+
 ### Added
 - Shaders can now use up to 16 bound textures simultaneously.
 - Some refactoring and QoL improvements to ease the development of custom [IEffectRenderer](src/main/java/de/teragam/jfxshader/IEffectRenderer.java).
