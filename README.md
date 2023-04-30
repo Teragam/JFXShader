@@ -53,10 +53,14 @@ Then, add the following dependency:
 </dependency>
 ```
 
+## Requirements
+
+- Java 11 or higher
+- **Non-modular** JavaFX version 18 or higher
+
 ## Limitations
 This library is bound to the restrictions of the JavaFX effects system. The following limitations apply:
 
-- **Non-modular** JavaFX version 18 or higher is required.
 - Only fragment/pixel shaders are supported. The vertex shaders of effects cannot be overwritten.
 - The fragment/pixel shaders only support one active render target (output texture).
 - It is not possible to use OpenGL shaders on Windows.
