@@ -1,5 +1,7 @@
 #version 330 core
 
+varying vec2 texCoord0;
+
 uniform sampler2D baseImg;
 uniform vec2 resolution;
 uniform vec2 center;
@@ -12,7 +14,7 @@ out vec4 fragColor;
 
 void main() {
     vec2 scaledCenter = ((center / resolution + texCoords.xy) * texCoords.zw) * viewport.zw;
-    vec2 focus = gl_FragCoord.xy - scaledCenter;
+    vec2 focus = texCoord0 - scaledCenter;
     float calcStrength = strength * (1.0 / max(resolution.x, resolution.y)) * viewport.z;
 
     vec4 outColor = vec4(0.0, 0.0, 0.0, 0.0);

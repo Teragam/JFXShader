@@ -29,7 +29,7 @@ class PixelateEffectPeer extends ShaderEffectPeer<Pixelate> {
     protected void updateShader(Shader shader, Pixelate effect) {
         shader.setConstant("pixelSize", Math.max((float) effect.getPixelWidth(), 1), Math.max((float) effect.getPixelHeight(), 1));
         shader.setConstant("offset", (float) effect.getOffsetX(), (float) effect.getOffsetY());
-        shader.setConstant("resolution", this.getDestNativeBounds().width, this.getDestNativeBounds().height);
+        shader.setConstant("resolution", (float) this.getDestNativeBounds().width, (float) this.getDestNativeBounds().height);
         final float[] texCoords = this.getTextureCoords(0);
         shader.setConstant("texCoords", texCoords[0], texCoords[1], texCoords[2], texCoords[3]);
         shader.setConstant("viewport", (float) this.getTransform().getMxt(), (float) this.getTransform().getMyt(), (float) this.getTransform().getMxx(),
