@@ -22,7 +22,7 @@ All notable changes to this project will be documented here.
 - Some refactoring and QoL improvements to ease the development of custom [IEffectRenderer](src/main/java/de/teragam/jfxshader/IEffectRenderer.java).
 - The generated texture coordinates for the shader input textures can now be accessed in the [ShaderEffectPeer](src/main/java/de/teragam/jfxshader/ShaderEffectPeer.java). This allows the shaders to compensate for the varying texture coordinates caused by JavaFX's internal texture pooling.
 - The `ImagePoolPolicy.QUANTIZED` option has been added to allow better VRAM usage while ensuring that the target texture dimensions do not fluctuate between frames.
-- Added option to invert the mask in the [BlendShapes](src/main/java/de/teragam/jfxshader/samples/blendshapes/BlendShapesEffectPeer.java) example.
+- Added option to invert the mask in the [BlendShapes](src/main/java/de/teragam/jfxshader/samples/effects/blendshapes/BlendShapesEffectPeer.java) example.
 
 ### Fixed
 - Fixed an issue that did not allow the use of more than 2 textures in a shader.
@@ -44,7 +44,7 @@ All notable changes to this project will be documented here.
 - Added basic support for DPI scaling. JavaFX accomplishes this by applying a scale transform. However, this does not
   work for shaders that rely on positional information, such as the *Lighting* Effect. For now, the shaders can load the
   DPI scale as a parameter and compensate for it accordingly (see
-  the [BlendShapes](src/main/java/de/teragam/jfxshader/samples/blendshapes/BlendShapesEffectPeer.java) EffectPeer for an
+  the [BlendShapes](src/main/java/de/teragam/jfxshader/samples/effects/blendshapes/BlendShapesEffectPeer.java) EffectPeer for an
   example).
 
 ### Changed

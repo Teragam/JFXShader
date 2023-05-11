@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.samples.blendshapes;
+package de.teragam.jfxshader.samples.effects.blendshapes;
 
 import java.util.ArrayList;
 import java.util.Collections;

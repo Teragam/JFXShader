@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.samples.blendshapes;
+package de.teragam.jfxshader.samples.effects.blendshapes;
 
 import java.nio.FloatBuffer;
 import java.util.HashMap;
@@ -37,8 +37,8 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
         params.put("scale", 17);
         params.put("invertMask", 18);
         return new ShaderDeclaration(samplers, params,
-                BlendShapes.class.getResourceAsStream("/samples/blendshapes/blendshapes.frag"),
-                BlendShapes.class.getResourceAsStream("/samples/blendshapes/blendshapes.obj"));
+                BlendShapes.class.getResourceAsStream("/samples/effects/blendshapes/blendshapes.frag"),
+                BlendShapes.class.getResourceAsStream("/samples/effects/blendshapes/blendshapes.obj"));
     }
 
     @Override
