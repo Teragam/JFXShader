@@ -1,17 +1,19 @@
 package de.teragam.jfxshader;
 
 import java.io.InputStream;
+import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import javafx.scene.effect.ShaderEffectBase;
+import javafx.scene.effect.Effect;
 
 import com.sun.glass.ui.Screen;
 import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
+import com.sun.javafx.util.Utils;
 import com.sun.prism.GraphicsPipeline;
 import com.sun.prism.PixelFormat;
 import com.sun.prism.RTTexture;
@@ -24,6 +26,7 @@ import com.sun.prism.impl.ps.BaseShaderContext;
 import com.sun.prism.impl.ps.BaseShaderFactory;
 import com.sun.prism.ps.Shader;
 import com.sun.prism.ps.ShaderFactory;
+import com.sun.scenario.effect.EffectHelper;
 import com.sun.scenario.effect.FilterContext;
 import com.sun.scenario.effect.ImageData;
 import com.sun.scenario.effect.impl.Renderer;
@@ -36,6 +39,7 @@ import de.teragam.jfxshader.effect.IEffectRenderer;
 import de.teragam.jfxshader.effect.ShaderEffect;
 import de.teragam.jfxshader.effect.ShaderEffectPeer;
 import de.teragam.jfxshader.effect.internal.InternalEffect;
+import de.teragam.jfxshader.effect.internal.ShaderEffectBase;
 import de.teragam.jfxshader.effect.internal.ShaderEffectPeerConfig;
 import de.teragam.jfxshader.effect.internal.d3d.D3DRTTextureHelper;
 import de.teragam.jfxshader.effect.internal.es2.ES2RTTextureHelper;
@@ -49,11 +53,27 @@ public final class ShaderController {
 
     public static final int MAX_BOUND_TEXTURES = 16;
 
-    private static final Map<Class<? extends ShaderEffectBase>, IEffectRenderer> EFFECT_RENDERER_MAP = Collections.synchronizedMap(new HashMap<>());
+    private static final Map<Class<? extends ShaderEffect>, IEffectRenderer> EFFECT_RENDERER_MAP = Collections.synchronizedMap(new HashMap<>());
 
     private ShaderController() {}
 
-    public static void register(FilterContext fctx, ShaderEffectBase effect) {
+    public static void injectEffectAccessor() {
+        Utils.forceInit(Effect.class);
+        final EffectHelper.EffectAccessor accessor = Reflect.on(EffectHelper.class).getFieldValue("effectAccessor", null);
+        if (Proxy.isProxyClass(accessor.getClass())) {
+            return;
+        }
+        final Object proxy = Proxy.newProxyInstance(accessor.getClass().getClassLoader(), accessor.getClass().getInterfaces(), (p, method, args) -> {
+            if ("copy".equals(method.getName()) && args[0] instanceof ShaderEffectBase) {
+                return ((ShaderEffectBase) args[0]).getJFXShaderEffect().copy().getFXEffect();
+            } else {
+                return method.invoke(accessor, args);
+            }
+        });
+        Reflect.on(EffectHelper.class).setFieldValue("effectAccessor", null, proxy);
+    }
+
+    public static void register(FilterContext fctx, ShaderEffect effect) {
         final Renderer renderer = Renderer.getRenderer(Objects.requireNonNull(fctx, "FilterContext cannot be null"));
         try {
             final Map<String, com.sun.scenario.effect.impl.EffectPeer<?>> peerCache = Reflect.on(Renderer.class).getFieldValue("peerCache", renderer);
@@ -110,7 +130,7 @@ public final class ShaderController {
         }
     }
 
-    public static IEffectRenderer getEffectRenderer(ShaderEffectBase effect) {
+    public static IEffectRenderer getEffectRenderer(ShaderEffect effect) {
         if (ShaderController.EFFECT_RENDERER_MAP.containsKey(Objects.requireNonNull(effect, "Effect cannot be null").getClass())) {
             return ShaderController.EFFECT_RENDERER_MAP.get(effect.getClass());
         }
@@ -124,7 +144,7 @@ public final class ShaderController {
         }
     }
 
-    public static List<Class<? extends ShaderEffectPeer<?>>> getPeerDependencies(Class<? extends ShaderEffectBase> effect) {
+    public static List<Class<? extends ShaderEffectPeer<?>>> getPeerDependencies(Class<? extends ShaderEffect> effect) {
         if (Objects.requireNonNull(effect, "Effect cannot be null").isAnnotationPresent(EffectDependencies.class)) {
             return List.of(effect.getAnnotation(EffectDependencies.class).value());
         } else {

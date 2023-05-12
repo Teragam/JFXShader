@@ -1,7 +1,5 @@
 package de.teragam.jfxshader.effect.internal;
 
-import javafx.scene.effect.ShaderEffectBase;
-
 import com.sun.javafx.geom.Point2D;
 import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
@@ -12,14 +10,15 @@ import com.sun.scenario.effect.ImageData;
 import com.sun.scenario.effect.impl.state.RenderState;
 
 import de.teragam.jfxshader.ShaderController;
+import de.teragam.jfxshader.effect.ShaderEffect;
 import de.teragam.jfxshader.util.Reflect;
 
 public class InternalEffect extends Blend {
 
     private final int maxInputs;
-    private final ShaderEffectBase effect;
+    private final ShaderEffect effect;
 
-    public InternalEffect(ShaderEffectBase effect, int inputs) {
+    public InternalEffect(ShaderEffect effect, int inputs) {
         super(Mode.SRC_OVER, null, null);
         this.effect = effect;
         this.maxInputs = inputs;
@@ -39,7 +38,7 @@ public class InternalEffect extends Blend {
         return ShaderController.getEffectRenderer(this.getEffect()).render(this, fctx, transform, outputClip, rstate, inputs);
     }
 
-    public ShaderEffectBase getEffect() {
+    public ShaderEffect getEffect() {
         return this.effect;
     }
 
@@ -88,4 +87,18 @@ public class InternalEffect extends Blend {
     public void setTopInput(Effect topInput) {
         // no-op
     }
+
+    /**
+     * This override is necessary to detect shader updates, because {@link javafx.scene.effect.Effect#update() Effect.update()} cannot be overridden when
+     * using the java module system.
+     * <p>
+     * setMode() is called by {@link javafx.scene.effect.Blend#update() Blend.update()}, which is the chosen parent of {@link ShaderEffectBase}.
+     */
+    @Override
+    public void setMode(Mode mode) {
+        if (this.effect != null) {
+            this.effect.getFXEffect().updateInputs();
+        }
+    }
+
 }
