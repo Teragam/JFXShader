@@ -56,7 +56,7 @@ Then, add the following dependency:
 ## Requirements
 
 - Java 11 or higher
-- **Non-modular** JavaFX version 18 or higher
+- JavaFX version 18 or higher
 
 ## Limitations
 This library is bound to the restrictions of the JavaFX effects system. The following limitations apply:

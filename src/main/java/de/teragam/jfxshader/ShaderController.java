@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javafx.scene.effect.Effect;
 
@@ -35,11 +34,11 @@ import de.teragam.jfxshader.effect.EffectDependencies;
 import de.teragam.jfxshader.effect.EffectPeer;
 import de.teragam.jfxshader.effect.EffectRenderer;
 import de.teragam.jfxshader.effect.IEffectRenderer;
+import de.teragam.jfxshader.effect.InternalEffect;
 import de.teragam.jfxshader.effect.ShaderEffect;
 import de.teragam.jfxshader.effect.ShaderEffectPeer;
-import de.teragam.jfxshader.effect.InternalEffect;
-import de.teragam.jfxshader.effect.internal.ShaderEffectBase;
 import de.teragam.jfxshader.effect.ShaderEffectPeerConfig;
+import de.teragam.jfxshader.effect.internal.ShaderEffectBase;
 import de.teragam.jfxshader.effect.internal.d3d.D3DRTTextureHelper;
 import de.teragam.jfxshader.effect.internal.es2.ES2RTTextureHelper;
 import de.teragam.jfxshader.exception.ShaderCreationException;
@@ -118,12 +117,14 @@ public final class ShaderController {
             final BaseShaderContext es2Context = Reflect.on("com.sun.prism.es2.ES2ResourceFactory").getFieldValue("context", factory);
             final String vertexShader = Reflect.on("com.sun.prism.es2.ES2Shader").<String>method("readStreamIntoString")
                     .invoke(null, Objects.requireNonNull(vertexShaderDeclaration.es2Source(), "ES2 vertex shader source cannot be null"));
-            return Reflect.on("com.sun.prism.es2.ES2Shader")
-                    .<Shader>method("createFromSource", Reflect.resolveClass("com.sun.prism.es2.ES2Context"), String.class, InputStream.class,
-                            Map.class, Map.class, int.class, boolean.class)
+            final Shader es2Shader = Reflect.on("com.sun.prism.es2.ES2Shader")
+                    .<Shader>method("createFromSource", Reflect.resolveClass("com.sun.prism.es2.ES2Context"),
+                            String.class, InputStream.class, Map.class, Map.class, int.class, boolean.class)
                     .invoke(null, es2Context, vertexShader,
                             Objects.requireNonNull(pixelShaderDeclaration.es2Source(), "ES2 pixel shader source cannot be null"),
                             Objects.requireNonNull(pixelShaderDeclaration.samplers(), "ES2 pixel shader samplers cannot be null"), attributes, 1, false);
+            return (Shader) Proxy.newProxyInstance(ES2Shader.class.getClassLoader(), ES2Shader.class.getInterfaces(),
+                    (proxy, method, args) -> method.invoke(es2Shader, args));
         } else {
             throw new ShaderCreationException("ES2 shader programs are not supported on DirectX 9.0");
         }
@@ -151,15 +152,9 @@ public final class ShaderController {
         }
     }
 
-    private static final AtomicBoolean addedOpens = new AtomicBoolean();
-
     private static EffectPeer getPeerConfig(Class<? extends ShaderEffectPeer<?>> peer) {
         if (Objects.requireNonNull(peer, "Peer cannot be null").isAnnotationPresent(EffectPeer.class)) {
-            final EffectPeer peerConfig = peer.getAnnotation(EffectPeer.class);
-            if (ShaderController.addedOpens.compareAndSet(false, true)) {
-                Reflect.addOpens("com.sun.prism", "javafx.graphics", peerConfig.getClass().getModule());
-            }
-            return peerConfig;
+            return peer.getAnnotation(EffectPeer.class);
         } else {
             throw new IllegalArgumentException(String.format("%s is not annotated with %s", peer, EffectPeer.class));
         }
