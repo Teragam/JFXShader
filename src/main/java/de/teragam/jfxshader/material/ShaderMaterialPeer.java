@@ -10,7 +10,6 @@ import com.sun.javafx.sg.prism.NGCamera;
 import com.sun.javafx.sg.prism.NGLightBase;
 import com.sun.prism.Graphics;
 import com.sun.prism.MeshView;
-import com.sun.prism.es2.ES2Shader;
 import com.sun.prism.impl.ps.BaseShaderContext;
 import com.sun.prism.ps.Shader;
 import com.sun.scenario.effect.impl.prism.PrFilterContext;
@@ -27,7 +26,7 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
 
     private Shader vertexShader;
     private Shader pixelShader;
-    private ES2Shader es2Shader;
+    private Shader es2Shader;
 
     private BaseTransform transform;
     private NGLightBase[] lights;
@@ -103,7 +102,7 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
         return ShaderController.createVertexShader(PrFilterContext.getInstance(g.getAssociatedScreen()), this.createVertexShaderDeclaration());
     }
 
-    private ES2Shader createES2ShaderProgram(Graphics g) {
+    private Shader createES2ShaderProgram(Graphics g) {
         return ShaderController.createES2ShaderProgram(PrFilterContext.getInstance(g.getAssociatedScreen()),
                 this.createVertexShaderDeclaration(), this.createPixelShaderDeclaration(), this.getES2ShaderAttributes());
     }

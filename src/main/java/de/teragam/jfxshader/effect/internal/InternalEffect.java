@@ -97,7 +97,7 @@ public class InternalEffect extends Blend {
     @Override
     public void setMode(Mode mode) {
         if (this.effect != null) {
-            this.effect.getFXEffect().updateInputs();
+            ((ShaderEffectBase) this.effect.getFXEffect()).updateInputs();
         }
     }
 

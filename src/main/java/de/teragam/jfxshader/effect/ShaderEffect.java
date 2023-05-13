@@ -28,7 +28,7 @@ public abstract class ShaderEffect {
         this.effectBase = new ShaderEffectBase(this, inputs);
     }
 
-    public ShaderEffectBase getFXEffect() {
+    public Effect getFXEffect() {
         return this.effectBase;
     }
 
@@ -40,7 +40,15 @@ public abstract class ShaderEffect {
         this.effectBase.markDirty();
     }
 
-    public ObjectProperty<Effect> getInputProperty(int index) {
+    public int getInputs() {
+        return this.inputs;
+    }
+
+    public RenderState getRenderState() {
+        return RenderState.RenderSpaceRenderState;
+    }
+
+    protected ObjectProperty<Effect> getInputProperty(int index) {
         if (this.inputs > 0 && index == 0) {
             return this.effectBase.topInputProperty();
         } else if (this.inputs > 1 && index == 1) {
@@ -48,14 +56,6 @@ public abstract class ShaderEffect {
         } else {
             throw new IllegalArgumentException(String.format("Only indexes 0 to %d are supported. Requested was %d.", this.inputs - 1, index));
         }
-    }
-
-    public int getInputs() {
-        return this.inputs;
-    }
-
-    public RenderState getRenderState() {
-        return RenderState.RenderSpaceRenderState;
     }
 
     protected DoubleProperty createEffectDoubleProperty(double value, String name) {

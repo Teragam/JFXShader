@@ -5,13 +5,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.javafx.geom.Vec3d;
-import com.sun.prism.es2.ES2Shader;
 import com.sun.prism.ps.Shader;
 import com.sun.scenario.effect.impl.BufferUtil;
 
 import de.teragam.jfxshader.ShaderController;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.material.ShaderMaterialPeer;
+import de.teragam.jfxshader.util.Reflect;
 
 public class FresnelMaterialPeer extends ShaderMaterialPeer<FresnelMaterial> {
 
@@ -44,8 +44,9 @@ public class FresnelMaterialPeer extends ShaderMaterialPeer<FresnelMaterial> {
         vertexShader.setConstant("camPos", (float) camPos.x, (float) camPos.y, (float) camPos.z);
 
         if (ShaderController.isGLSLSupported()) {
-            ((ES2Shader) vertexShader).setMatrix("viewProjectionMatrix", this.getViewProjectionMatrix());
-            ((ES2Shader) vertexShader).setMatrix("worldMatrix", this.getWorldMatrix());
+            // TODO: create ES2Shader Proxy
+            Reflect.on("com.sun.prism.es2.ES2ResourceFactory").method("setMatrix").invoke(vertexShader, "viewProjectionMatrix", this.getViewProjectionMatrix());
+            Reflect.on("com.sun.prism.es2.ES2ResourceFactory").method("setMatrix").invoke(vertexShader, "worldMatrix", this.getWorldMatrix());
         } else {
             final float[] viewProjectionMatrix = this.getViewProjectionMatrix();
             this.buf.clear();
