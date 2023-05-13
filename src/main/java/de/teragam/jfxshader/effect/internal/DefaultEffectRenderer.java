@@ -12,6 +12,7 @@ import com.sun.scenario.effect.impl.state.RenderState;
 import de.teragam.jfxshader.ShaderController;
 import de.teragam.jfxshader.effect.EffectPeer;
 import de.teragam.jfxshader.effect.IEffectRenderer;
+import de.teragam.jfxshader.effect.InternalEffect;
 import de.teragam.jfxshader.effect.ShaderEffectPeer;
 
 @SuppressWarnings("unchecked")
@@ -19,8 +20,7 @@ public class DefaultEffectRenderer implements IEffectRenderer {
 
     @Override
     public ImageData render(InternalEffect effect, FilterContext fctx, BaseTransform transform, Rectangle outputClip, RenderState rstate, ImageData... inputs) {
-        final List<Class<? extends ShaderEffectPeer<?>>> peerList = ShaderController.getPeerDependencies(
-                effect.getEffect().getClass());
+        final List<Class<? extends ShaderEffectPeer<?>>> peerList = ShaderController.getPeerDependencies(effect.getEffect().getClass());
         if (!peerList.isEmpty()) {
             return Renderer.getRenderer(fctx).getPeerInstance(fctx, peerList.get(0).getAnnotation(EffectPeer.class).value(), -1)
                     .filter(effect, rstate, transform, outputClip, inputs);

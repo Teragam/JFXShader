@@ -7,7 +7,7 @@ import com.sun.prism.ps.Shader;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.effect.EffectPeer;
 import de.teragam.jfxshader.effect.ShaderEffectPeer;
-import de.teragam.jfxshader.effect.internal.ShaderEffectPeerConfig;
+import de.teragam.jfxshader.effect.ShaderEffectPeerConfig;
 
 @EffectPeer(value = "ZoomRadialBlur")
 class ZoomRadialBlurEffectPeer extends ShaderEffectPeer<ZoomRadialBlur> {
@@ -27,6 +27,7 @@ class ZoomRadialBlurEffectPeer extends ShaderEffectPeer<ZoomRadialBlur> {
 
     @Override
     protected void updateShader(Shader shader, ZoomRadialBlur effect) {
+        // TODO: clamp image to resolution
         shader.setConstant("resolution", (float) this.getDestBounds().width, (float) this.getDestBounds().height);
         shader.setConstant("center", (float) effect.getCenterX(), (float) effect.getCenterY());
         shader.setConstant("viewport", (float) this.getTransform().getMxt(), (float) this.getTransform().getMyt(), (float) this.getTransform().getMxx(),

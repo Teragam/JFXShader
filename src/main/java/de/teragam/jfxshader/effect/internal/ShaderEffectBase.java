@@ -12,6 +12,7 @@ import com.sun.javafx.geom.BaseBounds;
 import com.sun.javafx.geom.transform.BaseTransform;
 import com.sun.javafx.scene.BoundsAccessor;
 
+import de.teragam.jfxshader.effect.InternalEffect;
 import de.teragam.jfxshader.effect.ShaderEffect;
 import de.teragam.jfxshader.util.Reflect;
 

@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.effect.internal;
+package de.teragam.jfxshader.effect;
 
 import com.sun.javafx.geom.Point2D;
 import com.sun.javafx.geom.Rectangle;
@@ -10,7 +10,7 @@ import com.sun.scenario.effect.ImageData;
 import com.sun.scenario.effect.impl.state.RenderState;
 
 import de.teragam.jfxshader.ShaderController;
-import de.teragam.jfxshader.effect.ShaderEffect;
+import de.teragam.jfxshader.effect.internal.ShaderEffectBase;
 import de.teragam.jfxshader.util.Reflect;
 
 public class InternalEffect extends Blend {

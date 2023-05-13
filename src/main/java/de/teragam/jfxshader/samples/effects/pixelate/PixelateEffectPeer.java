@@ -8,7 +8,7 @@ import com.sun.prism.ps.Shader;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.effect.EffectPeer;
 import de.teragam.jfxshader.effect.ShaderEffectPeer;
-import de.teragam.jfxshader.effect.internal.ShaderEffectPeerConfig;
+import de.teragam.jfxshader.effect.ShaderEffectPeerConfig;
 
 @EffectPeer("Pixelate")
 class PixelateEffectPeer extends ShaderEffectPeer<Pixelate> {
