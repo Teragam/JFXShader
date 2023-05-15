@@ -197,6 +197,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         if (this.invalidateShader) {
             this.shader.dispose();
             this.shader = null;
+            this.invalidateShader = false;
         }
         return new ImageData(this.getFilterContext(), dst, dstBounds);
     }
