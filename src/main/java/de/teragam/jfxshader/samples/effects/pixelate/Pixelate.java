@@ -14,6 +14,7 @@ public class Pixelate extends OneSamplerEffect {
     private DoubleProperty pixelHeight;
 
     public Pixelate() {
+        this(10, 10);
     }
 
     public Pixelate(double pixelWidth, double pixelHeight) {

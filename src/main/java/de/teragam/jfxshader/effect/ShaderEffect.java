@@ -58,6 +58,10 @@ public abstract class ShaderEffect {
         }
     }
 
+    protected void setContinuousRendering(boolean continuousRendering) {
+        this.effectBase.setContinuousRendering(continuousRendering);
+    }
+
     protected DoubleProperty createEffectDoubleProperty(double value, String name) {
         return new SimpleDoubleProperty(ShaderEffect.this, name, value) {
 

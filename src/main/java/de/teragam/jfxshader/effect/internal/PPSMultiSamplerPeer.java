@@ -46,6 +46,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
     private PPSDrawable drawable;
     private BaseTransform transform;
     private Rectangle outputClip;
+    private boolean invalidateShader;
 
     private final ArrayList<float[]> textureCoords;
     private final ShaderEffectPeerConfig config;
@@ -193,6 +194,10 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         this.updateShader(this.shader);
         this.drawTextures((float) dstw, (float) dsth, textures, coords, coordLength, (BaseShaderGraphics) g);
         g.setExternalShader(null);
+        if (this.invalidateShader) {
+            this.shader.dispose();
+            this.shader = null;
+        }
         return new ImageData(this.getFilterContext(), dst, dstBounds);
     }
 
@@ -283,6 +288,16 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         }
         fittedTexture.createGraphics().blit(srcTexture.getTextureObject(), null, 0, 0, width, height, 0, 0, width, height);
         return fittedTexture;
+    }
+
+    /**
+     * Queues the invalidation and disposal of the shader.
+     * It will be recreated with {@link PPSMultiSamplerPeer#createShaderDeclaration()} when needed.
+     */
+    protected void invalidateShader() {
+        if (this.shader != null) {
+            this.invalidateShader = true;
+        }
     }
 
     private boolean validateRenderer() {

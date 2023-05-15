@@ -1,6 +1,7 @@
 package de.teragam.jfxshader.effect.internal;
 
 import java.util.List;
+import java.util.UUID;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.Node;
@@ -23,15 +24,29 @@ public class ShaderEffectBase extends Blend {
 
     private final ShaderEffect effect;
     private final InternalEffect peer;
+    private final UUID effectID;
+
+    private boolean continuousRendering;
 
     public ShaderEffectBase(ShaderEffect effect, int inputs) {
         if (inputs < 1 || inputs > MAX_INPUTS) {
             throw new IllegalArgumentException(String.format("Only 1 to %d inputs are supported. Requested were %d.", MAX_INPUTS, inputs));
         }
-
+        this.effectID = UUID.randomUUID();
         this.effect = effect;
         this.peer = new InternalEffect(effect, inputs);
         EFFECT_REFLECT.setFieldValue("peer", this, this.peer);
+    }
+
+    public void setContinuousRendering(boolean continuousRendering) {
+        if (continuousRendering && !this.continuousRendering) {
+            EffectRenderTimer.getInstance().register(this);
+        }
+        this.continuousRendering = continuousRendering;
+    }
+
+    public boolean isContinuousRendering() {
+        return this.continuousRendering;
     }
 
     public ShaderEffect getJFXShaderEffect() {
@@ -54,6 +69,10 @@ public class ShaderEffectBase extends Blend {
                 this.peer.setInput(i, localInput == null ? null : (com.sun.scenario.effect.Effect) EFFECT_REFLECT.method("getPeer").invoke(localInput));
             }
         }
+    }
+
+    public UUID getEffectID() {
+        return this.effectID;
     }
 
     public static BaseBounds getInputBounds(BaseBounds bounds, BaseTransform tx, Node node, BoundsAccessor boundsAccessor, Effect input) {

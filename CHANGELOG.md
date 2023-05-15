@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented here.
 
-## v1.1.0 - 2023-05-13
+## v1.1.0 - 2023-05-15
 
 ### Added
 
@@ -13,6 +13,8 @@ All notable changes to this project will be documented here.
 - Added more sample effects:
     - [Pixelate](src/main/java/de/teragam/jfxshader/samples/effects/pixelate/Pixelate.java)
     - [ZoomRadialBlur](src/main/java/de/teragam/jfxshader/samples/effects/zoomradialblur/ZoomRadialBlur.java)
+- Added continuous rendering option to ShaderEffects.
+- EffectPeers can now invalidate their shaders to allow for a more dynamic shader pipeline.
 
 ### Changed
 
