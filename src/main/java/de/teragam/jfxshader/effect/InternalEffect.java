@@ -1,5 +1,8 @@
 package de.teragam.jfxshader.effect;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import com.sun.javafx.geom.Point2D;
 import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
@@ -7,6 +10,7 @@ import com.sun.scenario.effect.Blend;
 import com.sun.scenario.effect.Effect;
 import com.sun.scenario.effect.FilterContext;
 import com.sun.scenario.effect.ImageData;
+import com.sun.scenario.effect.impl.EffectPeer;
 import com.sun.scenario.effect.impl.state.RenderState;
 
 import de.teragam.jfxshader.ShaderController;
@@ -17,10 +21,12 @@ public class InternalEffect extends Blend {
 
     private final int maxInputs;
     private final ShaderEffect effect;
+    private final Map<String, EffectPeer<? super RenderState>> peerMap;
 
     public InternalEffect(ShaderEffect effect, int inputs) {
         super(Mode.SRC_OVER, null, null);
         this.effect = effect;
+        this.peerMap = new LinkedHashMap<>();
         this.maxInputs = inputs;
         for (int i = 0; i < inputs; i++) {
             this.setInput(i, null);
@@ -99,6 +105,10 @@ public class InternalEffect extends Blend {
         if (this.effect != null) {
             ((ShaderEffectBase) this.effect.getFXEffect()).updateInputs();
         }
+    }
+
+    public Map<String, EffectPeer<? super RenderState>> getPeerMap() {
+        return this.peerMap;
     }
 
 }

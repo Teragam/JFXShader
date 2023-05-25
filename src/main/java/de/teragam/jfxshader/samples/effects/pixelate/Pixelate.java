@@ -8,78 +8,68 @@ import de.teragam.jfxshader.effect.OneSamplerEffect;
 @EffectDependencies(PixelateEffectPeer.class)
 public class Pixelate extends OneSamplerEffect {
 
-    private DoubleProperty offsetX;
-    private DoubleProperty offsetY;
-    private DoubleProperty pixelWidth;
-    private DoubleProperty pixelHeight;
+    private final DoubleProperty offsetX;
+    private final DoubleProperty offsetY;
+    private final DoubleProperty pixelWidth;
+    private final DoubleProperty pixelHeight;
 
     public Pixelate() {
         this(10, 10);
     }
 
     public Pixelate(double pixelWidth, double pixelHeight) {
-        this.setPixelWidth(pixelWidth);
-        this.setPixelHeight(pixelHeight);
-    }
-
-    public DoubleProperty offSetXProperty() {
-        if (this.offsetX == null) {
-            this.offsetX = super.createEffectDoubleProperty(0.0, "offsetX");
-        }
-        return this.offsetX;
+        this.pixelWidth = super.createEffectDoubleProperty(pixelWidth, "pixelWidth");
+        this.pixelHeight = super.createEffectDoubleProperty(pixelHeight, "pixelHeight");
+        this.offsetX = super.createEffectDoubleProperty(0.0, "offsetX");
+        this.offsetY = super.createEffectDoubleProperty(0.0, "offsetY");
     }
 
     public double getOffsetX() {
-        return this.offSetXProperty().get();
+        return this.offsetX.get();
+    }
+
+    public DoubleProperty offsetXProperty() {
+        return this.offsetX;
     }
 
     public void setOffsetX(double offsetX) {
-        this.offSetXProperty().set(offsetX);
-    }
-
-    public DoubleProperty offSetYProperty() {
-        if (this.offsetY == null) {
-            this.offsetY = super.createEffectDoubleProperty(0.0, "offsetY");
-        }
-        return this.offsetY;
+        this.offsetX.set(offsetX);
     }
 
     public double getOffsetY() {
-        return this.offSetYProperty().get();
+        return this.offsetY.get();
+    }
+
+    public DoubleProperty offsetYProperty() {
+        return this.offsetY;
     }
 
     public void setOffsetY(double offsetY) {
-        this.offSetYProperty().set(offsetY);
-    }
-
-    public DoubleProperty pixelWidthProperty() {
-        if (this.pixelWidth == null) {
-            this.pixelWidth = super.createEffectDoubleProperty(10.0, "pixelWidth");
-        }
-        return this.pixelWidth;
+        this.offsetY.set(offsetY);
     }
 
     public double getPixelWidth() {
-        return this.pixelWidthProperty().get();
+        return this.pixelWidth.get();
+    }
+
+    public DoubleProperty pixelWidthProperty() {
+        return this.pixelWidth;
     }
 
     public void setPixelWidth(double pixelWidth) {
-        this.pixelWidthProperty().set(pixelWidth);
-    }
-
-    public DoubleProperty pixelHeightProperty() {
-        if (this.pixelHeight == null) {
-            this.pixelHeight = super.createEffectDoubleProperty(10.0, "pixelHeight");
-        }
-        return this.pixelHeight;
+        this.pixelWidth.set(pixelWidth);
     }
 
     public double getPixelHeight() {
-        return this.pixelHeightProperty().get();
+        return this.pixelHeight.get();
+    }
+
+    public DoubleProperty pixelHeightProperty() {
+        return this.pixelHeight;
     }
 
     public void setPixelHeight(double pixelHeight) {
-        this.pixelHeightProperty().set(pixelHeight);
+        this.pixelHeight.set(pixelHeight);
     }
 
 }

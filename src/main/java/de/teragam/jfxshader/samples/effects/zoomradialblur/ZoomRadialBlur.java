@@ -9,76 +9,72 @@ import de.teragam.jfxshader.effect.OneSamplerEffect;
 @EffectDependencies(ZoomRadialBlurEffectPeer.class)
 public class ZoomRadialBlur extends OneSamplerEffect {
 
-    private DoubleProperty strength;
-    private IntegerProperty blurSteps;
-    private DoubleProperty centerX;
-    private DoubleProperty centerY;
+    private final DoubleProperty strength;
+    private final IntegerProperty blurSteps;
+    private final DoubleProperty centerX;
+    private final DoubleProperty centerY;
 
     public ZoomRadialBlur() {
+        this(100.0);
     }
 
     public ZoomRadialBlur(double strength) {
-        this.setStrength(strength);
+        this(strength, 16);
     }
 
-    public DoubleProperty strengthProperty() {
-        if (this.strength == null) {
-            this.strength = super.createEffectDoubleProperty(100.0, "strength");
-        }
-        return this.strength;
+    public ZoomRadialBlur(double strength, int blurSteps) {
+        this.strength = super.createEffectDoubleProperty(strength, "strength");
+        this.blurSteps = super.createEffectIntegerProperty(blurSteps, "blurSteps");
+        this.centerX = super.createEffectDoubleProperty(0.0, "centerX");
+        this.centerY = super.createEffectDoubleProperty(0.0, "centerY");
     }
 
     public double getStrength() {
-        return this.strengthProperty().get();
+        return this.strength.get();
+    }
+
+    public DoubleProperty strengthProperty() {
+        return this.strength;
     }
 
     public void setStrength(double strength) {
-        this.strengthProperty().set(strength);
-    }
-
-    public IntegerProperty blurStepsProperty() {
-        if (this.blurSteps == null) {
-            this.blurSteps = super.createEffectIntegerProperty(16, "blurSteps");
-        }
-        return this.blurSteps;
+        this.strength.set(strength);
     }
 
     public int getBlurSteps() {
-        return this.blurStepsProperty().get();
+        return this.blurSteps.get();
+    }
+
+    public IntegerProperty blurStepsProperty() {
+        return this.blurSteps;
     }
 
     public void setBlurSteps(int blurSteps) {
-        this.blurStepsProperty().set(blurSteps);
-    }
-
-    public DoubleProperty centerXProperty() {
-        if (this.centerX == null) {
-            this.centerX = super.createEffectDoubleProperty(0.0, "centerX");
-        }
-        return this.centerX;
+        this.blurSteps.set(blurSteps);
     }
 
     public double getCenterX() {
-        return this.centerXProperty().get();
+        return this.centerX.get();
+    }
+
+    public DoubleProperty centerXProperty() {
+        return this.centerX;
     }
 
     public void setCenterX(double centerX) {
-        this.centerXProperty().set(centerX);
-    }
-
-    public DoubleProperty centerYProperty() {
-        if (this.centerY == null) {
-            this.centerY = super.createEffectDoubleProperty(0.0, "centerY");
-        }
-        return this.centerY;
+        this.centerX.set(centerX);
     }
 
     public double getCenterY() {
-        return this.centerYProperty().get();
+        return this.centerY.get();
+    }
+
+    public DoubleProperty centerYProperty() {
+        return this.centerY;
     }
 
     public void setCenterY(double centerY) {
-        this.centerYProperty().set(centerY);
+        this.centerY.set(centerY);
     }
 
 }

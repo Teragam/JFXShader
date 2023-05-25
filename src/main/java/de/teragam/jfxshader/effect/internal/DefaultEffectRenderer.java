@@ -1,31 +1,21 @@
 package de.teragam.jfxshader.effect.internal;
 
-import java.util.List;
-
 import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
 import com.sun.scenario.effect.FilterContext;
 import com.sun.scenario.effect.ImageData;
-import com.sun.scenario.effect.impl.Renderer;
 import com.sun.scenario.effect.impl.state.RenderState;
 
-import de.teragam.jfxshader.ShaderController;
-import de.teragam.jfxshader.effect.EffectPeer;
 import de.teragam.jfxshader.effect.IEffectRenderer;
 import de.teragam.jfxshader.effect.InternalEffect;
-import de.teragam.jfxshader.effect.ShaderEffectPeer;
 
-@SuppressWarnings("unchecked")
 public class DefaultEffectRenderer implements IEffectRenderer {
 
     @Override
     public ImageData render(InternalEffect effect, FilterContext fctx, BaseTransform transform, Rectangle outputClip, RenderState rstate, ImageData... inputs) {
-        final List<Class<? extends ShaderEffectPeer<?>>> peerList = ShaderController.getPeerDependencies(effect.getEffect().getClass());
-        if (!peerList.isEmpty()) {
-            return Renderer.getRenderer(fctx).getPeerInstance(fctx, peerList.get(0).getAnnotation(EffectPeer.class).value(), -1)
-                    .filter(effect, rstate, transform, outputClip, inputs);
-        }
-        return new ImageData(fctx, null, null);
+        return effect.getPeerMap().values().stream().findFirst()
+                .map(peer -> peer.filter(effect, rstate, transform, outputClip, inputs))
+                .orElse(new ImageData(fctx, null, null));
     }
 
 }

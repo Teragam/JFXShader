@@ -1,6 +1,7 @@
 package de.teragam.jfxshader.effect.internal;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javafx.beans.property.ObjectProperty;
@@ -12,6 +13,8 @@ import com.sun.javafx.effect.EffectDirtyBits;
 import com.sun.javafx.geom.BaseBounds;
 import com.sun.javafx.geom.transform.BaseTransform;
 import com.sun.javafx.scene.BoundsAccessor;
+import com.sun.scenario.effect.impl.EffectPeer;
+import com.sun.scenario.effect.impl.state.RenderState;
 
 import de.teragam.jfxshader.effect.InternalEffect;
 import de.teragam.jfxshader.effect.ShaderEffect;
@@ -69,6 +72,10 @@ public class ShaderEffectBase extends Blend {
                 this.peer.setInput(i, localInput == null ? null : (com.sun.scenario.effect.Effect) EFFECT_REFLECT.method("getPeer").invoke(localInput));
             }
         }
+    }
+
+    public Map<String, EffectPeer<? super RenderState>> getPeerMap() {
+        return this.peer.getPeerMap();
     }
 
     public UUID getEffectID() {

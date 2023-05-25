@@ -1,6 +1,7 @@
 package de.teragam.jfxshader;
 
 import java.io.InputStream;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,15 +75,23 @@ public final class ShaderController {
     public static void register(FilterContext fctx, ShaderEffect effect) {
         final Renderer renderer = Renderer.getRenderer(Objects.requireNonNull(fctx, "FilterContext cannot be null"));
         try {
-            final Map<String, com.sun.scenario.effect.impl.EffectPeer<?>> peerCache = Reflect.on(Renderer.class).getFieldValue("peerCache", renderer);
+            final Map<String, com.sun.scenario.effect.impl.EffectPeer<? super RenderState>> peerCache = Reflect.on(Renderer.class)
+                    .getFieldValue("peerCache", renderer);
             final List<Class<? extends ShaderEffectPeer<?>>> dependencies = ShaderController.getPeerDependencies(effect.getClass());
             for (final Class<? extends ShaderEffectPeer<?>> peer : dependencies) {
                 final EffectPeer peerConfig = ShaderController.getPeerConfig(peer);
-                if (!peerCache.containsKey(peerConfig.value())) {
-                    final ShaderEffectPeerConfig peerConfigInstance = new ShaderEffectPeerConfig(fctx, renderer, peerConfig.value(), peerConfig.targetFormat(),
+                final String peerName = peerConfig.singleton() ? peerConfig.value() : String.format("%s-%s", peerConfig.value(),
+                        ((ShaderEffectBase) effect.getFXEffect()).getEffectID());
+                if (!peerCache.containsKey(peerName)) {
+                    final ShaderEffectPeerConfig peerConfigInstance = new ShaderEffectPeerConfig(fctx, renderer, peerName, peerConfig.targetFormat(),
                             peerConfig.targetWrapMode(), peerConfig.targetMipmaps(), peerConfig.targetPoolPolicy());
-                    peerCache.put(peerConfig.value(), Reflect.on(peer).constructor(ShaderEffectPeerConfig.class).create(peerConfigInstance));
+                    if (peer.isMemberClass() && !Modifier.isStatic(peer.getModifiers())) {
+                        throw new ShaderCreationException("Non-static member classes are not supported for effect peers");
+                    } else {
+                        peerCache.put(peerName, Reflect.on(peer).constructor(ShaderEffectPeerConfig.class).create(peerConfigInstance));
+                    }
                 }
+                ((ShaderEffectBase) effect.getFXEffect()).getPeerMap().put(peerName, peerCache.get(peerName));
             }
         } catch (ShaderException e) {
             throw new ShaderCreationException("Could not inject custom shaders", e);

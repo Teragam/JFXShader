@@ -14,10 +14,11 @@ import de.teragam.jfxshader.effect.TwoSamplerEffect;
 public class BlendShapes extends TwoSamplerEffect {
 
     private final List<ObjectProperty<BlendShape>> shapes;
-    private BooleanProperty invertMask;
+    private final BooleanProperty invertMask;
 
     public BlendShapes() {
         this.shapes = new ArrayList<>();
+        this.invertMask = super.createEffectBooleanProperty(false, "invertMask");
     }
 
     public ObjectProperty<BlendShape> createShapeProperty() {
@@ -35,9 +36,6 @@ public class BlendShapes extends TwoSamplerEffect {
     }
 
     public BooleanProperty invertMaskProperty() {
-        if (this.invertMask == null) {
-            this.invertMask = super.createEffectBooleanProperty(false, "invertMask");
-        }
         return this.invertMask;
     }
 
