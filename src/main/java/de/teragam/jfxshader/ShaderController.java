@@ -91,7 +91,7 @@ public final class ShaderController {
                         peerCache.put(peerName, Reflect.on(peer).constructor(ShaderEffectPeerConfig.class).create(peerConfigInstance));
                     }
                 }
-                ((ShaderEffectBase) effect.getFXEffect()).getPeerMap().put(peerName, peerCache.get(peerName));
+                ((ShaderEffectBase) effect.getFXEffect()).getPeerMap().putIfAbsent(peerName, peerCache.get(peerName));
             }
         } catch (ShaderException e) {
             throw new ShaderCreationException("Could not inject custom shaders", e);
