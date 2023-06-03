@@ -61,7 +61,7 @@ Then, add the following dependency:
 ## Limitations
 This library is bound to the restrictions of the JavaFX effects system. The following limitations apply:
 
-- Only fragment/pixel shaders are supported. The vertex shaders of effects cannot be overwritten.
+- Only fragment/pixel shaders are supported. The vertex shaders of 2D effects cannot be overwritten.
 - The fragment/pixel shaders only support one active render target (output texture).
 - It is not possible to use OpenGL shaders on Windows.
 - For DirectX, only ps_3_0 shaders are supported.
