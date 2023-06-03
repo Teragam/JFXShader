@@ -11,7 +11,7 @@ StackPane pane = new StackPane(getOtherContent());
 // Instead of using existing JavaFX effects like SepiaTone or ColorAdjust,
 // we can apply our own effect with custom shaders:
 MyCustomShaderEffect effect = new MyCustomShaderEffect(); 
-pane.setEffect(effect);
+pane.setEffect(effect.getFXEffect());
 // Custom parameters can be set and used in the shader:
 effect.setMyCustomParameter(2.0);
 ```
@@ -30,7 +30,7 @@ sphere.setMaterial(material.getFXMaterial());
 material.setMyCustomParameter(3.0);
 material.setMyCustomTexture(new Image("myCustomTexture.png"));
 ```
-        
+
 ## Maven
 How to include JFXShader in a Maven project:
 
@@ -49,7 +49,7 @@ Then, add the following dependency:
 <dependency>
     <groupId>de.teragam</groupId>
     <artifactId>jfxshader</artifactId>
-    <version>1.0.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
