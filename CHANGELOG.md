@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented here.
 
-## v1.1.0 - 2023-05-15
+## v1.2.0 - 2023-06-03
 
 ### Added
 
@@ -13,13 +13,17 @@ All notable changes to this project will be documented here.
 - Added more sample effects:
     - [Pixelate](src/main/java/de/teragam/jfxshader/samples/effects/pixelate/Pixelate.java)
     - [ZoomRadialBlur](src/main/java/de/teragam/jfxshader/samples/effects/zoomradialblur/ZoomRadialBlur.java)
+    - [ProxyShaderEffect](src/main/java/de/teragam/jfxshader/samples/effects/proxyshadereffect/ProxyShaderEffect.java)
 - Added continuous rendering option to ShaderEffects.
 - EffectPeers can now invalidate their shaders to allow for a more dynamic shader pipeline.
+- Added option to create a dedicated EffectPeer for every ShaderEffect instance by setting the default `singleton`
+  option to `false`.
 
 ### Changed
 
 - To support Java modules, ShaderEffects now have `getFXEffect()` to return the compatible JavaFX `Effect` that should
   be used. (Analogue to `getFXMaterial()` for ShaderMaterials.)
+- EffectPeers can now be static and non-static member classes of their ShaderEffects.
 
 ## v1.0.0 - 2023-04-30
 
@@ -29,7 +33,8 @@ All notable changes to this project will be documented here.
     - Applicable to any `Shape3D` by using `setMaterial`.
     - Custom parameters and textures can be set and used in the shader.
     - Pixel shaders as well as vertex shaders are supported.
-- Added [FresnelMaterial](src/main/java/de/teragam/jfxshader/samples/materials/fresnel/FresnelMaterial.java) as an example for a custom 3D shader material.
+- Added [FresnelMaterial](src/main/java/de/teragam/jfxshader/samples/materials/fresnel/FresnelMaterial.java) as an
+  example for a custom 3D shader material.
 
 ### Changed
 

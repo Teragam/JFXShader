@@ -79,7 +79,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
 
     protected abstract void updateShader(Shader shader, S effect);
 
-    protected BaseTransform getTransform() {
+    public BaseTransform getTransform() {
         return this.transform;
     }
 
@@ -87,7 +87,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         this.transform = transform;
     }
 
-    protected PPSDrawable getDrawable() {
+    public PPSDrawable getDrawable() {
         return this.drawable;
     }
 
@@ -95,12 +95,17 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         this.outputClip = outputClip;
     }
 
-    protected Rectangle getOutputClip() {
+    public Rectangle getOutputClip() {
         return this.outputClip;
     }
 
-    protected float[] getTextureCoords(int inputIndex) {
+    public float[] getTextureCoords(int inputIndex) {
         return Arrays.copyOf(this.textureCoords.get(inputIndex), this.textureCoords.get(inputIndex).length);
+    }
+
+    @Override
+    public boolean isOriginUpperLeft() {
+        return super.isOriginUpperLeft();
     }
 
     @Override
@@ -183,6 +188,12 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
             this.markLost(renderer);
             return new ImageData(this.getFilterContext(), dst, dstBounds);
         }
+
+        if (this.invalidateShader && this.shader != null) {
+            this.shader.dispose();
+            this.shader = null;
+            this.invalidateShader = false;
+        }
         if (this.shader == null) {
             this.shader = this.createShader();
         }
@@ -194,11 +205,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         this.updateShader(this.shader);
         this.drawTextures((float) dstw, (float) dsth, textures, coords, coordLength, (BaseShaderGraphics) g);
         g.setExternalShader(null);
-        if (this.invalidateShader) {
-            this.shader.dispose();
-            this.shader = null;
-            this.invalidateShader = false;
-        }
+
         return new ImageData(this.getFilterContext(), dst, dstBounds);
     }
 

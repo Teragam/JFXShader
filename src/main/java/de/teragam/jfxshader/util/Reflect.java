@@ -112,6 +112,10 @@ public class Reflect<C> {
         return ((MethodInvocationWrapper<C>) unsafeReflect.method("allocateInstance", Class.class)).invoke(unsafe, this.clazz);
     }
 
+    public boolean hasConstructor(Class<?>... parameterTypes) {
+        return Arrays.stream(this.clazz.getDeclaredConstructors()).anyMatch(c -> Arrays.equals(c.getParameterTypes(), parameterTypes));
+    }
+
     public Constructor<C> getConstructor(Class<?>... parameterTypes) {
         try {
             final Constructor<C> constructor = this.clazz.getDeclaredConstructor(parameterTypes);

@@ -1,7 +1,6 @@
 package de.teragam.jfxshader;
 
 import java.io.InputStream;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.HashMap;
@@ -85,8 +84,13 @@ public final class ShaderController {
                 if (!peerCache.containsKey(peerName)) {
                     final ShaderEffectPeerConfig peerConfigInstance = new ShaderEffectPeerConfig(fctx, renderer, peerName, peerConfig.targetFormat(),
                             peerConfig.targetWrapMode(), peerConfig.targetMipmaps(), peerConfig.targetPoolPolicy());
-                    if (peer.isMemberClass() && !Modifier.isStatic(peer.getModifiers())) {
-                        throw new ShaderCreationException("Non-static member classes are not supported for effect peers");
+                    if (Reflect.on(peer).hasConstructor(effect.getClass(), ShaderEffectPeerConfig.class)) {
+                        if (peerConfig.singleton()) {
+                            throw new ShaderCreationException("The ShaderEffect instance cannot be provided to a singleton ShaderEffectPeer");
+                        } else {
+                            peerCache.put(peerName, Reflect.on(peer).constructor(effect.getClass(), ShaderEffectPeerConfig.class)
+                                    .create(effect, peerConfigInstance));
+                        }
                     } else {
                         peerCache.put(peerName, Reflect.on(peer).constructor(ShaderEffectPeerConfig.class).create(peerConfigInstance));
                     }
