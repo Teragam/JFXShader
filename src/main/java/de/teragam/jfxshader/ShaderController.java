@@ -56,6 +56,7 @@ public final class ShaderController {
 
     private static final Map<Class<? extends ShaderEffect>, IEffectRenderer> EFFECT_RENDERER_MAP = Collections.synchronizedMap(new HashMap<>());
     private static final List<Class<? extends ShaderEffectPeer<?>>> OPENED_PEERS = Collections.synchronizedList(new ArrayList<>());
+    private static final boolean MODULAR_JAVAFX = ModuleLayer.boot().findModule("javafx.graphics").isPresent();
     private static final FloatBuffer tmpBuf = BufferUtil.newFloatBuffer(16);
 
     private ShaderController() {}
@@ -195,7 +196,7 @@ public final class ShaderController {
 
     private static EffectPeer getPeerConfig(Class<? extends ShaderEffectPeer<?>> peer) {
         if (Objects.requireNonNull(peer, "Peer cannot be null").isAnnotationPresent(EffectPeer.class)) {
-            if (!ShaderController.OPENED_PEERS.contains(peer)) {
+            if (ShaderController.MODULAR_JAVAFX && !ShaderController.OPENED_PEERS.contains(peer)) {
                 ShaderController.OPENED_PEERS.add(peer);
                 Reflect.addOpens("com.sun.prism", "javafx.graphics", peer.getAnnotation(EffectPeer.class).getClass().getModule());
             }

@@ -156,26 +156,20 @@ public class Reflect<C> {
 
     private static void addOpensOrExports(String fullyQualifiedPackageName, String module, Module currentModule, boolean open) {
         try {
-            final Object unsafe = Reflect.on("sun.misc.Unsafe").getFieldValue("theUnsafe", null);
-            final Class<?> bootModuleLayerClass = Reflect.resolveClass("java.lang.ModuleLayer");
-
-            final Object bootModuleLayer = Reflect.on(bootModuleLayerClass).method("boot").invoke(null);
-            final Object moduleOpt = Reflect.on(bootModuleLayerClass).method("findModule", String.class).invoke(bootModuleLayer, module);
-            if (Reflect.on(moduleOpt.getClass()).method("isPresent").invoke(moduleOpt).equals(Boolean.FALSE)) {
+            final Optional<Module> moduleOpt = ModuleLayer.boot().findModule(module);
+            if (moduleOpt.isEmpty()) {
                 throw new IllegalStateException("Could not find module " + module);
             }
-            final Object fMod = Reflect.on(moduleOpt.getClass()).method("get").invoke(moduleOpt);
-            final Class<?> moduleImpl = Reflect.resolveClass("java.lang.Module");
-            final String methodName = open ? "implAddOpens" : "implAddExports";
-            final Method addOpensMethodImpl = Reflect.on(moduleImpl).getMethod(methodName, String.class, moduleImpl);
+            final Method addOpensMethodImpl = Reflect.on(Module.class).getMethod(open ? "implAddOpens" : "implAddExports", String.class, Module.class);
             class OffsetProvider {
                 int first;
             }
+            final Object unsafe = Reflect.on("sun.misc.Unsafe").getFieldValue("theUnsafe", null);
             final long firstFieldOffset = (long) Reflect.on(unsafe.getClass()).method("objectFieldOffset", Field.class)
                     .invoke(unsafe, OffsetProvider.class.getDeclaredField("first"));
             Reflect.on(unsafe.getClass()).method("putBooleanVolatile", Object.class, long.class, boolean.class)
                     .invoke(unsafe, addOpensMethodImpl, firstFieldOffset, true);
-            addOpensMethodImpl.invoke(fMod, fullyQualifiedPackageName, currentModule);
+            addOpensMethodImpl.invoke(moduleOpt.get(), fullyQualifiedPackageName, currentModule);
         } catch (ReflectiveOperationException ex) {
             throw new ShaderException("Could not add opens or exports", ex);
         }
