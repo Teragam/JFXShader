@@ -3,6 +3,7 @@ package de.teragam.jfxshader;
 import java.io.InputStream;
 import java.lang.reflect.Proxy;
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +55,7 @@ public final class ShaderController {
     public static final int MAX_BOUND_TEXTURES = 16;
 
     private static final Map<Class<? extends ShaderEffect>, IEffectRenderer> EFFECT_RENDERER_MAP = Collections.synchronizedMap(new HashMap<>());
+    private static final List<Class<? extends ShaderEffectPeer<?>>> OPENED_PEERS = Collections.synchronizedList(new ArrayList<>());
     private static final FloatBuffer tmpBuf = BufferUtil.newFloatBuffer(16);
 
     private ShaderController() {}
@@ -193,6 +195,10 @@ public final class ShaderController {
 
     private static EffectPeer getPeerConfig(Class<? extends ShaderEffectPeer<?>> peer) {
         if (Objects.requireNonNull(peer, "Peer cannot be null").isAnnotationPresent(EffectPeer.class)) {
+            if (!ShaderController.OPENED_PEERS.contains(peer)) {
+                ShaderController.OPENED_PEERS.add(peer);
+                Reflect.addOpens("com.sun.prism", "javafx.graphics", peer.getAnnotation(EffectPeer.class).getClass().getModule());
+            }
             return peer.getAnnotation(EffectPeer.class);
         } else {
             throw new IllegalArgumentException(String.format("%s is not annotated with %s", peer, EffectPeer.class));
