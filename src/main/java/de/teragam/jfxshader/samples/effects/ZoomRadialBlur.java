@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.samples.effects.zoomradialblur;
+package de.teragam.jfxshader.samples.effects;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;

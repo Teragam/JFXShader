@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.samples.effects.blendshapes;
+package de.teragam.jfxshader.samples.effects;
 
 import java.nio.FloatBuffer;
 import java.util.HashMap;
@@ -49,10 +49,10 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
         }
         this.rects.clear();
         this.ops.clear();
-        final List<ObjectProperty<BlendShape>> effectShapes = effect.getBlendShapes();
+        final List<ObjectProperty<BlendShapes.Shape>> effectShapes = effect.getBlendShapes();
         int effectiveCount = 0;
         for (int i = 0; i < Math.min(effectShapes.size(), 8); i++) {
-            final BlendShape shape = effectShapes.get(i).get();
+            final BlendShapes.Shape shape = effectShapes.get(i).get();
             if (shape != null) {
                 effectiveCount++;
                 final Rectangle2D bounds = shape.getBounds();

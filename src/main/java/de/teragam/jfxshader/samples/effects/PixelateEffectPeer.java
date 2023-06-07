@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.samples.effects.pixelate;
+package de.teragam.jfxshader.samples.effects;
 
 
 import java.util.Map;

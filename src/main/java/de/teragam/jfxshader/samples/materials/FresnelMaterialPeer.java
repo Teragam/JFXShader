@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.samples.materials.fresnel;
+package de.teragam.jfxshader.samples.materials;
 
 import java.nio.FloatBuffer;
 import java.util.HashMap;

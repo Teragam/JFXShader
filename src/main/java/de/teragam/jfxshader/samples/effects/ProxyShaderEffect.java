@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.samples.effects.proxyshadereffect;
+package de.teragam.jfxshader.samples.effects;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;

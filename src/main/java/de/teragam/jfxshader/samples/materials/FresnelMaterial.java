@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.samples.materials.fresnel;
+package de.teragam.jfxshader.samples.materials;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
