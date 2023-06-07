@@ -8,8 +8,6 @@ import java.util.function.Supplier;
 
 import javafx.application.Platform;
 
-import com.sun.prism.ps.Shader;
-
 import de.teragam.jfxshader.JFXShader;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.effect.EffectDependencies;
@@ -23,7 +21,7 @@ public class ProxyShaderEffect extends TwoSamplerEffect {
 
     private final AtomicReference<Supplier<ShaderDeclaration>> declarationSupplier;
     private final AtomicBoolean invalidateDeclaration;
-    private final AtomicReference<BiConsumer<Shader, ShaderEffectPeer<ProxyShaderEffect>>> shaderConsumer;
+    private final AtomicReference<BiConsumer<JFXShader, ShaderEffectPeer<ProxyShaderEffect>>> shaderConsumer;
 
     public ProxyShaderEffect() {
         this(null);
@@ -44,7 +42,7 @@ public class ProxyShaderEffect extends TwoSamplerEffect {
         Platform.runLater(this::markDirty);
     }
 
-    public void setShaderConsumer(BiConsumer<Shader, ShaderEffectPeer<ProxyShaderEffect>> shaderConsumer) {
+    public void setShaderConsumer(BiConsumer<JFXShader, ShaderEffectPeer<ProxyShaderEffect>> shaderConsumer) {
         this.shaderConsumer.set(shaderConsumer);
     }
 
@@ -70,7 +68,7 @@ public class ProxyShaderEffect extends TwoSamplerEffect {
             if (ProxyShaderEffect.this.invalidateDeclaration.getAndSet(false)) {
                 this.invalidateShader();
             }
-            final BiConsumer<Shader, ShaderEffectPeer<ProxyShaderEffect>> consumer = ProxyShaderEffect.this.shaderConsumer.get();
+            final BiConsumer<JFXShader, ShaderEffectPeer<ProxyShaderEffect>> consumer = ProxyShaderEffect.this.shaderConsumer.get();
             if (consumer != null) {
                 consumer.accept(shader, this);
             }
