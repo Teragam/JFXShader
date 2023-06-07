@@ -114,22 +114,21 @@ public final class ShaderController {
         if (shader == null) {
             return null;
         }
-        return (JFXShader) Proxy.newProxyInstance(JFXShader.class.getClassLoader(), new Class[]{JFXShader.class},
-                (proxy, method, args) -> {
-                    if ("setMatrix".equals(method.getName())) {
-                        if (ShaderController.isGLSLSupported()) {
-                            return Reflect.on(shader.getClass()).method("setMatrix", String.class, float[].class)
-                                    .invoke(shader, args[0], args[1]);
-                        } else {
-                            tmpBuf.clear();
-                            tmpBuf.put((float[]) args[1]);
-                            tmpBuf.rewind();
-                            shader.setConstants((String) args[0], tmpBuf, 0, (int) args[2]);
-                            return null;
-                        }
-                    }
-                    return method.invoke(shader, args);
-                });
+        return Reflect.createProxy(shader, JFXShader.class, (proxy, method, args) -> {
+            if ("setMatrix".equals(method.getName())) {
+                if (ShaderController.isGLSLSupported()) {
+                    return Reflect.on(shader.getClass()).method("setMatrix", String.class, float[].class)
+                            .invoke(shader, args[0], args[1]);
+                } else {
+                    tmpBuf.clear();
+                    tmpBuf.put((float[]) args[1]);
+                    tmpBuf.rewind();
+                    shader.setConstants((String) args[0], tmpBuf, 0, (int) args[2]);
+                    return null;
+                }
+            }
+            return method.invoke(shader, args);
+        });
     }
 
     public static JFXShader createVertexShader(FilterContext fctx, ShaderDeclaration shaderDeclaration) {
@@ -158,14 +157,13 @@ public final class ShaderController {
                     .invoke(null, es2Context, vertexShader,
                             Objects.requireNonNull(pixelShaderDeclaration.es2Source(), "ES2 pixel shader source cannot be null"),
                             Objects.requireNonNull(pixelShaderDeclaration.samplers(), "ES2 pixel shader samplers cannot be null"), attributes, 1, false);
-            return (JFXShader) Proxy.newProxyInstance(JFXShader.class.getClassLoader(), new Class[]{JFXShader.class},
-                    (proxy, method, args) -> {
-                        if ("setMatrix".equals(method.getName())) {
-                            return Reflect.on(es2Shader.getClass()).method("setMatrix", String.class, float[].class)
-                                    .invoke(es2Shader, args[0], args[1]);
-                        }
-                        return method.invoke(es2Shader, args);
-                    });
+            return Reflect.createProxy(es2Shader, JFXShader.class, (proxy, method, args) -> {
+                if ("setMatrix".equals(method.getName())) {
+                    return Reflect.on(es2Shader.getClass()).method("setMatrix", String.class, float[].class)
+                            .invoke(es2Shader, args[0], args[1]);
+                }
+                return method.invoke(es2Shader, args);
+            });
         } else {
             throw new ShaderCreationException("ES2 shader programs are not supported on DirectX 9.0");
         }

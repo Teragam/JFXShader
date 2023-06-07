@@ -153,4 +153,8 @@ public class D3DVertexShader implements JFXShader {
         this.validate();
     }
 
+    @Override
+    public Object getObject() {
+        return this;
+    }
 }

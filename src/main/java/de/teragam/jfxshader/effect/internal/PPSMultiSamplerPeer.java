@@ -219,7 +219,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
             return;
         }
         ShaderController.ensureTextureCapacity(this.getFilterContext(), (BaseShaderContext) context);
-        Reflect.on(BaseShaderContext.class).method("checkState").invoke(context, g, this.checkTextureOpMask, xform, this.shader);
+        Reflect.on(BaseShaderContext.class).method("checkState").invoke(context, g, this.checkTextureOpMask, xform, this.shader.getObject());
         for (int i = 0; i < Math.min(textures.size(), ShaderController.MAX_BOUND_TEXTURES); i++) {
             Reflect.on(BaseShaderContext.class).method("setTexture").invoke(context, i, textures.get(i));
         }

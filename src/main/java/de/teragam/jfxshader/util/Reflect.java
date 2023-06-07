@@ -2,9 +2,12 @@ package de.teragam.jfxshader.util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -201,11 +204,19 @@ public class Reflect<C> {
 
     public static <P extends ReflectProxy> P createProxy(Object object, Class<P> proxyInterface) {
         final Reflect<?> reflect = Reflect.on(object.getClass());
-        return (P) Proxy.newProxyInstance(proxyInterface.getClassLoader(), proxyInterface.getInterfaces(), (proxy, method, args) -> {
+        return createProxy(object, proxyInterface, (proxy, method, args) -> reflect.method(method.getName(), method.getParameterTypes()).invoke(object, args));
+    }
+
+    public static <P extends ReflectProxy> P createProxy(Object object, Class<P> proxyInterface, InvocationHandler invocationHandler) {
+        final List<Class<?>> interfaces = new ArrayList<>(Arrays.asList(proxyInterface.getInterfaces()));
+        if (proxyInterface.isInterface()) {
+            interfaces.add(proxyInterface);
+        }
+        return (P) Proxy.newProxyInstance(proxyInterface.getClassLoader(), interfaces.toArray(new Class<?>[0]), (proxy, method, args) -> {
             if ("getObject".equals(method.getName())) {
                 return object;
             } else {
-                return reflect.method(method.getName(), method.getParameterTypes()).invoke(object, args);
+                return invocationHandler.invoke(proxy, method, args);
             }
         });
     }
