@@ -146,4 +146,11 @@ public class D3DVertexShader implements JFXShader {
     private int getRegister(String name) {
         return Optional.ofNullable(this.registers.get(name)).orElseThrow(() -> new ShaderException("Register not found for: " + name));
     }
+
+    @Override
+    public void setMatrix(String name, float[] buf, int vector4fCount) {
+        this.device.setVertexShaderConstantF(this.getRegister(name), buf, vector4fCount);
+        this.validate();
+    }
+
 }
