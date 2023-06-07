@@ -13,7 +13,7 @@ public final class JFXShaderModule {
     private JFXShaderModule() {}
 
     public static void setup() {
-        if (JFXShaderModule.initialized.getAndSet(true)) {
+        if (JFXShaderModule.initialized.getAndSet(true) || !ShaderController.MODULAR_JAVAFX) {
             return;
         }
         final Module module = JFXShaderModule.class.getModule();
