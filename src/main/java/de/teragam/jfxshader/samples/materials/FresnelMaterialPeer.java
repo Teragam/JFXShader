@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.javafx.geom.Vec3d;
-import com.sun.prism.ps.Shader;
 import com.sun.scenario.effect.impl.BufferUtil;
 
 import de.teragam.jfxshader.ES2Shader;
+import de.teragam.jfxshader.JFXShader;
 import de.teragam.jfxshader.ShaderController;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.material.ShaderMaterialPeer;
@@ -39,7 +39,7 @@ public class FresnelMaterialPeer extends ShaderMaterialPeer<FresnelMaterial> {
     private final FloatBuffer buf = BufferUtil.newFloatBuffer(16);
 
     @Override
-    public void updateShader(Shader vertexShader, Shader pixelShader, FresnelMaterial material) {
+    public void updateShader(JFXShader vertexShader, JFXShader pixelShader, FresnelMaterial material) {
         final Vec3d camPos = this.getCamera().getPositionInWorld(null);
         vertexShader.setConstant("camPos", (float) camPos.x, (float) camPos.y, (float) camPos.z);
 

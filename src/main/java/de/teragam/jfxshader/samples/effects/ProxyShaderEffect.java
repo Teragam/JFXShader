@@ -10,6 +10,7 @@ import javafx.application.Platform;
 
 import com.sun.prism.ps.Shader;
 
+import de.teragam.jfxshader.JFXShader;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.effect.EffectDependencies;
 import de.teragam.jfxshader.effect.EffectPeer;
@@ -65,7 +66,7 @@ public class ProxyShaderEffect extends TwoSamplerEffect {
         }
 
         @Override
-        protected void updateShader(Shader shader, ProxyShaderEffect effect) {
+        protected void updateShader(JFXShader shader, ProxyShaderEffect effect) {
             if (ProxyShaderEffect.this.invalidateDeclaration.getAndSet(false)) {
                 this.invalidateShader();
             }

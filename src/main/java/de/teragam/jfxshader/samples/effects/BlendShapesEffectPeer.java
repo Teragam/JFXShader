@@ -7,9 +7,9 @@ import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.geometry.Rectangle2D;
 
-import com.sun.prism.ps.Shader;
 import com.sun.scenario.effect.impl.BufferUtil;
 
+import de.teragam.jfxshader.JFXShader;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.effect.EffectPeer;
 import de.teragam.jfxshader.effect.ShaderEffectPeer;
@@ -42,7 +42,7 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
     }
 
     @Override
-    protected void updateShader(Shader shader, BlendShapes effect) {
+    protected void updateShader(JFXShader shader, BlendShapes effect) {
         if (this.rects == null) {
             this.rects = BufferUtil.newFloatBuffer(8 * 4);
             this.ops = BufferUtil.newFloatBuffer(8 * 4);

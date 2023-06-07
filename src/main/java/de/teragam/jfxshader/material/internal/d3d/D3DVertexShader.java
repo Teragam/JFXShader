@@ -8,11 +8,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.sun.prism.impl.Disposer;
-import com.sun.prism.ps.Shader;
 
+import de.teragam.jfxshader.JFXShader;
 import de.teragam.jfxshader.exception.ShaderException;
 
-public class D3DVertexShader implements Shader {
+public class D3DVertexShader implements JFXShader {
 
     private final IDirect3DDevice9 device;
     private final long nativeHandle;

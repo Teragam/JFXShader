@@ -11,9 +11,9 @@ import com.sun.javafx.sg.prism.NGLightBase;
 import com.sun.prism.Graphics;
 import com.sun.prism.MeshView;
 import com.sun.prism.impl.ps.BaseShaderContext;
-import com.sun.prism.ps.Shader;
 import com.sun.scenario.effect.impl.prism.PrFilterContext;
 
+import de.teragam.jfxshader.JFXShader;
 import de.teragam.jfxshader.ShaderController;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.material.internal.AbstractShaderMaterialPeerRenderer;
@@ -24,9 +24,9 @@ import de.teragam.jfxshader.material.internal.es2.ES2ShaderMeshView;
 
 public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
 
-    private Shader vertexShader;
-    private Shader pixelShader;
-    private Shader es2Shader;
+    private JFXShader vertexShader;
+    private JFXShader pixelShader;
+    private JFXShader es2Shader;
 
     private BaseTransform transform;
     private NGLightBase[] lights;
@@ -94,15 +94,15 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
         this.peerRenderer.render(g, meshView, context, this.imageIndexMap);
     }
 
-    private Shader createPixelShader(Graphics g) {
+    private JFXShader createPixelShader(Graphics g) {
         return ShaderController.createShader(PrFilterContext.getInstance(g.getAssociatedScreen()), this.createPixelShaderDeclaration());
     }
 
-    private Shader createVertexShader(Graphics g) {
+    private JFXShader createVertexShader(Graphics g) {
         return ShaderController.createVertexShader(PrFilterContext.getInstance(g.getAssociatedScreen()), this.createVertexShaderDeclaration());
     }
 
-    private Shader createES2ShaderProgram(Graphics g) {
+    private JFXShader createES2ShaderProgram(Graphics g) {
         return ShaderController.createES2ShaderProgram(PrFilterContext.getInstance(g.getAssociatedScreen()),
                 this.createVertexShaderDeclaration(), this.createPixelShaderDeclaration(), this.getES2ShaderAttributes());
     }
@@ -131,6 +131,6 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
 
     public abstract ShaderDeclaration createVertexShaderDeclaration();
 
-    protected abstract void updateShader(Shader vertexShader, Shader pixelShader, T material);
+    protected abstract void updateShader(JFXShader vertexShader, JFXShader pixelShader, T material);
 
 }

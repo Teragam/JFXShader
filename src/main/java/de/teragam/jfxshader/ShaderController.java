@@ -102,15 +102,20 @@ public final class ShaderController {
         }
     }
 
-    public static Shader createShader(FilterContext fctx, ShaderDeclaration shaderDeclaration) {
+    public static JFXShader createShader(FilterContext fctx, ShaderDeclaration shaderDeclaration) {
         Objects.requireNonNull(shaderDeclaration, "ShaderDeclaration cannot be null");
         final InputStream shaderSource = ShaderController.isHLSLSupported() ? shaderDeclaration.d3dSource() : shaderDeclaration.es2Source();
         final ShaderFactory factory = ShaderController.getBaseShaderFactory(fctx);
-        return factory.createShader(shaderSource, shaderDeclaration.samplers(), shaderDeclaration.params(),
+        final Shader shader = factory.createShader(shaderSource, shaderDeclaration.samplers(), shaderDeclaration.params(),
                 shaderDeclaration.samplers().keySet().size() - 1, true, false);
+        if (shader == null) {
+            return null;
+        }
+        return (JFXShader) Proxy.newProxyInstance(JFXShader.class.getClassLoader(), new Class[]{JFXShader.class},
+                (proxy, method, args) -> method.invoke(shader, args));
     }
 
-    public static Shader createVertexShader(FilterContext fctx, ShaderDeclaration shaderDeclaration) {
+    public static JFXShader createVertexShader(FilterContext fctx, ShaderDeclaration shaderDeclaration) {
         Objects.requireNonNull(shaderDeclaration, "ShaderDeclaration cannot be null");
         final ShaderFactory factory = ShaderController.getBaseShaderFactory(fctx);
         if (ShaderController.isHLSLSupported()) {
@@ -120,8 +125,8 @@ public final class ShaderController {
         throw new ShaderCreationException("Standalone vertex shaders are not supported on OpenGL ES 2.0");
     }
 
-    public static Shader createES2ShaderProgram(FilterContext fctx, ShaderDeclaration vertexShaderDeclaration, ShaderDeclaration pixelShaderDeclaration,
-                                                Map<String, Integer> attributes) {
+    public static JFXShader createES2ShaderProgram(FilterContext fctx, ShaderDeclaration vertexShaderDeclaration, ShaderDeclaration pixelShaderDeclaration,
+                                                   Map<String, Integer> attributes) {
         Objects.requireNonNull(vertexShaderDeclaration, "VertexShaderDeclaration cannot be null");
         Objects.requireNonNull(pixelShaderDeclaration, "PixelShaderDeclaration cannot be null");
         Objects.requireNonNull(attributes, "Attributes cannot be null");
@@ -136,7 +141,7 @@ public final class ShaderController {
                     .invoke(null, es2Context, vertexShader,
                             Objects.requireNonNull(pixelShaderDeclaration.es2Source(), "ES2 pixel shader source cannot be null"),
                             Objects.requireNonNull(pixelShaderDeclaration.samplers(), "ES2 pixel shader samplers cannot be null"), attributes, 1, false);
-            return (Shader) Proxy.newProxyInstance(ES2Shader.class.getClassLoader(), ES2Shader.class.getInterfaces(),
+            return (JFXShader) Proxy.newProxyInstance(ES2Shader.class.getClassLoader(), new Class[]{ES2Shader.class},
                     (proxy, method, args) -> method.invoke(es2Shader, args));
         } else {
             throw new ShaderCreationException("ES2 shader programs are not supported on DirectX 9.0");

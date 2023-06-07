@@ -17,7 +17,6 @@ import com.sun.prism.impl.BaseGraphics;
 import com.sun.prism.impl.VertexBuffer;
 import com.sun.prism.impl.ps.BaseShaderContext;
 import com.sun.prism.impl.ps.BaseShaderGraphics;
-import com.sun.prism.ps.Shader;
 import com.sun.prism.ps.ShaderGraphics;
 import com.sun.scenario.effect.Effect;
 import com.sun.scenario.effect.ImageData;
@@ -29,6 +28,7 @@ import com.sun.scenario.effect.impl.prism.ps.PPSRenderer;
 import com.sun.scenario.effect.impl.state.RenderState;
 
 import de.teragam.jfxshader.ImagePoolPolicy;
+import de.teragam.jfxshader.JFXShader;
 import de.teragam.jfxshader.ShaderController;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.effect.InternalEffect;
@@ -42,7 +42,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
 
     private static final EnumMap<PixelFormat, PolicyBasedImagePool> FORMAT_IMAGE_POOL_MAP = new EnumMap<>(PixelFormat.class);
 
-    private Shader shader;
+    private JFXShader shader;
     private PPSDrawable drawable;
     private BaseTransform transform;
     private Rectangle outputClip;
@@ -67,17 +67,13 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         }
     }
 
-    private Shader createShader() {
+    private JFXShader createShader() {
         return ShaderController.createShader(super.getFilterContext(), this.createShaderDeclaration());
-    }
-
-    private void updateShader(Shader shader) {
-        this.updateShader(shader, (S) ((InternalEffect) super.getEffect()).getEffect());
     }
 
     protected abstract ShaderDeclaration createShaderDeclaration();
 
-    protected abstract void updateShader(Shader shader, S effect);
+    protected abstract void updateShader(JFXShader shader, S effect);
 
     public BaseTransform getTransform() {
         return this.transform;
@@ -202,7 +198,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
             return new ImageData(this.getFilterContext(), dst, dstBounds);
         }
         g.setExternalShader(this.shader);
-        this.updateShader(this.shader);
+        this.updateShader(this.shader, (S) ((InternalEffect) super.getEffect()).getEffect());
         this.drawTextures((float) dstw, (float) dsth, textures, coords, coordLength, (BaseShaderGraphics) g);
         g.setExternalShader(null);
 
