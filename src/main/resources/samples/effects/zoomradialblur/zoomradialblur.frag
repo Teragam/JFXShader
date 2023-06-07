@@ -21,7 +21,11 @@ void main() {
 
     for (int i = 0; i < blurSteps; i++) {
         float power = 1.0 - calcStrength * float(i) / float(blurSteps);
-        outColor += texture(baseImg, focus * power + scaledCenter);
+        vec2 texCoord = focus * power + scaledCenter;
+        if (texCoord.x < texCoords.x || texCoord.y < texCoords.y || texCoord.x > texCoords.z || texCoord.y > texCoords.w) {
+            break;
+        }
+        outColor += texture(baseImg, texCoord);
     }
 
     outColor *= 1.0 / float(blurSteps);

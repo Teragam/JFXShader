@@ -21,7 +21,11 @@ void main(float2 pos0 : TEXCOORD0, float2 pos1 : TEXCOORD1, float2 pixcoord : VP
             break;
         }
         float power = 1.0 - calcStrength * float(i) / float(blurSteps);
-        outColor += tex2D(baseImg, focus * power + scaledCenter);
+        float2 texCoord = focus * power + scaledCenter;
+        if (texCoord.x < texCoords.x || texCoord.y < texCoords.y || texCoord.x > texCoords.z || texCoord.y > texCoords.w) {
+            break;
+        }
+        outColor += tex2D(baseImg, texCoord);
     }
 
     outColor *= 1.0 / float(blurSteps);
