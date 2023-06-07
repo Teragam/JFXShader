@@ -8,11 +8,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.sun.prism.impl.Disposer;
-import com.sun.prism.ps.Shader;
 
+import de.teragam.jfxshader.JFXShader;
 import de.teragam.jfxshader.exception.ShaderException;
 
-public class D3DVertexShader implements Shader {
+public class D3DVertexShader implements JFXShader {
 
     private final IDirect3DDevice9 device;
     private final long nativeHandle;
@@ -145,5 +145,16 @@ public class D3DVertexShader implements Shader {
 
     private int getRegister(String name) {
         return Optional.ofNullable(this.registers.get(name)).orElseThrow(() -> new ShaderException("Register not found for: " + name));
+    }
+
+    @Override
+    public void setMatrix(String name, float[] buf, int vector4fCount) {
+        this.device.setVertexShaderConstantF(this.getRegister(name), buf, vector4fCount);
+        this.validate();
+    }
+
+    @Override
+    public Object getObject() {
+        return this;
     }
 }

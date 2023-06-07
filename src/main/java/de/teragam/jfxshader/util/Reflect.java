@@ -2,9 +2,12 @@ package de.teragam.jfxshader.util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -112,6 +115,10 @@ public class Reflect<C> {
         return ((MethodInvocationWrapper<C>) unsafeReflect.method("allocateInstance", Class.class)).invoke(unsafe, this.clazz);
     }
 
+    public boolean hasConstructor(Class<?>... parameterTypes) {
+        return Arrays.stream(this.clazz.getDeclaredConstructors()).anyMatch(c -> Arrays.equals(c.getParameterTypes(), parameterTypes));
+    }
+
     public Constructor<C> getConstructor(Class<?>... parameterTypes) {
         try {
             final Constructor<C> constructor = this.clazz.getDeclaredConstructor(parameterTypes);
@@ -149,26 +156,20 @@ public class Reflect<C> {
 
     private static void addOpensOrExports(String fullyQualifiedPackageName, String module, Module currentModule, boolean open) {
         try {
-            final Object unsafe = Reflect.on("sun.misc.Unsafe").getFieldValue("theUnsafe", null);
-            final Class<?> bootModuleLayerClass = Reflect.resolveClass("java.lang.ModuleLayer");
-
-            final Object bootModuleLayer = Reflect.on(bootModuleLayerClass).method("boot").invoke(null);
-            final Object moduleOpt = Reflect.on(bootModuleLayerClass).method("findModule", String.class).invoke(bootModuleLayer, module);
-            if (Reflect.on(moduleOpt.getClass()).method("isPresent").invoke(moduleOpt).equals(Boolean.FALSE)) {
+            final Optional<Module> moduleOpt = ModuleLayer.boot().findModule(module);
+            if (moduleOpt.isEmpty()) {
                 throw new IllegalStateException("Could not find module " + module);
             }
-            final Object fMod = Reflect.on(moduleOpt.getClass()).method("get").invoke(moduleOpt);
-            final Class<?> moduleImpl = Reflect.resolveClass("java.lang.Module");
-            final String methodName = open ? "implAddOpens" : "implAddExports";
-            final Method addOpensMethodImpl = Reflect.on(moduleImpl).getMethod(methodName, String.class, moduleImpl);
+            final Method addOpensMethodImpl = Reflect.on(Module.class).getMethod(open ? "implAddOpens" : "implAddExports", String.class, Module.class);
             class OffsetProvider {
                 int first;
             }
+            final Object unsafe = Reflect.on("sun.misc.Unsafe").getFieldValue("theUnsafe", null);
             final long firstFieldOffset = (long) Reflect.on(unsafe.getClass()).method("objectFieldOffset", Field.class)
                     .invoke(unsafe, OffsetProvider.class.getDeclaredField("first"));
             Reflect.on(unsafe.getClass()).method("putBooleanVolatile", Object.class, long.class, boolean.class)
                     .invoke(unsafe, addOpensMethodImpl, firstFieldOffset, true);
-            addOpensMethodImpl.invoke(fMod, fullyQualifiedPackageName, currentModule);
+            addOpensMethodImpl.invoke(moduleOpt.get(), fullyQualifiedPackageName, currentModule);
         } catch (ReflectiveOperationException ex) {
             throw new ShaderException("Could not add opens or exports", ex);
         }
@@ -197,11 +198,19 @@ public class Reflect<C> {
 
     public static <P extends ReflectProxy> P createProxy(Object object, Class<P> proxyInterface) {
         final Reflect<?> reflect = Reflect.on(object.getClass());
-        return (P) Proxy.newProxyInstance(proxyInterface.getClassLoader(), proxyInterface.getInterfaces(), (proxy, method, args) -> {
+        return createProxy(object, proxyInterface, (proxy, method, args) -> reflect.method(method.getName(), method.getParameterTypes()).invoke(object, args));
+    }
+
+    public static <P extends ReflectProxy> P createProxy(Object object, Class<P> proxyInterface, InvocationHandler invocationHandler) {
+        final List<Class<?>> interfaces = new ArrayList<>(Arrays.asList(proxyInterface.getInterfaces()));
+        if (proxyInterface.isInterface()) {
+            interfaces.add(proxyInterface);
+        }
+        return (P) Proxy.newProxyInstance(proxyInterface.getClassLoader(), interfaces.toArray(new Class<?>[0]), (proxy, method, args) -> {
             if ("getObject".equals(method.getName())) {
                 return object;
             } else {
-                return reflect.method(method.getName(), method.getParameterTypes()).invoke(object, args);
+                return invocationHandler.invoke(proxy, method, args);
             }
         });
     }

@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.samples.blendshapes;
+package de.teragam.jfxshader.samples.effects;
 
 import java.nio.FloatBuffer;
 import java.util.HashMap;
@@ -7,13 +7,13 @@ import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.geometry.Rectangle2D;
 
-import com.sun.prism.ps.Shader;
 import com.sun.scenario.effect.impl.BufferUtil;
 
+import de.teragam.jfxshader.JFXShader;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.effect.EffectPeer;
 import de.teragam.jfxshader.effect.ShaderEffectPeer;
-import de.teragam.jfxshader.effect.internal.ShaderEffectPeerConfig;
+import de.teragam.jfxshader.effect.ShaderEffectPeerConfig;
 
 @EffectPeer("BlendShapes")
 class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
@@ -37,22 +37,22 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
         params.put("scale", 17);
         params.put("invertMask", 18);
         return new ShaderDeclaration(samplers, params,
-                BlendShapes.class.getResourceAsStream("/samples/blendshapes/blendshapes.frag"),
-                BlendShapes.class.getResourceAsStream("/samples/blendshapes/blendshapes.obj"));
+                BlendShapes.class.getResourceAsStream("/samples/effects/blendshapes/blendshapes.frag"),
+                BlendShapes.class.getResourceAsStream("/samples/effects/blendshapes/blendshapes.obj"));
     }
 
     @Override
-    protected void updateShader(Shader shader, BlendShapes effect) {
+    protected void updateShader(JFXShader shader, BlendShapes effect) {
         if (this.rects == null) {
             this.rects = BufferUtil.newFloatBuffer(8 * 4);
             this.ops = BufferUtil.newFloatBuffer(8 * 4);
         }
         this.rects.clear();
         this.ops.clear();
-        final List<ObjectProperty<BlendShape>> effectShapes = effect.getBlendShapes();
+        final List<ObjectProperty<BlendShapes.Shape>> effectShapes = effect.getBlendShapes();
         int effectiveCount = 0;
         for (int i = 0; i < Math.min(effectShapes.size(), 8); i++) {
-            final BlendShape shape = effectShapes.get(i).get();
+            final BlendShapes.Shape shape = effectShapes.get(i).get();
             if (shape != null) {
                 effectiveCount++;
                 final Rectangle2D bounds = shape.getBounds();

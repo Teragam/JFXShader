@@ -2,29 +2,62 @@
 
 All notable changes to this project will be documented here.
 
+## v1.2.0 - 2023-06-07
+
+### Added
+
+- Added Java module support.
+    - The library can now be used with modular and non-modular JavaFX applications.
+    - For modular JavaFX applications, `JFXShaderModule.setup()` must be called before using any other of the library's
+      classes.
+- Added more sample effects:
+    - [Pixelate](src/main/java/de/teragam/jfxshader/samples/effects/Pixelate.java)
+    - [ZoomRadialBlur](src/main/java/de/teragam/jfxshader/samples/effects/ZoomRadialBlur.java)
+    - [ProxyShaderEffect](src/main/java/de/teragam/jfxshader/samples/effects/ProxyShaderEffect.java)
+- Added continuous rendering option to ShaderEffects.
+- EffectPeers can now invalidate their shaders to allow for a more dynamic shader pipeline.
+- Added option to create a dedicated EffectPeer for every ShaderEffect instance by setting the default `singleton`
+  option to `false`.
+
+### Changed
+
+- To support Java modules, ShaderEffects now have `getFXEffect()` to return the compatible JavaFX `Effect` that should
+  be used. (Analogue to `getFXMaterial()` for ShaderMaterials.)
+- EffectPeers can now be static and non-static member classes of their ShaderEffects.
+
 ## v1.0.0 - 2023-04-30
 
 ### Added
+
 - Added support for custom 3D shader materials.
-  - Applicable to any `Shape3D` by using `setMaterial`.
-  - Custom parameters and textures can be set and used in the shader.
-  - Pixel shaders as well as vertex shaders are supported.
-- Added `FresnelMaterial` as an example for a custom 3D shader material.
+    - Applicable to any `Shape3D` by using `setMaterial`.
+    - Custom parameters and textures can be set and used in the shader.
+    - Pixel shaders as well as vertex shaders are supported.
+- Added [FresnelMaterial](src/main/java/de/teragam/jfxshader/samples/materials/FresnelMaterial.java) as an
+  example for a custom 3D shader material.
 
 ### Changed
+
 - Restructured classes and packages.
 - Reduced reliability on internal JavaFX package-private classes for future modularity support.
 
 ## v0.8.0 - 2022-12-30
 
 ### Added
+
 - Shaders can now use up to 16 bound textures simultaneously.
-- Some refactoring and QoL improvements to ease the development of custom [IEffectRenderer](src/main/java/de/teragam/jfxshader/IEffectRenderer.java).
-- The generated texture coordinates for the shader input textures can now be accessed in the [ShaderEffectPeer](src/main/java/de/teragam/jfxshader/ShaderEffectPeer.java). This allows the shaders to compensate for the varying texture coordinates caused by JavaFX's internal texture pooling.
-- The `ImagePoolPolicy.QUANTIZED` option has been added to allow better VRAM usage while ensuring that the target texture dimensions do not fluctuate between frames.
-- Added option to invert the mask in the [BlendShapes](src/main/java/de/teragam/jfxshader/samples/blendshapes/BlendShapesEffectPeer.java) example.
+- Some refactoring and QoL improvements to ease the development of
+  custom [IEffectRenderer](src/main/java/de/teragam/jfxshader/effect/IEffectRenderer.java).
+- The generated texture coordinates for the shader input textures can now be accessed in
+  the [ShaderEffectPeer](src/main/java/de/teragam/jfxshader/effect/ShaderEffectPeer.java). This allows the shaders to
+  compensate for the varying texture coordinates caused by JavaFX's internal texture pooling.
+- The `ImagePoolPolicy.QUANTIZED` option has been added to allow better VRAM usage while ensuring that the target
+  texture dimensions do not fluctuate between frames.
+- Added option to invert the mask in
+  the [BlendShapes](src/main/java/de/teragam/jfxshader/samples/effects/BlendShapesEffectPeer.java) example.
 
 ### Fixed
+
 - Fixed an issue that did not allow the use of more than 2 textures in a shader.
 
 ## v0.7.0 - 2022-11-28
@@ -44,7 +77,8 @@ All notable changes to this project will be documented here.
 - Added basic support for DPI scaling. JavaFX accomplishes this by applying a scale transform. However, this does not
   work for shaders that rely on positional information, such as the *Lighting* Effect. For now, the shaders can load the
   DPI scale as a parameter and compensate for it accordingly (see
-  the [BlendShapes](src/main/java/de/teragam/jfxshader/samples/blendshapes/BlendShapesEffectPeer.java) EffectPeer for an
+  the [BlendShapes](src/main/java/de/teragam/jfxshader/samples/effects/BlendShapesEffectPeer.java)
+  EffectPeer for an
   example).
 
 ### Changed

@@ -6,7 +6,7 @@
 
     <groupId>de.teragam</groupId>
     <artifactId>jfxshader</artifactId>
-    <version>1.0.0</version>
+    <version>1.2.0</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -36,6 +36,54 @@
                     <compilerArgs>
                         <arg>-h</arg>
                         <arg>${project.build.directory}/generated-headers</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.javafx.effect=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.javafx.geom=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.javafx.geom.transform=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.javafx.scene=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.scenario.effect.impl.state=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.scenario.effect=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.prism=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.prism.impl=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.scenario.effect.impl.prism=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.prism.ps=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.glass.ui=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.glass.utils=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.javafx.scene.shape=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.javafx.sg.prism=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.javafx.util=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.prism.impl.ps=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.scenario.effect.impl=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.prism.es2=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.scenario.effect.impl.prism.ps=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.prism.d3d=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.javafx.scene.paint=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.javafx.tk=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.javafx.beans.event=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.base/com.sun.javafx=de.teragam.jfxshader</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>

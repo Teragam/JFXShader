@@ -49,4 +49,10 @@ public @interface EffectPeer {
      * @see ImagePoolPolicy
      */
     ImagePoolPolicy targetPoolPolicy() default ImagePoolPolicy.LENIENT;
+
+    /**
+     * Whether the peer is a singleton and should be reused for all instances of the effect.
+     * Defaults to {@code true}.
+     */
+    boolean singleton() default true;
 }

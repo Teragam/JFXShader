@@ -10,7 +10,6 @@ import com.sun.prism.Graphics;
 import com.sun.prism.Mesh;
 import com.sun.prism.MeshView;
 import com.sun.prism.ResourceFactory;
-import com.sun.prism.es2.ES2ResourceFactory;
 import com.sun.prism.impl.BaseMesh;
 
 import de.teragam.jfxshader.ShaderController;
@@ -89,10 +88,10 @@ public final class MeshProxyHelper {
         } else {
             handler = (proxy, method, args) -> {
                 if ("createMeshView".equals(method.getName())) {
-                    return ES2ShaderMeshView.create((ES2ResourceFactory) rf, (BaseMesh) args[0]);
+                    return ES2ShaderMeshView.create(rf, (BaseMesh) args[0]);
                 }
                 if ("createPhongMaterial".equals(method.getName())) {
-                    return InternalES2BasePhongMaterial.create((ES2ResourceFactory) rf, material);
+                    return InternalES2BasePhongMaterial.create(rf, material);
                 }
                 return method.invoke(rf, args);
             };

@@ -1,15 +1,11 @@
-package de.teragam.jfxshader.samples.materials.fresnel;
+package de.teragam.jfxshader.samples.materials;
 
-import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.javafx.geom.Vec3d;
-import com.sun.prism.es2.ES2Shader;
-import com.sun.prism.ps.Shader;
-import com.sun.scenario.effect.impl.BufferUtil;
 
-import de.teragam.jfxshader.ShaderController;
+import de.teragam.jfxshader.JFXShader;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.material.ShaderMaterialPeer;
 
@@ -36,29 +32,12 @@ public class FresnelMaterialPeer extends ShaderMaterialPeer<FresnelMaterial> {
                 ShaderMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.vs.obj"));
     }
 
-    private final FloatBuffer buf = BufferUtil.newFloatBuffer(16);
-
     @Override
-    public void updateShader(Shader vertexShader, Shader pixelShader, FresnelMaterial material) {
+    public void updateShader(JFXShader vertexShader, JFXShader pixelShader, FresnelMaterial material) {
         final Vec3d camPos = this.getCamera().getPositionInWorld(null);
         vertexShader.setConstant("camPos", (float) camPos.x, (float) camPos.y, (float) camPos.z);
-
-        if (ShaderController.isGLSLSupported()) {
-            ((ES2Shader) vertexShader).setMatrix("viewProjectionMatrix", this.getViewProjectionMatrix());
-            ((ES2Shader) vertexShader).setMatrix("worldMatrix", this.getWorldMatrix());
-        } else {
-            final float[] viewProjectionMatrix = this.getViewProjectionMatrix();
-            this.buf.clear();
-            this.buf.put(viewProjectionMatrix);
-            this.buf.rewind();
-            vertexShader.setConstants("viewProjectionMatrix", this.buf, 0, 4);
-
-            final float[] worldMatrix = this.getWorldMatrix();
-            this.buf.clear();
-            this.buf.put(worldMatrix);
-            this.buf.rewind();
-            vertexShader.setConstants("worldMatrix", this.buf, 0, 4);
-        }
+        vertexShader.setMatrix("viewProjectionMatrix", this.getViewProjectionMatrix(), 4);
+        vertexShader.setMatrix("worldMatrix", this.getWorldMatrix(), 4);
 
         this.setSamplerImage(material.getDiffuseImage(), 0);
 

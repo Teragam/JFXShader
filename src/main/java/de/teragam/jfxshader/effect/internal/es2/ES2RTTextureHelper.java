@@ -5,7 +5,6 @@ import java.nio.Buffer;
 import com.sun.prism.PixelFormat;
 import com.sun.prism.RTTexture;
 import com.sun.prism.Texture;
-import com.sun.prism.es2.ES2ResourceFactory;
 import com.sun.prism.impl.BaseResourceFactory;
 import com.sun.prism.impl.BaseTexture;
 import com.sun.prism.impl.DisposerManagedResource;
@@ -27,7 +26,7 @@ public class ES2RTTextureHelper extends RTTTextureHelper {
     private ES2RTTextureHelper() {}
 
     public static Object getGLContext(BaseResourceFactory factory) {
-        if (!(factory instanceof ES2ResourceFactory)) {
+        if (!Reflect.resolveClass("com.sun.prism.es2.ES2ResourceFactory").isInstance(factory)) {
             throw new TextureCreationException("Factory is not a ES2ResourceFactory");
         }
         final BaseShaderContext context = ReflectionES2Helper.getInstance().getContext(factory);
@@ -36,10 +35,9 @@ public class ES2RTTextureHelper extends RTTTextureHelper {
 
     public static RTTexture createES2RTTexture(BaseResourceFactory factory, PixelFormat format, Texture.WrapMode wrapMode, int width, int height,
                                                boolean useMipmap) {
-        if (!(factory instanceof ES2ResourceFactory)) {
+        if (!Reflect.resolveClass("com.sun.prism.es2.ES2ResourceFactory").isInstance(factory)) {
             throw new TextureCreationException("Factory is not a ES2ResourceFactory");
         }
-
         final BaseShaderContext es2Context = ReflectionES2Helper.getInstance().getContext(factory);
         final GLContext glContext = Reflect.createProxy(ES2RTTextureHelper.getGLContext(factory), GLContext.class);
 
@@ -176,7 +174,7 @@ public class ES2RTTextureHelper extends RTTTextureHelper {
         }
 
         public BaseShaderContext getContext(BaseResourceFactory factory) {
-            return Reflect.on(ES2ResourceFactory.class).getFieldValue("context", factory);
+            return Reflect.on("com.sun.prism.es2.ES2ResourceFactory").getFieldValue("context", factory);
         }
 
         public boolean uploadPixels(Object glCtx, int target, Buffer pixels, PixelFormat format, int texw, int texh, int dstx, int dsty, int srcx, int srcy,

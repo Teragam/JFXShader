@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.effect.internal;
+package de.teragam.jfxshader.effect;
 
 import com.sun.prism.PixelFormat;
 import com.sun.prism.Texture;

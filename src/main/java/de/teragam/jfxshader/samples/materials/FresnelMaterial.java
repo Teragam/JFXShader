@@ -1,4 +1,4 @@
-package de.teragam.jfxshader.samples.materials.fresnel;
+package de.teragam.jfxshader.samples.materials;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -11,16 +11,18 @@ import de.teragam.jfxshader.material.ShaderMaterial;
 @MaterialDependency(FresnelMaterialPeer.class)
 public class FresnelMaterial extends ShaderMaterial {
 
-    private DoubleProperty power;
-    private ObjectProperty<Image> diffuseImage;
-    private ObjectProperty<Color> glowColor;
+    private final DoubleProperty power;
+    private final ObjectProperty<Color> glowColor;
+    private final ObjectProperty<Image> diffuseImage;
 
     public FresnelMaterial() {
         this(2.0);
     }
 
     public FresnelMaterial(double power) {
-        this.setPower(power);
+        this.power = super.createMaterialDoubleProperty(power, "power");
+        this.glowColor = super.createMaterialObjectProperty(Color.WHITE, "diffuseColor");
+        this.diffuseImage = super.createMaterialImageProperty(null, "diffuseImage");
     }
 
     public double getPower() {
@@ -28,9 +30,6 @@ public class FresnelMaterial extends ShaderMaterial {
     }
 
     public DoubleProperty powerProperty() {
-        if (this.power == null) {
-            this.power = super.createMaterialDoubleProperty(2.0, "power");
-        }
         return this.power;
     }
 
@@ -43,9 +42,6 @@ public class FresnelMaterial extends ShaderMaterial {
     }
 
     public ObjectProperty<Image> diffuseImageProperty() {
-        if (this.diffuseImage == null) {
-            this.diffuseImage = super.createMaterialImageProperty(null, "diffuseImage");
-        }
         return this.diffuseImage;
     }
 
@@ -58,9 +54,6 @@ public class FresnelMaterial extends ShaderMaterial {
     }
 
     public ObjectProperty<Color> glowColorProperty() {
-        if (this.glowColor == null) {
-            this.glowColor = super.createMaterialObjectProperty(Color.WHITE, "diffuseColor");
-        }
         return this.glowColor;
     }
 
