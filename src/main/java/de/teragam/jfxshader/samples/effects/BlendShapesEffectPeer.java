@@ -69,7 +69,10 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
         shader.setConstant("count", effectiveCount);
         shader.setConstants("rects", this.rects, 0, 8);
         shader.setConstants("ops", this.ops, 0, 8);
-        shader.setConstant("scale", (float) this.getTransform().getMxx()); // Very basic compensation for dpi scaling
+        final double scaleX = Math.hypot(this.getTransform().getMxx(), this.getTransform().getMyx());
+        final double scaleY = Math.hypot(this.getTransform().getMxy(), this.getTransform().getMyy());
+        final double scale = Math.max(scaleX, scaleY);
+        shader.setConstant("scale", (float) scale); // Compensation for scale transforms like dpi scaling
         shader.setConstant("invertMask", effect.isInvertMask() ? 1 : 0);
     }
 

@@ -31,8 +31,9 @@ class PixelateEffectPeer extends ShaderEffectPeer<Pixelate> {
         shader.setConstant("resolution", (float) this.getDestNativeBounds().width, (float) this.getDestNativeBounds().height);
         final float[] texCoords = this.getTextureCoords(0);
         shader.setConstant("texCoords", texCoords[0], texCoords[1], texCoords[2], texCoords[3]);
-        shader.setConstant("viewport", (float) this.getTransform().getMxt(), (float) this.getTransform().getMyt(), (float) this.getTransform().getMxx(),
-                (float) this.getTransform().getMyy());
+        final double scaleX = Math.hypot(this.getTransform().getMxx(), this.getTransform().getMyx());
+        final double scaleY = Math.hypot(this.getTransform().getMxy(), this.getTransform().getMyy());
+        shader.setConstant("viewport", 0f, 0f, (float) scaleX, (float) scaleY);
     }
 
 }
