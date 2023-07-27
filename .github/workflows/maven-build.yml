@@ -19,8 +19,8 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           server-id: ossrh
-          server-username: ${env.OSSRH_USERNAME}
-          server-password: ${env.OSSRH_TOKEN}
+          server-username: OSSRH_USERNAME
+          server-password: OSSRH_TOKEN
           settings-path: ${{ github.workspace }}
 
       - name: Import gpg key
