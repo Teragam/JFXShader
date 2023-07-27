@@ -23,7 +23,7 @@ jobs:
 
       - name: Install gpg key
         run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | base64 --decode | gpg --import
+          cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
           echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --passphrase-fd 0 --batch --yes --no-tty --pinentry-mode loopback --import
           gpg --list-keys
           gpg --list-secret-keys
