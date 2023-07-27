@@ -23,8 +23,9 @@ jobs:
 
       - name: Install gpg key
         run: |
+          $PSVersionTable
           echo "${{ secrets.GPG_KEY }}" > gpg_key.asc
-          echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --passphrase-fd 0 --batch --yes --no-tty --pinentry-mode loopback --import gpg_key.asc
+          gpg --passphrase-fd 0 --batch --yes --no-tty --pinentry-mode loopback --import gpg_key.asc
           del gpg_key.asc
           gpg --list-keys
           gpg --list-secret-keys
