@@ -25,7 +25,6 @@ jobs:
 
       - name: Import gpg key
         run: |
-          cat ${{ github.workspace }}/settings.xml
           echo "${{ secrets.GPG_PRIVATE_KEY }}" > gpg_key.asc
           gpg --batch --import gpg_key.asc
           del gpg_key.asc
