@@ -18,6 +18,10 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
+          server-id: ossrh
+          server-username: ${{ secrets.OSSRH_USERNAME }}
+          server-password: ${{ secrets.OSSRH_TOKEN }}
+          settings-path: ${{ github.workspace }}
 
       - name: Import gpg key
         run: |
@@ -26,10 +30,10 @@ jobs:
           del gpg_key.asc
 
       - name: Build natives
-        run: mvn -B compile --file pom.xml -P build-natives-win
+        run: mvn -B compile -P build-natives-win
 
       - name: Package jar
-        run: mvn -B verify --file pom.xml "-Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}"
+        run: mvn -B deploy -s ${{ github.workspace }}/settings.xml "-Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}"
 
       - uses: actions/upload-artifact@v3
         with:
