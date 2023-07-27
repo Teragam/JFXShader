@@ -24,7 +24,7 @@ jobs:
       - name: Install gpg key
         run: |
           $PSVersionTable
-          echo "${{ secrets.GPG_KEY }}" > gpg_key.asc
+          echo -e "${{ secrets.GPG_KEY }}" > gpg_key.asc
           ls -l gpg_key.asc
           gpg --version
           gpg --batch --import gpg_key.asc
