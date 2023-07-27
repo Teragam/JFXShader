@@ -18,14 +18,18 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-          server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-          settings-path: ${{ github.workspace }} # location for the settings.xml file
+
+      - name: Import gpg key
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" > gpg_key.asc
+          gpg --batch --import gpg_key.asc
+          del gpg_key.asc
 
       - name: Build natives
         run: mvn -B compile --file pom.xml -P build-natives-win
 
       - name: Package jar
-        run: mvn -B package --file pom.xml
+        run: mvn -B verify --file pom.xml "-Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}"
 
       - uses: actions/upload-artifact@v3
         with:

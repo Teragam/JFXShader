@@ -196,8 +196,8 @@ public class Reflect<C> {
         return clazz;
     }
 
-    public static <P extends ReflectProxy> P createProxy(Object object, Class<P> proxyInterface) {
-        final Reflect<?> reflect = Reflect.on(object.getClass());
+    public static <P extends ReflectProxy> P createProxy(Object object, Class<?> methodBaseClass, Class<P> proxyInterface) {
+        final Reflect<?> reflect = Reflect.on(methodBaseClass);
         return createProxy(object, proxyInterface, (proxy, method, args) -> reflect.method(method.getName(), method.getParameterTypes()).invoke(object, args));
     }
 

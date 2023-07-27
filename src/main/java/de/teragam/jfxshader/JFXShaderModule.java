@@ -8,15 +8,27 @@ import de.teragam.jfxshader.util.Reflect;
 
 public final class JFXShaderModule {
 
-    private static AtomicBoolean initialized = new AtomicBoolean();
+    private static final AtomicBoolean initialized = new AtomicBoolean();
 
     private JFXShaderModule() {}
 
+    /**
+     * Opens internal JavaFX packages to the JFXShader module.
+     * Has no effect for non-modular JavaFX applications.
+     */
     public static void setup() {
-        if (JFXShaderModule.initialized.getAndSet(true)) {
+        if (JFXShaderModule.initialized.getAndSet(true) || ModuleLayer.boot().findModule("javafx.graphics").isEmpty()) {
             return;
         }
-        final Module module = JFXShaderModule.class.getModule();
+        JFXShaderModule.provideModuleAccess(JFXShaderModule.class.getModule());
+    }
+
+    /**
+     * Opens internal JavaFX packages to the provided module.
+     *
+     * @param module the module to open the packages to
+     */
+    public static void provideModuleAccess(Module module) {
         JFXShaderModule.getGraphicsPackages().forEach(pkg -> Reflect.addOpens(pkg, "javafx.graphics", module));
         JFXShaderModule.getOptionalGraphicsPackages().forEach(pkg -> {
             try {

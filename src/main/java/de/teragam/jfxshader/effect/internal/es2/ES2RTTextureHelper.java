@@ -39,7 +39,8 @@ public class ES2RTTextureHelper extends RTTTextureHelper {
             throw new TextureCreationException("Factory is not a ES2ResourceFactory");
         }
         final BaseShaderContext es2Context = ReflectionES2Helper.getInstance().getContext(factory);
-        final GLContext glContext = Reflect.createProxy(ES2RTTextureHelper.getGLContext(factory), GLContext.class);
+        final GLContext glContext = Reflect.createProxy(ES2RTTextureHelper.getGLContext(factory),
+                Reflect.resolveClass("com.sun.prism.es2.GLContext"), GLContext.class);
 
         final boolean pad;
         switch (wrapMode) {

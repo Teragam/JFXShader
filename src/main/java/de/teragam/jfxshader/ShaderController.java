@@ -54,9 +54,9 @@ public final class ShaderController {
 
     public static final int MAX_BOUND_TEXTURES = 16;
 
+    private static final boolean MODULAR_JAVAFX = ModuleLayer.boot().findModule("javafx.graphics").isPresent();
     private static final Map<Class<? extends ShaderEffect>, IEffectRenderer> EFFECT_RENDERER_MAP = Collections.synchronizedMap(new HashMap<>());
     private static final List<Class<? extends ShaderEffectPeer<?>>> OPENED_PEERS = Collections.synchronizedList(new ArrayList<>());
-    private static final boolean MODULAR_JAVAFX = ModuleLayer.boot().findModule("javafx.graphics").isPresent();
     private static final FloatBuffer tmpBuf = BufferUtil.newFloatBuffer(16);
 
     private ShaderController() {}

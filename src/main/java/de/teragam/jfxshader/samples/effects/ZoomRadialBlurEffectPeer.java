@@ -28,8 +28,9 @@ class ZoomRadialBlurEffectPeer extends ShaderEffectPeer<ZoomRadialBlur> {
     protected void updateShader(JFXShader shader, ZoomRadialBlur effect) {
         shader.setConstant("resolution", (float) this.getDestBounds().width, (float) this.getDestBounds().height);
         shader.setConstant("center", (float) effect.getCenterX(), (float) effect.getCenterY());
-        shader.setConstant("viewport", (float) this.getTransform().getMxt(), (float) this.getTransform().getMyt(), (float) this.getTransform().getMxx(),
-                (float) this.getTransform().getMyy());
+        final double scaleX = Math.hypot(this.getTransform().getMxx(), this.getTransform().getMyx());
+        final double scaleY = Math.hypot(this.getTransform().getMxy(), this.getTransform().getMyy());
+        shader.setConstant("viewport", 0f, 0f, (float) scaleX, (float) scaleY);
         final float[] texCoords = this.getTextureCoords(0);
         shader.setConstant("texCoords", texCoords[0], texCoords[1], texCoords[2], texCoords[3]);
         shader.setConstant("blurSteps", Math.max(Math.min(effect.getBlurSteps(), 64), 1));

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented here.
 
+## v1.3.0 - 2023-07-27
+
+### Added
+
+- The library is now available on Maven Central.
+
+### Changed
+
+- Switched license from `GPL-3.0` to `Apache-2.0` to allow for more flexible usage.
+- Improved DPI scaling for existing sample effects.
+
 ## v1.2.0 - 2023-06-07
 
 ### Added
