@@ -19,6 +19,8 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           server-id: ossrh
+          server-username: ${env.OSSRH_USERNAME}
+          server-password: ${env.OSSRH_TOKEN}
           settings-path: ${{ github.workspace }}
 
       - name: Import gpg key
@@ -34,8 +36,8 @@ jobs:
       - name: Package jar
         run: mvn -B deploy -s ${{ github.workspace }}/settings.xml "-Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}"
         env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
 
       - uses: actions/upload-artifact@v3
         with:
