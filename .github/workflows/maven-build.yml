@@ -27,6 +27,8 @@ jobs:
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" > gpg_key.asc
           gpg --batch --import gpg_key.asc
+          gpg --list-keys --keyid-format LONG
+          gpg --list-secret-keys --keyid-format LONG
           del gpg_key.asc
 
       - name: Build natives
