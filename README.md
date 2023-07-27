@@ -55,25 +55,6 @@ To include JFXShader in a Maven project, add the following dependency to the pom
 </dependency>
 ```
 
-<details>
-
-<summary>Alternatively, the library can be included from GitHub Packages.</summary>
-
-Add the following repository to the pom.xml:
-```xml
-<repositories>
-  <repository>
-    <id>github</id>
-    <name>GitHub Teragam Repository</name>
-    <url>https://maven.pkg.github.com/Teragam/JFXShader</url>
-  </repository>
-</repositories>
-```
-The repository requires GitHub [authentication](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry).
-The dependency remains the same as above.
-
-</details>
-
 ## Requirements
 
 - Java 11 or higher
