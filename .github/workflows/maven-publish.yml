@@ -26,9 +26,11 @@ jobs:
           settings-path: ${{ github.workspace }} # location for the settings.xml file
 
       - name: Build with Maven
-        run: mvn -B package --file pom.xml -P build-natives-win
+        run: mvn -B verify --file pom.xml -P build-natives-win
 
       - name: Publish to GitHub Packages Apache Maven
         run: mvn deploy -s ${{ github.workspace }}/settings.xml
         env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}

@@ -25,7 +25,7 @@ jobs:
         run: mvn -B compile --file pom.xml -P build-natives-win
 
       - name: Package jar
-        run: mvn -B package --file pom.xml
+        run: mvn -B verify --file pom.xml
 
       - uses: actions/upload-artifact@v3
         with:
