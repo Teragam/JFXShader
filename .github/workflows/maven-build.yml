@@ -25,6 +25,8 @@ jobs:
         run: |
           $PSVersionTable
           echo "${{ secrets.GPG_KEY }}" > gpg_key.asc
+          ls -l gpg_key.asc
+          gpg --version
           gpg --batch --import gpg_key.asc
           del gpg_key.asc
           gpg --list-keys
