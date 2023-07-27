@@ -21,6 +21,13 @@ jobs:
           server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
           settings-path: ${{ github.workspace }} # location for the settings.xml file
 
+      - name: Install gpg key
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | base64 --decode | gpg --import
+          echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --passphrase-fd 0 --batch --yes --no-tty --pinentry-mode loopback --import
+          gpg --list-keys
+          gpg --list-secret-keys
+
       - name: Build natives
         run: mvn -B compile --file pom.xml -P build-natives-win
 
