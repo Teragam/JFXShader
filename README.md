@@ -1,5 +1,4 @@
-[![Maven Central](https://img.shields.io/maven-central/v/de.teragam/jfxshader?label=Maven%20Central
-)](https://search.maven.org/artifact/de.teragam/jfxshader/1.3.0/jar)
+[![Maven Central](https://img.shields.io/maven-central/v/de.teragam/jfxshader.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22de.teragam%22%20AND%20a:%22jfxshader%22)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 # JFXShader
