@@ -62,7 +62,7 @@ public final class MaterialController {
      * To allow for custom shaders on default {@link MeshView} instances, this injection must be performed before any {@link Shape3D} is rendered.
      * Otherwise, only {@link Shape3D} instances created after this injection will support custom shaders.
      */
-    public static void ensure3DAccessorInjection() {
+    public static void setup3D() {
         if (PlatformUtil.isWindows()) {
             NativeLibLoader.loadLibrary("jfxshader");
         }
