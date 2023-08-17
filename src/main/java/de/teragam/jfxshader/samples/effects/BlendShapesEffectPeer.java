@@ -37,8 +37,8 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
         params.put("scale", 17);
         params.put("invertMask", 18);
         return new ShaderDeclaration(samplers, params,
-                BlendShapes.class.getResourceAsStream("/samples/effects/blendshapes/blendshapes.frag"),
-                BlendShapes.class.getResourceAsStream("/samples/effects/blendshapes/blendshapes.obj"));
+                BlendShapes.class.getResourceAsStream("/de/teragam/jfxshader/samples/effects/blendshapes/blendshapes.frag"),
+                BlendShapes.class.getResourceAsStream("/de/teragam/jfxshader/samples/effects/blendshapes/blendshapes.obj"));
     }
 
     @Override

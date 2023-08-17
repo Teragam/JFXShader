@@ -20,8 +20,8 @@ class ZoomRadialBlurEffectPeer extends ShaderEffectPeer<ZoomRadialBlur> {
         final Map<String, Integer> samplers = Map.of("baseImg", 0);
         final Map<String, Integer> params = Map.of("resolution", 0, "center", 1, "viewport", 2, "texCoords", 3, "blurSteps", 4, "strength", 5);
         return new ShaderDeclaration(samplers, params,
-                ZoomRadialBlurEffectPeer.class.getResourceAsStream("/samples/effects/zoomradialblur/zoomradialblur.frag"),
-                ZoomRadialBlurEffectPeer.class.getResourceAsStream("/samples/effects/zoomradialblur/zoomradialblur.obj"));
+                ZoomRadialBlurEffectPeer.class.getResourceAsStream("/de/teragam/jfxshader/samples/effects/zoomradialblur/zoomradialblur.frag"),
+                ZoomRadialBlurEffectPeer.class.getResourceAsStream("/de/teragam/jfxshader/samples/effects/zoomradialblur/zoomradialblur.obj"));
     }
 
     @Override

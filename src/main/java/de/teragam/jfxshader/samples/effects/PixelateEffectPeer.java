@@ -20,8 +20,8 @@ class PixelateEffectPeer extends ShaderEffectPeer<Pixelate> {
     protected ShaderDeclaration createShaderDeclaration() {
         final Map<String, Integer> samplers = Map.of("baseImg", 0);
         final Map<String, Integer> params = Map.of("pixelSize", 0, "offset", 1, "resolution", 2, "texCoords", 3, "viewport", 4);
-        return new ShaderDeclaration(samplers, params, Pixelate.class.getResourceAsStream("/samples/effects/pixelate/pixelate.frag"),
-                Pixelate.class.getResourceAsStream("/samples/effects/pixelate/pixelate.obj"));
+        return new ShaderDeclaration(samplers, params, Pixelate.class.getResourceAsStream("/de/teragam/jfxshader/samples/effects/pixelate/pixelate.frag"),
+                Pixelate.class.getResourceAsStream("/de/teragam/jfxshader/samples/effects/pixelate/pixelate.obj"));
     }
 
     @Override
