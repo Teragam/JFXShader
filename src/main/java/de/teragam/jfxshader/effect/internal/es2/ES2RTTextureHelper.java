@@ -133,10 +133,9 @@ public class ES2RTTextureHelper extends RTTTextureHelper {
         final Object texData = Reflect.on("com.sun.prism.es2.ES2RTTextureData").constructor()
                 .create(es2Context, nativeTexID, nativeFBOID, texWidth, texHeight, size);
         final DisposerManagedResource<?> texRes = (DisposerManagedResource<?>) Reflect.on("com.sun.prism.es2.ES2TextureResource")
-                .constructor(texData.getClass()).create(texData);
-        final RTTexture es2RTT = ReflectionES2Helper.getInstance()
-                .createTexture(es2Context, texRes, format, wrapMode, texWidth, texHeight, contentX, contentY, width, height, maxContentW, maxContentH,
-                        useMipmap);
+                .constructor(Reflect.resolveClass("com.sun.prism.es2.ES2TextureData")).create(texData);
+        final RTTexture es2RTT = ReflectionES2Helper.getInstance().createTexture(es2Context, texRes, format, wrapMode, texWidth, texHeight, contentX, contentY,
+                width, height, maxContentW, maxContentH, useMipmap);
 
         glContext.bindFBO(savedFBO);
         glContext.setBoundTexture(savedTex);
@@ -162,9 +161,8 @@ public class ES2RTTextureHelper extends RTTTextureHelper {
 
         public ReflectionES2Helper() {
             this.uploadPixelsMethod = Reflect.on("com.sun.prism.es2.ES2Texture").method("uploadPixels",
-                    Reflect.resolveClass("com.sun.prism.es2.GLContext"), int.class, Buffer.class,
-                    PixelFormat.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, boolean.class,
-                    boolean.class);
+                    Reflect.resolveClass("com.sun.prism.es2.GLContext"), int.class, Buffer.class, PixelFormat.class, int.class, int.class, int.class, int.class,
+                    int.class, int.class, int.class, int.class, int.class, boolean.class, boolean.class);
         }
 
         public static ReflectionES2Helper getInstance() {
@@ -192,7 +190,7 @@ public class ES2RTTextureHelper extends RTTTextureHelper {
             Reflect.on("com.sun.prism.es2.ES2Texture").setFieldValue("context", texture, es2Context);
             RTTTextureHelper.fillTexture((BaseTexture<? super DisposerManagedResource<?>>) texture, resource, PixelFormat.INT_ARGB_PRE, wrapMode,
                     physicalWidth, physicalHeight, contentX, contentY, contentWidth, contentHeight, maxContentWidth, maxContentHeight, useMipmap);
-            PrismTrace.rttCreated(Reflect.on("com.sun.prism.es2.ES2RTTextureData").getFieldValue("fboID", resource),
+            PrismTrace.rttCreated(Reflect.on("com.sun.prism.es2.ES2RTTextureData").<Integer>getFieldValue("fboID", resource.getResource()),
                     physicalWidth, physicalHeight, format.getBytesPerPixelUnit());
             return texture;
         }
