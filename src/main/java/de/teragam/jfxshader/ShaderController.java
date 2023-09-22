@@ -79,6 +79,7 @@ public final class ShaderController {
 
     public static void register(FilterContext fctx, ShaderEffect effect) {
         final Renderer renderer = Renderer.getRenderer(Objects.requireNonNull(fctx, "FilterContext cannot be null"));
+        ShaderController.validatePipeline(fctx);
         try {
             final Map<String, com.sun.scenario.effect.impl.EffectPeer<? super RenderState>> peerCache = Reflect.on(Renderer.class)
                     .getFieldValue("peerCache", renderer);

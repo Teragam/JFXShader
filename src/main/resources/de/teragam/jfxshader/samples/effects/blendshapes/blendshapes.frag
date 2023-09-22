@@ -1,4 +1,3 @@
-#version 410
 #ifdef GL_ES
 #extension GL_OES_standard_derivatives: enable
 #ifdef GL_FRAGMENT_PRECISION_HIGH
