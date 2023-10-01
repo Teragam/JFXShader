@@ -14,13 +14,13 @@ import de.teragam.jfxshader.exception.ShaderException;
 
 public class D3DVertexShader implements JFXShader {
 
-    private final IDirect3DDevice9 device;
+    private final Direct3DDevice9 device;
     private final long nativeHandle;
     private final Map<String, Integer> registers;
 
     private boolean valid;
 
-    public D3DVertexShader(IDirect3DDevice9 device, long nativeHandle, Map<String, Integer> registers) {
+    public D3DVertexShader(Direct3DDevice9 device, long nativeHandle, Map<String, Integer> registers) {
         this.device = device;
         this.nativeHandle = nativeHandle;
         this.registers = registers;
@@ -30,7 +30,7 @@ public class D3DVertexShader implements JFXShader {
         }
     }
 
-    public static long init(IDirect3DDevice9 device, InputStream source) {
+    public static long init(Direct3DDevice9 device, InputStream source) {
         try (source) {
             final long nativeHandle = device.createVertexShader(source.readAllBytes());
             if (nativeHandle == 0) {

@@ -239,6 +239,7 @@
                         <executable>make</executable>
                         <arguments>
                             <argument>JAVA_HOME=${java.home}</argument>
+                            <argument>VERSION=${project.version}</argument>
                         </arguments>
                     </configuration>
                 </plugin>

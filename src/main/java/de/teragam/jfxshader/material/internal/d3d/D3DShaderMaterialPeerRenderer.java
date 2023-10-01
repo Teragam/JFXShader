@@ -34,7 +34,7 @@ public class D3DShaderMaterialPeerRenderer extends AbstractShaderMaterialPeerRen
     public void render(Graphics g, ShaderMeshView meshView, BaseShaderContext context, Map<Integer, Image> imageIndexMap) {
         final ShaderBaseMesh mesh = (ShaderBaseMesh) meshView.getMesh();
 
-        final IDirect3DDevice9 device = MaterialController.getD3DDevice(g.getResourceFactory());
+        final Direct3DDevice9 device = MaterialController.getD3DDevice(g.getResourceFactory());
         device.setFVF(D3D9Types.D3DFVF_XYZ | (2 << D3D9Types.D3DFVF_TEXCOUNT_SHIFT) | D3D9Types.D3DFVF_TEXCOORDSIZE4(1));
         if (device.getResultCode() != 0) {
             throw new ShaderException("Failed to set FVF");

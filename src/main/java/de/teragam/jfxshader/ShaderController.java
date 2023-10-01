@@ -47,7 +47,7 @@ import de.teragam.jfxshader.effect.internal.es2.ES2RTTextureHelper;
 import de.teragam.jfxshader.exception.ShaderCreationException;
 import de.teragam.jfxshader.exception.ShaderException;
 import de.teragam.jfxshader.material.internal.d3d.D3DVertexShader;
-import de.teragam.jfxshader.material.internal.d3d.IDirect3DDevice9;
+import de.teragam.jfxshader.material.internal.d3d.Direct3DDevice9;
 import de.teragam.jfxshader.util.Reflect;
 
 public final class ShaderController {
@@ -139,7 +139,7 @@ public final class ShaderController {
         Objects.requireNonNull(shaderDeclaration, "ShaderDeclaration cannot be null");
         final ShaderFactory factory = ShaderController.getBaseShaderFactory(fctx);
         if (ShaderController.isHLSLSupported()) {
-            final IDirect3DDevice9 device = MaterialController.getD3DDevice(factory);
+            final Direct3DDevice9 device = MaterialController.getD3DDevice(factory);
             return new D3DVertexShader(device, D3DVertexShader.init(device, shaderDeclaration.d3dSource()), shaderDeclaration.params());
         }
         throw new ShaderCreationException("Standalone vertex shaders are not supported on OpenGL ES 2.0");

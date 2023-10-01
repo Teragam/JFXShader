@@ -1,13 +1,13 @@
 package de.teragam.jfxshader.material.internal.d3d;
 
-public class IDirect3DDevice9 {
+public class Direct3DDevice9 {
 
     private final long handle;
 
     // The HRESULT code of the last operation. Will be set by the native code.
     private int resultCode;
 
-    public IDirect3DDevice9(long handle) {
+    public Direct3DDevice9(long handle) {
         this.handle = handle;
     }
 
@@ -41,6 +41,12 @@ public class IDirect3DDevice9 {
     public native void setRenderState(int state, int value);
 
     public native int getRenderState(int state);
+
+    public native void setRenderTarget(int renderTargetIndex, long pRenderTarget);
+
+    public native long getRenderTarget(int renderTargetIndex);
+
+    public native long getSurfaceLevel(long pTexture, int level);
 
     public native void setStreamSource(int streamNumber, long pStreamData, int offsetInBytes, int stride);
 
