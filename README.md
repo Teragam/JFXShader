@@ -7,8 +7,7 @@ Allows custom effect shaders in JavaFX using OpenGL (GLSL) or DirectX (HLSL).
 
 ## Usage
 
-Examples can be found in the [wiki](https://github.com/Teragam/JFXShader/wiki/Examples) and in
-the [samples](src/main/java/de/teragam/jfxshader/samples) package.
+Examples can be found in the [wiki](https://github.com/Teragam/JFXShader/wiki) and in the [samples](src/main/java/de/teragam/jfxshader/samples) package.
 
 ### 2D shader effects
 
@@ -50,7 +49,7 @@ To include JFXShader in a Maven project, add the following dependency to the pom
 <dependency>
     <groupId>de.teragam</groupId>
     <artifactId>jfxshader</artifactId>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
 </dependency>
 ```
 
@@ -63,9 +62,9 @@ To include JFXShader in a Maven project, add the following dependency to the pom
 
 This library is bound to the restrictions of the JavaFX effects system. The following limitations apply:
 
-- Only fragment/pixel shaders are supported. The vertex shaders of 2D effects cannot be overwritten.
+- Only fragment/pixel shaders are supported. The vertex shaders of 2D effects cannot be overwritten. However, custom vertex shaders can be used for 3D materials.
 - The fragment/pixel shaders only support one active render target (output texture).
-- It is not possible to use OpenGL shaders on Windows.
+- To use OpenGL shaders on Windows, a custom JavaFX build with OpenGL support is required. The official JavaFX builds only support DirectX shaders on Windows.
 - For DirectX, only ps_3_0 shaders are supported.
 - JavaFX requires DirectX shaders to be compiled with the `fxc` compiler. The following command can be used to compile
   HLSL shaders: `fxc.exe /nologo /T ps_3_0 /Fo .\shader.obj .\shader.hlsl`
