@@ -1,6 +1,5 @@
-#include "de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9.h"
+#include "de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9.h"
 #include <d3d9.h>
-#include <stdio.h>
 
 jfieldID deviceField = NULL;
 jfieldID resultCodeField = NULL;
@@ -19,15 +18,15 @@ void setResultCode(JNIEnv *env, jobject obj, HRESULT resultCode) {
     env->SetIntField(obj, resultCodeField, resultCode);
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_setFVF(JNIEnv *env, jobject obj, jint fvf) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_setFVF(JNIEnv *env, jobject obj, jint fvf) {
     setResultCode(env, obj, getDevice(env, obj)->SetFVF(fvf));
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_setVertexShader(JNIEnv *env, jobject obj, jlong pShader) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_setVertexShader(JNIEnv *env, jobject obj, jlong pShader) {
     setResultCode(env, obj, getDevice(env, obj)->SetVertexShader((IDirect3DVertexShader9*) pShader));
 }
 
-JNIEXPORT jlong JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_createVertexShader(JNIEnv *env, jobject obj, jbyteArray pFunction) {
+JNIEXPORT jlong JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_createVertexShader(JNIEnv *env, jobject obj, jbyteArray pFunction) {
     IDirect3DVertexShader9* pShader = NULL;
     jbyte* pFunctionBytes = env->GetByteArrayElements(pFunction, NULL);
     setResultCode(env, obj, getDevice(env, obj)->CreateVertexShader((DWORD*) pFunctionBytes, &pShader));
@@ -35,73 +34,89 @@ JNIEXPORT jlong JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3
     return (jlong) pShader;
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_setVertexShaderConstantF(JNIEnv *env, jobject obj, jint startRegister, jfloatArray pConstantData, jint vector4fCount) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_setVertexShaderConstantF(JNIEnv *env, jobject obj, jint startRegister, jfloatArray pConstantData, jint vector4fCount) {
     jfloat* pConstantDataFloats = env->GetFloatArrayElements(pConstantData, NULL);
     setResultCode(env, obj, getDevice(env, obj)->SetVertexShaderConstantF(startRegister, (float*) pConstantDataFloats, vector4fCount));
     env->ReleaseFloatArrayElements(pConstantData, pConstantDataFloats, JNI_ABORT);
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_setVertexShaderConstantI(JNIEnv *env, jobject obj, jint startRegister, jintArray pConstantData, jint vector4iCount) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_setVertexShaderConstantI(JNIEnv *env, jobject obj, jint startRegister, jintArray pConstantData, jint vector4iCount) {
     jint* pConstantDataInts = env->GetIntArrayElements(pConstantData, NULL);
     setResultCode(env, obj, getDevice(env, obj)->SetVertexShaderConstantI(startRegister, (int*) pConstantDataInts, vector4iCount));
     env->ReleaseIntArrayElements(pConstantData, pConstantDataInts, JNI_ABORT);
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_setPixelShader(JNIEnv *env, jobject obj, jlong pShader) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_setPixelShader(JNIEnv *env, jobject obj, jlong pShader) {
     setResultCode(env, obj, getDevice(env, obj)->SetPixelShader((IDirect3DPixelShader9*) pShader));
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_setPixelShaderConstantF(JNIEnv *env, jobject obj, jint startRegister, jfloatArray pConstantData, jint vector4fCount) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_setPixelShaderConstantF(JNIEnv *env, jobject obj, jint startRegister, jfloatArray pConstantData, jint vector4fCount) {
     jfloat* pConstantDataFloats = env->GetFloatArrayElements(pConstantData, NULL);
     setResultCode(env, obj, getDevice(env, obj)->SetPixelShaderConstantF(startRegister, (float*) pConstantDataFloats, vector4fCount));
     env->ReleaseFloatArrayElements(pConstantData, pConstantDataFloats, JNI_ABORT);
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_setTexture(JNIEnv *env, jobject obj, jint stage, jlong pTexture) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_setTexture(JNIEnv *env, jobject obj, jint stage, jlong pTexture) {
     setResultCode(env, obj, getDevice(env, obj)->SetTexture(stage, (IDirect3DBaseTexture9*) pTexture));
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_setRenderState(JNIEnv *env, jobject obj, jint state, jint value) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_setRenderState(JNIEnv *env, jobject obj, jint state, jint value) {
     setResultCode(env, obj, getDevice(env, obj)->SetRenderState((D3DRENDERSTATETYPE) state, value));
 }
 
-JNIEXPORT jint JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_getRenderState(JNIEnv *env, jobject obj, jint state) {
+JNIEXPORT jint JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_getRenderState(JNIEnv *env, jobject obj, jint state) {
     DWORD value = 0;
     setResultCode(env, obj, getDevice(env, obj)->GetRenderState((D3DRENDERSTATETYPE) state, &value));
     return value;
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_setStreamSource(JNIEnv *env, jobject obj, jint streamNumber, jlong pStreamData, jint offsetInBytes, jint stride) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_setRenderTarget(JNIEnv *env, jobject obj, jint renderTargetIndex, jlong pRenderTarget) {
+    setResultCode(env, obj, getDevice(env, obj)->SetRenderTarget(renderTargetIndex, (IDirect3DSurface9*) pRenderTarget));
+}
+
+JNIEXPORT jlong JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_getRenderTarget(JNIEnv *env, jobject obj, jint renderTargetIndex) {
+    IDirect3DSurface9* pRenderTarget = NULL;
+    setResultCode(env, obj, getDevice(env, obj)->GetRenderTarget(renderTargetIndex, &pRenderTarget));
+    return (jlong) pRenderTarget;
+}
+
+JNIEXPORT jlong JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_getSurfaceLevel(JNIEnv *env, jobject obj, jlong pTexture, jint level) {
+    IDirect3DSurface9* pSurface = NULL;
+    setResultCode(env, obj, ((IDirect3DTexture9*) pTexture)->GetSurfaceLevel(level, &pSurface));
+    return (jlong) pSurface;
+}
+
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_setStreamSource(JNIEnv *env, jobject obj, jint streamNumber, jlong pStreamData, jint offsetInBytes, jint stride) {
     setResultCode(env, obj, getDevice(env, obj)->SetStreamSource(streamNumber, (IDirect3DVertexBuffer9*) pStreamData, offsetInBytes, stride));
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_setIndices(JNIEnv *env, jobject obj, jlong pIndexData) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_setIndices(JNIEnv *env, jobject obj, jlong pIndexData) {
     setResultCode(env, obj, getDevice(env, obj)->SetIndices((IDirect3DIndexBuffer9*) pIndexData));
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_drawIndexedPrimitive(JNIEnv *env, jobject obj, jint primitiveType, jint baseVertexIndex, jint minVertexIndex, jint numVertices, jint startIndex, jint primCount) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_drawIndexedPrimitive(JNIEnv *env, jobject obj, jint primitiveType, jint baseVertexIndex, jint minVertexIndex, jint numVertices, jint startIndex, jint primCount) {
     setResultCode(env, obj, getDevice(env, obj)->DrawIndexedPrimitive((D3DPRIMITIVETYPE) primitiveType, baseVertexIndex, minVertexIndex, numVertices, startIndex, primCount));
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_releaseResource(JNIEnv *env, jobject obj, jlong pResource) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_releaseResource(JNIEnv *env, jobject obj, jlong pResource) {
     if (pResource != 0) {
         setResultCode(env, obj, ((IUnknown*) pResource)->Release());
     }
 }
 
-JNIEXPORT jlong JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_createVertexBuffer(JNIEnv *env, jobject obj, jint length, jint usage, jint fvf, jint pool, jlong pSharedHandle) {
+JNIEXPORT jlong JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_createVertexBuffer(JNIEnv *env, jobject obj, jint length, jint usage, jint fvf, jint pool, jlong pSharedHandle) {
     IDirect3DVertexBuffer9* pVertexBuffer = nullptr;
     setResultCode(env, obj, getDevice(env, obj)->CreateVertexBuffer(length, usage, fvf, (D3DPOOL) pool, &pVertexBuffer, nullptr));
     return (jlong) pVertexBuffer;
 }
 
-JNIEXPORT jlong JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_createIndexBuffer(JNIEnv *env, jobject obj, jint length, jint usage, jint format, jint pool, jlong pSharedHandle) {
+JNIEXPORT jlong JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_createIndexBuffer(JNIEnv *env, jobject obj, jint length, jint usage, jint format, jint pool, jlong pSharedHandle) {
     IDirect3DIndexBuffer9* pIndexBuffer = NULL;
     setResultCode(env, obj, getDevice(env, obj)->CreateIndexBuffer(length, usage, (D3DFORMAT) format, (D3DPOOL) pool, &pIndexBuffer, NULL));
     return (jlong) pIndexBuffer;
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_uploadVertexBufferData(JNIEnv *env, jobject obj, jlong pVertexBuffer, jfloatArray pVertexData, jint vertexBufferLength) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_uploadVertexBufferData(JNIEnv *env, jobject obj, jlong pVertexBuffer, jfloatArray pVertexData, jint vertexBufferLength) {
     float* vertexBuffer = (float*) (env->GetPrimitiveArrayCritical(pVertexData, 0));
     void* pLockedVertexBuffer = NULL;
     setResultCode(env, obj, ((IDirect3DVertexBuffer9*) pVertexBuffer)->Lock(0, vertexBufferLength, &pLockedVertexBuffer, 0));
@@ -110,7 +125,7 @@ JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3D
     env->ReleasePrimitiveArrayCritical(pVertexData, vertexBuffer, 0);
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_uploadIndexBufferDataInt(JNIEnv *env, jobject obj, jlong pIndexBuffer, jintArray pIndexData, jint indexBufferLength) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_uploadIndexBufferDataInt(JNIEnv *env, jobject obj, jlong pIndexBuffer, jintArray pIndexData, jint indexBufferLength) {
     int* indexBuffer = (int*) (env->GetPrimitiveArrayCritical(pIndexData, 0));
     void* pLockedIndexBuffer = NULL;
     setResultCode(env, obj, ((IDirect3DIndexBuffer9*) pIndexBuffer)->Lock(0, indexBufferLength, &pLockedIndexBuffer, 0));
@@ -119,7 +134,7 @@ JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3D
     env->ReleasePrimitiveArrayCritical(pIndexData, indexBuffer, 0);
 }
 
-JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_IDirect3DDevice9_uploadIndexBufferDataShort(JNIEnv *env, jobject obj, jlong pIndexBuffer, jshortArray pIndexData, jint indexBufferLength) {
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_uploadIndexBufferDataShort(JNIEnv *env, jobject obj, jlong pIndexBuffer, jshortArray pIndexData, jint indexBufferLength) {
     short* indexBuffer = (short*) (env->GetPrimitiveArrayCritical(pIndexData, 0));
     void* pLockedIndexBuffer = NULL;
     setResultCode(env, obj, ((IDirect3DIndexBuffer9*) pIndexBuffer)->Lock(0, indexBufferLength, &pLockedIndexBuffer, 0));

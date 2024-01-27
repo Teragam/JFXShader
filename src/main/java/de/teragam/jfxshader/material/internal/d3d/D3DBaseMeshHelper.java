@@ -8,9 +8,9 @@ public final class D3DBaseMeshHelper implements BaseMeshHelper {
     private long indexBufferHandle;
     private long numVertices;
     private long numIndices;
-    private final IDirect3DDevice9 device;
+    private final Direct3DDevice9 device;
 
-    public D3DBaseMeshHelper(IDirect3DDevice9 device) {
+    public D3DBaseMeshHelper(Direct3DDevice9 device) {
         this.device = device;
     }
 

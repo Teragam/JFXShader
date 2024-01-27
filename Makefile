@@ -11,7 +11,7 @@ SOURCES = IDirect3DDevice9Wrapper.cpp
 # Object files
 OBJECTS = $(addprefix target/build/, $(SOURCES:.cpp=.o))
 
-LIBRARY = src/main/resources/jfxshader.dll
+LIBRARY = src/main/resources/jfxshader$(if $(VERSION),_$(VERSION)).dll
 
 all: create-dirs $(LIBRARY)
 

@@ -18,8 +18,9 @@ public class FresnelMaterialPeer extends ShaderMaterialPeer<FresnelMaterial> {
         final Map<String, Integer> params = new HashMap<>();
         params.put("color", 0);
         params.put("strength", 1);
-        return new ShaderDeclaration(samplers, params, FresnelMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.frag"),
-                FresnelMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.ps.obj"));
+        return new ShaderDeclaration(samplers, params, FresnelMaterialPeer.class.getResourceAsStream(
+                "/de/teragam/jfxshader/samples/materials/fresnel/fresnel.frag"),
+                FresnelMaterialPeer.class.getResourceAsStream("/de/teragam/jfxshader/samples/materials/fresnel/fresnel.ps.obj"));
     }
 
     @Override
@@ -28,8 +29,8 @@ public class FresnelMaterialPeer extends ShaderMaterialPeer<FresnelMaterial> {
         params.put("viewProjectionMatrix", 0);
         params.put("camPos", 4);
         params.put("worldMatrix", 35);
-        return new ShaderDeclaration(null, params, ShaderMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.vert"),
-                ShaderMaterialPeer.class.getResourceAsStream("/samples/materials/fresnel/fresnel.vs.obj"));
+        return new ShaderDeclaration(null, params, ShaderMaterialPeer.class.getResourceAsStream("/de/teragam/jfxshader/samples/materials/fresnel/fresnel.vert"),
+                ShaderMaterialPeer.class.getResourceAsStream("/de/teragam/jfxshader/samples/materials/fresnel/fresnel.vs.obj"));
     }
 
     @Override

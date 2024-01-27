@@ -30,18 +30,18 @@ import de.teragam.jfxshader.material.internal.InternalNGCylinder;
 import de.teragam.jfxshader.material.internal.InternalNGMeshView;
 import de.teragam.jfxshader.material.internal.InternalNGSphere;
 import de.teragam.jfxshader.material.internal.ShaderMaterialBase;
-import de.teragam.jfxshader.material.internal.d3d.IDirect3DDevice9;
+import de.teragam.jfxshader.material.internal.d3d.Direct3DDevice9;
 import de.teragam.jfxshader.util.Reflect;
 
 public final class MaterialController {
 
     private static final HashMap<Class<? extends ShaderMaterial>, ShaderMaterialPeer<?>> MATERIAL_PEER_MAP = new HashMap<>();
-    private static final Map<Long, IDirect3DDevice9> D3D_DEVICE_MAP = new HashMap<>();
+    private static final Map<Long, Direct3DDevice9> D3D_DEVICE_MAP = new HashMap<>();
 
     private MaterialController() {}
 
-    public static IDirect3DDevice9 getD3DDevice(ResourceFactory resourceFactory) {
-        return D3D_DEVICE_MAP.computeIfAbsent(D3DRTTextureHelper.getDevice(resourceFactory), IDirect3DDevice9::new);
+    public static Direct3DDevice9 getD3DDevice(ResourceFactory resourceFactory) {
+        return D3D_DEVICE_MAP.computeIfAbsent(D3DRTTextureHelper.getDevice(resourceFactory), Direct3DDevice9::new);
     }
 
     public static ShaderMaterialPeer<?> getPeer(ShaderMaterial material) {
@@ -62,9 +62,9 @@ public final class MaterialController {
      * To allow for custom shaders on default {@link MeshView} instances, this injection must be performed before any {@link Shape3D} is rendered.
      * Otherwise, only {@link Shape3D} instances created after this injection will support custom shaders.
      */
-    public static void ensure3DAccessorInjection() {
+    public static void setup3D() {
         if (PlatformUtil.isWindows()) {
-            NativeLibLoader.loadLibrary("jfxshader");
+            NativeLibLoader.loadLibrary("jfxshader_" + JFXShaderModule.VERSION);
         }
         MaterialController.injectMaterialAccessor();
         MaterialController.injectShape3DAccessor(MeshViewHelper.class, "meshViewAccessor", InternalNGMeshView::new);

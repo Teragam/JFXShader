@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented here.
 
+## v1.3.1 - 2024-01-27
+
+### Added
+
+- Added a [Demo Page](https://github.com/Teragam/JFXShader/wiki/Demo-Effects) to the wiki that showcases more advanced effects and their breakdowns using the library.
+- Validated support for custom JavaFX builds that enable the OpenGL support on Windows. Both 2D and 3D effects are supported.
+- Added initial support for multiple render targets in DirectX9 using the [Direct3DDevice9](src/main/java/de/teragam/jfxshader/material/internal/d3d/Direct3DDevice9.java). A sample effect will be added in a future release.
+
+### Fixed
+
+- Fixed macOS support for existing shader samples.
+- Fixed RTTexture creation for the OpenGL backend.
+- Fixed ShaderMaterial error when using cached 3D shapes in DirectX9.
+
 ## v1.3.0 - 2023-07-27
 
 ### Added

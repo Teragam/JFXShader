@@ -31,6 +31,9 @@ public final class MeshProxyHelper {
             }
             return g;
         } else {
+            if (ShaderController.isHLSLSupported()) {
+                MeshProxyHelper.cleanNestedD3DMesh(shape);
+            }
             if (!(meshView instanceof ShaderMeshView) && meshView != null) {
                 MeshProxyHelper.resetShape(shape);
             }
@@ -47,6 +50,17 @@ public final class MeshProxyHelper {
                     });
 
             return (Graphics) proxyGraphics;
+        }
+    }
+
+    private static void cleanNestedD3DMesh(NGShape3D shape) {
+        final NGTriangleMesh mesh = Reflect.on(NGShape3D.class).getFieldValue("mesh", shape);
+        if (mesh != null) {
+            final Mesh internalMesh = Reflect.on(NGTriangleMesh.class).getFieldValue("mesh", mesh);
+            if (Reflect.resolveClass("com.sun.prism.d3d.D3DMesh").isInstance(internalMesh)) {
+                internalMesh.dispose();
+                Reflect.on(NGTriangleMesh.class).setFieldValue("mesh", mesh, null);
+            }
         }
     }
 

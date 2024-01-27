@@ -23,7 +23,7 @@ public abstract class ShaderMaterial {
     private final ShaderMaterialBase materialBase;
 
     protected ShaderMaterial() {
-        MaterialController.ensure3DAccessorInjection();
+        MaterialController.setup3D();
         this.materialBase = new ShaderMaterialBase(this);
     }
 

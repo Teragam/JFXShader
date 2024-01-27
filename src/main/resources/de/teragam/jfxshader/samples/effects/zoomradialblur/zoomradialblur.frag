@@ -1,5 +1,3 @@
-#version 330 core
-
 varying vec2 texCoord0;
 
 uniform sampler2D baseImg;
@@ -9,8 +7,6 @@ uniform vec4 viewport;
 uniform vec4 texCoords;
 uniform int blurSteps;
 uniform float strength;
-
-out vec4 fragColor;
 
 void main() {
     vec2 scaledCenter = ((center / resolution + texCoords.xy) * texCoords.zw) * viewport.zw;
@@ -25,9 +21,9 @@ void main() {
         if (texCoord.x < texCoords.x || texCoord.y < texCoords.y || texCoord.x > texCoords.z || texCoord.y > texCoords.w) {
             break;
         }
-        outColor += texture(baseImg, texCoord);
+        outColor += texture2D(baseImg, texCoord);
     }
 
     outColor *= 1.0 / float(blurSteps);
-    fragColor = outColor;
+    gl_FragColor = outColor;
 }
