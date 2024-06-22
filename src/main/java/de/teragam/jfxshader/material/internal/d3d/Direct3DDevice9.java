@@ -38,6 +38,8 @@ public class Direct3DDevice9 {
 
     public native void setTexture(int stage, long pTexture);
 
+    public native void setSamplerState(int sampler, int type, int value);
+
     public native void setRenderState(int state, int value);
 
     public native int getRenderState(int state);

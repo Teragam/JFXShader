@@ -60,6 +60,10 @@ JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DD
     setResultCode(env, obj, getDevice(env, obj)->SetTexture(stage, (IDirect3DBaseTexture9*) pTexture));
 }
 
+JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_setSamplerState(JNIEnv *env, jobject obj, jint sampler, jint type, jint value) {
+    setResultCode(env, obj, getDevice(env, obj)->SetSamplerState(sampler, (D3DSAMPLERSTATETYPE) type, value));
+}
+
 JNIEXPORT void JNICALL Java_de_teragam_jfxshader_material_internal_d3d_Direct3DDevice9_setRenderState(JNIEnv *env, jobject obj, jint state, jint value) {
     setResultCode(env, obj, getDevice(env, obj)->SetRenderState((D3DRENDERSTATETYPE) state, value));
 }
