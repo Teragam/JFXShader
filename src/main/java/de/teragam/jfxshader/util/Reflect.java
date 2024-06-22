@@ -50,6 +50,15 @@ public class Reflect<C> {
         });
     }
 
+    public boolean hasField(String fieldName) {
+        try {
+            this.getField(fieldName);
+            return true;
+        } catch (ShaderException e) {
+            return false;
+        }
+    }
+
     public Method getMethod(String methodName, Class<?>... parameterTypes) {
         return CLASS_METHOD_CONCURRENT_HASH_MAP.computeIfAbsent(new ReflectMethodCache(this.clazz, methodName, parameterTypes), c -> {
             try {

@@ -10,11 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import javafx.scene.Node;
 import javafx.scene.effect.Effect;
 
 import com.sun.glass.ui.Screen;
+import com.sun.javafx.geom.BaseBounds;
 import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
+import com.sun.javafx.scene.BoundsAccessor;
 import com.sun.javafx.util.Utils;
 import com.sun.prism.GraphicsPipeline;
 import com.sun.prism.PixelFormat;
@@ -70,6 +73,8 @@ public final class ShaderController {
         final Object proxy = Proxy.newProxyInstance(accessor.getClass().getClassLoader(), accessor.getClass().getInterfaces(), (p, method, args) -> {
             if ("copy".equals(method.getName()) && args[0] instanceof ShaderEffectBase) {
                 return ((ShaderEffectBase) args[0]).getJFXShaderEffect().copy().getFXEffect();
+            } else if ("getBounds".equals(method.getName())) {
+                return ShaderEffectBase.getBounds((Effect) args[0], (BaseBounds) args[1], (BaseTransform) args[2], (Node) args[3], (BoundsAccessor) args[4]);
             } else {
                 return method.invoke(accessor, args);
             }

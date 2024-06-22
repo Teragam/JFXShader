@@ -5,9 +5,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.effect.Blend;
+import javafx.scene.effect.ColorInput;
 import javafx.scene.effect.Effect;
+import javafx.scene.effect.Lighting;
 
 import com.sun.javafx.effect.EffectDirtyBits;
 import com.sun.javafx.geom.BaseBounds;
@@ -29,6 +32,11 @@ public class ShaderEffectBase extends Blend {
     private final InternalEffect peer;
     private final UUID effectID;
 
+    private final ObjectProperty<BoundsEffectProxy> boundsEffectProxyTop;
+    private final ObjectProperty<BoundsEffectProxy> boundsEffectProxyBottom;
+    private final ObjectProperty<Effect> inputMirrorTop;
+    private final ObjectProperty<Effect> inputMirrorBottom;
+
     private boolean continuousRendering;
 
     public ShaderEffectBase(ShaderEffect effect, int inputs) {
@@ -39,6 +47,10 @@ public class ShaderEffectBase extends Blend {
         this.effect = effect;
         this.peer = new InternalEffect(effect, inputs);
         EFFECT_REFLECT.setFieldValue("peer", this, this.peer);
+        this.boundsEffectProxyTop = new SimpleObjectProperty<>(new BoundsEffectProxy());
+        this.boundsEffectProxyBottom = new SimpleObjectProperty<>(new BoundsEffectProxy());
+        this.inputMirrorTop = super.topInputProperty();
+        this.inputMirrorBottom = super.bottomInputProperty();
     }
 
     public void setContinuousRendering(boolean continuousRendering) {
@@ -58,6 +70,7 @@ public class ShaderEffectBase extends Blend {
 
     public void markDirty() {
         EFFECT_REFLECT.method("markDirty", EffectDirtyBits.class).invoke(this, EffectDirtyBits.EFFECT_DIRTY);
+        EFFECT_REFLECT.method("effectBoundsChanged").invoke(this);
     }
 
     public void updateInputs() {
@@ -78,12 +91,90 @@ public class ShaderEffectBase extends Blend {
         return this.peer.getPeerMap();
     }
 
+    public InternalEffect getInternalPeer() {
+        return this.peer;
+    }
+
     public UUID getEffectID() {
         return this.effectID;
     }
 
     public static BaseBounds getInputBounds(BaseBounds bounds, BaseTransform tx, Node node, BoundsAccessor boundsAccessor, Effect input) {
         return EFFECT_REFLECT.<BaseBounds>method("getInputBounds").invoke(null, bounds, tx, node, boundsAccessor, input);
+    }
+
+    private void prepareBoundsCalculation(BaseBounds bounds, Node node, BoundsAccessor boundsAccessor) {
+        final BaseBounds inputBounds = getInputBounds(bounds, BaseTransform.IDENTITY_TRANSFORM, node, boundsAccessor, this);
+        final BaseBounds effectBounds = this.effect.getBounds(inputBounds); // Must be untransformed bounds
+        this.boundsEffectProxyTop.get().setBounds(effectBounds);
+        this.boundsEffectProxyBottom.get().setBounds(effectBounds);
+
+        final Reflect<Blend> reflect = Reflect.on(Blend.class);
+        reflect.setFieldValue("topInput", this, this.boundsEffectProxyTop);
+        reflect.setFieldValue("bottomInput", this, this.boundsEffectProxyBottom);
+    }
+
+    private void restoreBoundsCalculation() {
+        final Reflect<Blend> reflect = Reflect.on(Blend.class);
+        reflect.setFieldValue("topInput", this, this.inputMirrorTop);
+        reflect.setFieldValue("bottomInput", this, this.inputMirrorBottom);
+    }
+
+    public static BaseBounds getBounds(Effect effect, BaseBounds bounds, BaseTransform tx, Node node, BoundsAccessor boundsAccessor) {
+        ShaderEffectBase.replaceRecursive(effect, bounds, node, boundsAccessor, false);
+        final BaseBounds result = EFFECT_REFLECT.<BaseBounds>method("getBounds").invoke(effect, bounds, tx, node, boundsAccessor);
+        ShaderEffectBase.replaceRecursive(effect, bounds, node, boundsAccessor, true);
+        return result;
+    }
+
+    // This method iterates over the effect tree and precalculates the bounds for every ShaderEffectBase.
+    // It is not possible to override the original package-private getBounds method to provide a custom bounds calculation (without bytecode manipulation).
+    // To circumvent this, we can replace the parent inputs of the ShaderEffectBase with a BoundsEffectProxy that can provide precalculated bounds.
+    // The bounds are then calculated by the original getBounds method and the original inputs are restored.
+    private static void replaceRecursive(Effect effect, BaseBounds bounds, Node node, BoundsAccessor boundsAccessor, boolean restore) {
+        if (effect == null) {
+            return;
+        }
+        Effect topInput = null;
+        Effect bottomInput = null;
+        if (effect instanceof Blend) {
+            final Blend blend = (Blend) effect;
+            topInput = blend.getTopInput();
+            bottomInput = blend.getBottomInput();
+        } else if (effect instanceof Lighting) {
+            final Lighting lighting = (Lighting) effect;
+            topInput = lighting.getContentInput();
+            bottomInput = lighting.getBumpInput();
+        } else {
+            final Reflect<? extends Effect> reflect = Reflect.on(effect.getClass());
+            if (reflect.hasField("input")) {
+                final ObjectProperty<Effect> effectProperty = reflect.getFieldValue("input", effect);
+                if (effectProperty != null) {
+                    topInput = effectProperty.get();
+                }
+            }
+        }
+        replaceRecursive(topInput, bounds, node, boundsAccessor, restore);
+        replaceRecursive(bottomInput, bounds, node, boundsAccessor, restore);
+        if (effect instanceof ShaderEffectBase) {
+            final ShaderEffectBase effectBase = (ShaderEffectBase) effect;
+            if (restore) {
+                effectBase.restoreBoundsCalculation();
+            } else {
+                effectBase.prepareBoundsCalculation(bounds, node, boundsAccessor);
+            }
+        }
+    }
+
+    private static final class BoundsEffectProxy extends ColorInput {
+
+        public void setBounds(BaseBounds bounds) {
+            this.setX(bounds.getMinX());
+            this.setY(bounds.getMinY());
+            this.setWidth(bounds.getWidth());
+            this.setHeight(bounds.getHeight());
+        }
+
     }
 
 }
