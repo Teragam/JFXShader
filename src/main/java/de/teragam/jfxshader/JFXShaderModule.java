@@ -8,7 +8,7 @@ import de.teragam.jfxshader.util.Reflect;
 
 public final class JFXShaderModule {
 
-    public static final String VERSION = "1.3.1";
+    public static final String VERSION = "1.3.2-SNAPSHOT";
 
     private static final AtomicBoolean initialized = new AtomicBoolean();
 
@@ -47,7 +47,8 @@ public final class JFXShaderModule {
                 "com.sun.scenario.effect.impl.state", "com.sun.scenario.effect", "com.sun.prism", "com.sun.prism.impl", "com.sun.scenario.effect.impl.prism",
                 "com.sun.prism.ps", "com.sun.glass.ui", "com.sun.glass.utils", "com.sun.javafx.scene.shape", "com.sun.javafx.sg.prism", "com.sun.javafx.util",
                 "com.sun.prism.impl.ps", "com.sun.scenario.effect.impl", "com.sun.scenario.effect.impl.prism.ps", "com.sun.javafx.scene.paint",
-                "com.sun.javafx.tk", "com.sun.javafx.beans.event", "javafx.scene.effect", "javafx.scene.paint", "javafx.scene");
+                "com.sun.javafx.tk", "com.sun.javafx.beans.event", "javafx.scene.effect", "javafx.scene.paint", "javafx.scene.shape",
+                "com.sun.javafx.scene.canvas", "javafx.scene", "javafx.scene.image");
     }
 
     private static List<String> getOptionalGraphicsPackages() {
