@@ -6,7 +6,7 @@
 
     <groupId>de.teragam</groupId>
     <artifactId>jfxshader</artifactId>
-    <version>1.3.1</version>
+    <version>1.3.2-SNAPSHOT</version>
 
     <name>JFXShader</name>
     <description>Allows custom effect shaders in JavaFX using OpenGL or DirectX.</description>
@@ -84,6 +84,8 @@
                         <arg>javafx.graphics/com.sun.glass.utils=de.teragam.jfxshader</arg>
                         <arg>--add-exports</arg>
                         <arg>javafx.graphics/com.sun.javafx.scene.shape=de.teragam.jfxshader</arg>
+                        <arg>--add-exports</arg>
+                        <arg>javafx.graphics/com.sun.javafx.scene.canvas=de.teragam.jfxshader</arg>
                         <arg>--add-exports</arg>
                         <arg>javafx.graphics/com.sun.javafx.sg.prism=de.teragam.jfxshader</arg>
                         <arg>--add-exports</arg>
@@ -174,6 +176,8 @@
                         <additionalJOption>javafx.graphics/com.sun.glass.utils=de.teragam.jfxshader</additionalJOption>
                         <additionalJOption>--add-exports</additionalJOption>
                         <additionalJOption>javafx.graphics/com.sun.javafx.scene.shape=de.teragam.jfxshader</additionalJOption>
+                        <additionalJOption>--add-exports</additionalJOption>
+                        <additionalJOption>javafx.graphics/com.sun.javafx.scene.canvas=de.teragam.jfxshader</additionalJOption>
                         <additionalJOption>--add-exports</additionalJOption>
                         <additionalJOption>javafx.graphics/com.sun.javafx.sg.prism=de.teragam.jfxshader</additionalJOption>
                         <additionalJOption>--add-exports</additionalJOption>
