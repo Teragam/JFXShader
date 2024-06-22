@@ -5,10 +5,14 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiFunction;
 
+import com.sun.javafx.geom.BaseBounds;
 import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
+import com.sun.javafx.sg.prism.NGNode;
+import com.sun.javafx.sg.prism.NodeEffectInput;
 import com.sun.prism.PixelFormat;
 import com.sun.prism.RTTexture;
 import com.sun.prism.Texture;
@@ -198,9 +202,12 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
             return new ImageData(this.getFilterContext(), dst, dstBounds);
         }
         g.setExternalShader(this.shader);
-        this.updateShader(this.shader, (S) ((InternalEffect) super.getEffect()).getEffect());
-        this.drawTextures((float) dstw, (float) dsth, textures, coords, coordLength, (BaseShaderGraphics) g);
-        g.setExternalShader(null);
+        try {
+            this.updateShader(this.shader, (S) ((InternalEffect) super.getEffect()).getEffect());
+            this.drawTextures((float) dstw, (float) dsth, textures, coords, coordLength, (BaseShaderGraphics) g);
+        } finally {
+            g.setExternalShader(null);
+        }
 
         return new ImageData(this.getFilterContext(), dst, dstBounds);
     }
@@ -302,6 +309,25 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         if (this.shader != null) {
             this.invalidateShader = true;
         }
+    }
+
+    /**
+     * @return the NGNode, where the effect is applied to, if available.
+     */
+    protected Optional<NGNode> getNGNode() {
+        return Optional.ofNullable(((InternalEffect) super.getEffect()).getDefaultInput()).filter(NodeEffectInput.class::isInstance)
+                .map(NodeEffectInput.class::cast).map(NodeEffectInput::getNode);
+    }
+
+    /**
+     * Returns the transformed bounds of the input effect.
+     * In contrast to {@link #getInputBounds(int)}, this method returns the full bounds regardless if dirty regions are rendered.
+     * @param index the index of the input
+     * @return the effect bounds
+     */
+    protected BaseBounds getInputEffectBounds(int index) {
+        final InternalEffect effect = (InternalEffect) super.getEffect();
+        return effect.getDefaultedInput(index, effect.getDefaultInput()).getBounds(this.getTransform(), effect.getDefaultInput());
     }
 
     private boolean validateRenderer() {

@@ -3,25 +3,31 @@ package de.teragam.jfxshader.effect;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.sun.javafx.geom.BaseBounds;
+import com.sun.javafx.geom.DirtyRegionContainer;
+import com.sun.javafx.geom.DirtyRegionPool;
 import com.sun.javafx.geom.Point2D;
 import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
 import com.sun.scenario.effect.Blend;
 import com.sun.scenario.effect.Effect;
 import com.sun.scenario.effect.FilterContext;
+import com.sun.scenario.effect.FilterEffect;
 import com.sun.scenario.effect.ImageData;
 import com.sun.scenario.effect.impl.EffectPeer;
+import com.sun.scenario.effect.impl.prism.PrRenderInfo;
 import com.sun.scenario.effect.impl.state.RenderState;
 
 import de.teragam.jfxshader.ShaderController;
 import de.teragam.jfxshader.effect.internal.ShaderEffectBase;
-import de.teragam.jfxshader.util.Reflect;
 
 public class InternalEffect extends Blend {
 
     private final int maxInputs;
     private final ShaderEffect effect;
     private final Map<String, EffectPeer<? super RenderState>> peerMap;
+
+    private Effect defaultInput;
 
     public InternalEffect(ShaderEffect effect, int inputs) {
         super(Mode.SRC_OVER, null, null);
@@ -36,6 +42,7 @@ public class InternalEffect extends Blend {
     @Override
     public ImageData filter(FilterContext fctx, BaseTransform transform, Rectangle outputClip, Object renderHelper, Effect defaultInput) {
         ShaderController.register(fctx, this.effect);
+        this.defaultInput = defaultInput;
         return super.filter(fctx, transform, outputClip, renderHelper, defaultInput);
     }
 
@@ -57,30 +64,24 @@ public class InternalEffect extends Blend {
 
     @Override
     public RenderState getRenderState(FilterContext fctx, BaseTransform transform, Rectangle outputClip, Object renderHelper, Effect defaultInput) {
-        return this.effect.getRenderState();
+        final PrRenderInfo prHelper = renderHelper instanceof PrRenderInfo ? (PrRenderInfo) renderHelper : null;
+        return this.effect.getRenderState(fctx, transform, outputClip, prHelper, defaultInput);
     }
 
     @Override
     public boolean reducesOpaquePixels() {
-        boolean allReduces = true;
-        for (final Effect input : this.getInputs()) {
-            if (input == null || !input.reducesOpaquePixels()) {
-                allReduces = false;
-                break;
-            }
-        }
-        return allReduces;
+        return true;
     }
 
     @Override
     public Point2D transform(Point2D p, Effect defaultInput) {
-        final Effect input = Reflect.on(Effect.class).<Effect>method("getDefaultedInput", int.class, Effect.class).invoke(this, 0, defaultInput);
+        final Effect input = this.getDefaultedInput(0, defaultInput);
         return input.transform(p, defaultInput);
     }
 
     @Override
     public Point2D untransform(Point2D p, Effect defaultInput) {
-        final Effect input = Reflect.on(Effect.class).<Effect>method("getDefaultedInput", int.class, Effect.class).invoke(this, 0, defaultInput);
+        final Effect input = this.getDefaultedInput(0, defaultInput);
         return input.untransform(p, defaultInput);
     }
 
@@ -109,6 +110,39 @@ public class InternalEffect extends Blend {
 
     public Map<String, EffectPeer<? super RenderState>> getPeerMap() {
         return this.peerMap;
+    }
+
+    public Effect getDefaultInput() {
+        return this.defaultInput;
+    }
+
+    @Override
+    public DirtyRegionContainer getDirtyRegions(Effect defaultInput, DirtyRegionPool regionPool) {
+        final DirtyRegionContainer drc = super.getDirtyRegions(defaultInput, regionPool);
+        final BaseBounds r = super.getBounds(BaseTransform.IDENTITY_TRANSFORM, defaultInput);
+        this.effect.writeDirtyRegions(r, drc);
+        return drc;
+    }
+
+    @Override
+    public BaseBounds getBounds(BaseTransform transform, Effect defaultInput) {
+        final BaseBounds inputBounds = super.getBounds(BaseTransform.IDENTITY_TRANSFORM, defaultInput);
+        final BaseBounds effectBounds = this.effect.getBounds(inputBounds);
+        return transformBounds(transform, effectBounds);
+    }
+
+    @Override
+    public Rectangle getResultBounds(BaseTransform transform, Rectangle outputClip, ImageData... inputDatas) {
+        return this.effect.getResultBounds(transform, outputClip, inputDatas);
+    }
+
+    public Effect getDefaultedInput(int index, Effect defaultInput) {
+        final Effect input = super.getInputs().get(index);
+        return input != null ? input : defaultInput;
+    }
+
+    protected static Rectangle untransformClip(BaseTransform transform, Rectangle clip) {
+        return FilterEffect.untransformClip(transform, clip);
     }
 
 }
