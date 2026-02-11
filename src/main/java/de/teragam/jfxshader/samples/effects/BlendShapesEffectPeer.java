@@ -36,6 +36,7 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
         params.put("ops", 9);
         params.put("scale", 17);
         params.put("invertMask", 18);
+        params.put("pixCoordOffset", 19);
         return new ShaderDeclaration(samplers, params,
                 BlendShapes.class.getResourceAsStream("/de/teragam/jfxshader/samples/effects/blendshapes/blendshapes.frag"),
                 BlendShapes.class.getResourceAsStream("/de/teragam/jfxshader/samples/effects/blendshapes/blendshapes.obj"));
@@ -57,7 +58,7 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
                 effectiveCount++;
                 final Rectangle2D bounds = shape.getBounds();
                 this.rects.put(new float[]{(float) bounds.getMinX(), (float) bounds.getMinY(), (float) bounds.getMaxX(), (float) bounds.getMaxY()});
-                this.ops.put(new float[]{(float) shape.getWidth(), (float) shape.getFeather(), (float) shape.getOpacity(), 0F});
+                this.ops.put(new float[]{(float) shape.getCornerRadius(), (float) shape.getFeather(), (float) shape.getOpacity(), 0F});
             }
         }
         for (int i = effectiveCount; i < 8; i++) {
@@ -74,6 +75,7 @@ class BlendShapesEffectPeer extends ShaderEffectPeer<BlendShapes> {
         final double scale = Math.max(scaleX, scaleY);
         shader.setConstant("scale", (float) scale); // Compensation for scale transforms like dpi scaling
         shader.setConstant("invertMask", effect.isInvertMask() ? 1 : 0);
+        shader.setConstant("pixCoordOffset", (float) this.getDestBounds().x, (float) this.getDestBounds().y);
     }
 
 }

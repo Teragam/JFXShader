@@ -165,7 +165,7 @@ public final class ShaderController {
                             String.class, InputStream.class, Map.class, Map.class, int.class, boolean.class)
                     .invoke(null, es2Context, vertexShader,
                             Objects.requireNonNull(pixelShaderDeclaration.es2Source(), "ES2 pixel shader source cannot be null"),
-                            Objects.requireNonNull(pixelShaderDeclaration.samplers(), "ES2 pixel shader samplers cannot be null"), attributes, 1, false);
+                            Objects.requireNonNull(pixelShaderDeclaration.samplers(), "ES2 pixel shader samplers cannot be null"), attributes, 1, true);
             return Reflect.createProxy(es2Shader, JFXShader.class, (proxy, method, args) -> {
                 if ("setMatrix".equals(method.getName())) {
                     return Reflect.on(es2Shader.getClass()).method("setMatrix", String.class, float[].class)
