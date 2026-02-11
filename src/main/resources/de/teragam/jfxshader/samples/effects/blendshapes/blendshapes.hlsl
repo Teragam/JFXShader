@@ -5,23 +5,19 @@ float4 rects[8] : register(c1);
 float4 ops[8] : register(c9);
 float scale : register(c17);
 int invertMask : register(c18);
+float2 pixCoordOffset : register(c19);
 
-float map(float value, float min1, float max1, float min2, float max2) {
-    return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
-}
 
-float insideRect(float2 p, float4 rect, float4 ops) {
-    float dx = max(rect.x - p.x, max(p.x - rect.z, 0.0));
-    float dy = max(rect.y - p.y, max(p.y - rect.w, 0.0));
-    float d = sqrt(dx * dx + dy * dy);
-    if (ops.x == 0.0) {
-        return 1.0 - clamp(ceil(d), 0.0, 1.0);
-    } else {
-        return map(clamp(d / ops.x, 0.0, 1.0), ops.y, 1.0, 1.0, 0.0);
-    }
+float roundRect(float2 p, float4 box, float radius, float feather) {
+    float2 size = box.zw - box.xy;
+    radius = min(radius, min(size.x, size.y) / 2.0);
+    float2 q = abs(p - box.xy - size / 2.0) - size / 2.0 + radius;
+    float distance = min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - radius;
+    return 1.0 - smoothstep(min(feather, 0.0), max(feather, 0.0), distance);
 }
 
 void main(in float2 pos0 : TEXCOORD0, in float2 pos1 : TEXCOORD1, in float2 pixcoord : VPOS, in float4 jsl_vertexColor : COLOR0, out float4 color : COLOR0) {
+    pixcoord += pixCoordOffset;
     float4 bot = tex2D(botImg, pos0);
     float4 top = tex2D(topImg, pos1);
     float factor = 0.0;
@@ -30,7 +26,7 @@ void main(in float2 pos0 : TEXCOORD0, in float2 pos1 : TEXCOORD1, in float2 pixc
             break;
         }
          // The scale is used to compensate for dpi scaling
-        factor += insideRect(pixcoord / scale, rects[i], ops[i]) * ops[i].z;
+        factor += roundRect(pixcoord / scale, rects[i], ops[i].x, ops[i].y) * ops[i].z;
     }
     factor = clamp(factor, 0.0, 1.0);
     if (invertMask == 1) {
