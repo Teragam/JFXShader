@@ -135,6 +135,10 @@ public class ShaderEffectBase extends Blend {
         if (effect == null) {
             return;
         }
+        if (effect instanceof ShaderEffectBase && restore) {
+            final ShaderEffectBase effectBase = (ShaderEffectBase) effect;
+            effectBase.restoreBoundsCalculation();
+        }
         Effect topInput = null;
         Effect bottomInput = null;
         if (effect instanceof Blend) {
@@ -156,13 +160,9 @@ public class ShaderEffectBase extends Blend {
         }
         replaceRecursive(topInput, bounds, node, boundsAccessor, restore);
         replaceRecursive(bottomInput, bounds, node, boundsAccessor, restore);
-        if (effect instanceof ShaderEffectBase) {
+        if (effect instanceof ShaderEffectBase && !restore) {
             final ShaderEffectBase effectBase = (ShaderEffectBase) effect;
-            if (restore) {
-                effectBase.restoreBoundsCalculation();
-            } else {
-                effectBase.prepareBoundsCalculation(bounds, node, boundsAccessor);
-            }
+            effectBase.prepareBoundsCalculation(bounds, node, boundsAccessor);
         }
     }
 
