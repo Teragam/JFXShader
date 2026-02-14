@@ -182,11 +182,24 @@ public class Reflect<C> {
             if (moduleOpt.isEmpty()) {
                 throw new IllegalStateException("Could not find module " + module);
             }
+            if (open && moduleOpt.get().isOpen(fullyQualifiedPackageName, currentModule)) {
+                return;
+            }
+            if (!open && moduleOpt.get().isExported(fullyQualifiedPackageName, currentModule)) {
+                return;
+            }
             final Method addOpensMethodImpl = Reflect.on(Module.class).getMethod(open ? "implAddOpens" : "implAddExports", String.class, Module.class);
             class OffsetProvider {
                 int first;
             }
             final Object unsafe = Reflect.on("sun.misc.Unsafe").getFieldValue("theUnsafe", null);
+            if (!Reflect.on(unsafe.getClass()).hasMethod("objectFieldOffset", Field.class)) {
+                throw new ShaderException(
+                        "Fallback for adding opens or exports is not supported on this JVM as low-level memory operations are unavailable." +
+                                "To use JFXShader with the Java module system, the library can be additionally used as a javaagent when starting the JVM. " +
+                                "See the repository wiki for more information."
+                );
+            }
             final long firstFieldOffset = (long) Reflect.on(unsafe.getClass()).method("objectFieldOffset", Field.class)
                     .invoke(unsafe, OffsetProvider.class.getDeclaredField("first"));
             Reflect.on(unsafe.getClass()).method("putBooleanVolatile", Object.class, long.class, boolean.class)

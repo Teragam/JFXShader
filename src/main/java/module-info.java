@@ -1,6 +1,7 @@
 module de.teragam.jfxshader {
     requires javafx.base;
     requires javafx.graphics;
+    requires java.instrument;
 
     exports de.teragam.jfxshader;
     exports de.teragam.jfxshader.effect;
