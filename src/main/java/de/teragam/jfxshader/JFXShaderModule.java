@@ -1,6 +1,6 @@
 package de.teragam.jfxshader;
 
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import de.teragam.jfxshader.exception.ShaderException;
@@ -10,7 +10,7 @@ public final class JFXShaderModule {
 
     public static final String VERSION = "1.3.2-SNAPSHOT";
 
-    private static final AtomicBoolean initialized = new AtomicBoolean();
+    private static final AtomicBoolean INITIALIZED = new AtomicBoolean();
 
     private JFXShaderModule() {}
 
@@ -19,7 +19,7 @@ public final class JFXShaderModule {
      * Has no effect for non-modular JavaFX applications.
      */
     public static void setup() {
-        if (JFXShaderModule.initialized.getAndSet(true) || ModuleLayer.boot().findModule("javafx.graphics").isEmpty()) {
+        if (JFXShaderModule.INITIALIZED.getAndSet(true) || ModuleLayer.boot().findModule("javafx.graphics").isEmpty()) {
             return;
         }
         JFXShaderModule.provideModuleAccess(JFXShaderModule.class.getModule());
@@ -42,21 +42,22 @@ public final class JFXShaderModule {
         JFXShaderModule.getBasePackages().forEach(pkg -> Reflect.addOpens(pkg, "javafx.base", module));
     }
 
-    private static List<String> getGraphicsPackages() {
-        return List.of("com.sun.javafx.effect", "com.sun.javafx.geom", "com.sun.javafx.geom.transform", "com.sun.javafx.scene",
-                "com.sun.scenario.effect.impl.state", "com.sun.scenario.effect", "com.sun.prism", "com.sun.prism.impl", "com.sun.scenario.effect.impl.prism",
+    static Set<String> getGraphicsPackages() {
+        return Set.of("com.sun.javafx.effect", "com.sun.javafx.geom", "com.sun.javafx.geom.transform", "com.sun.javafx.scene",
+                "com.sun.scenario.effect.impl.state", "com.sun.scenario.effect", "com.sun.prism", "com.sun.prism.paint", "com.sun.prism.impl",
+                "com.sun.scenario.effect.impl.prism",
                 "com.sun.prism.ps", "com.sun.glass.ui", "com.sun.glass.utils", "com.sun.javafx.scene.shape", "com.sun.javafx.sg.prism", "com.sun.javafx.util",
                 "com.sun.prism.impl.ps", "com.sun.scenario.effect.impl", "com.sun.scenario.effect.impl.prism.ps", "com.sun.javafx.scene.paint",
-                "com.sun.javafx.tk", "com.sun.javafx.beans.event", "javafx.scene.effect", "javafx.scene.paint", "javafx.scene.shape",
-                "com.sun.javafx.scene.canvas", "javafx.scene", "javafx.scene.image");
+                "com.sun.javafx.tk", "com.sun.javafx.tk.quantum", "com.sun.javafx.beans.event", "javafx.scene.effect", "javafx.scene.paint",
+                "javafx.scene.shape", "com.sun.javafx.scene.canvas", "javafx.scene", "javafx.scene.image");
     }
 
-    private static List<String> getOptionalGraphicsPackages() {
-        return List.of("com.sun.prism.es2", "com.sun.prism.d3d");
+    static Set<String> getOptionalGraphicsPackages() {
+        return Set.of("com.sun.prism.es2", "com.sun.prism.d3d");
     }
 
-    private static List<String> getBasePackages() {
-        return List.of("com.sun.javafx");
+    static Set<String> getBasePackages() {
+        return Set.of("com.sun.javafx");
     }
 
 }
