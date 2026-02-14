@@ -2,6 +2,7 @@ package de.teragam.jfxshader.material;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javafx.scene.image.Image;
 
@@ -34,6 +35,7 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
 
     private final Map<Integer, Image> imageIndexMap;
     private final AbstractShaderMaterialPeerRenderer peerRenderer;
+    private final String psShaderName;
 
     protected ShaderMaterialPeer() {
         this.imageIndexMap = new HashMap<>();
@@ -42,6 +44,7 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
         } else {
             this.peerRenderer = new D3DShaderMaterialPeerRenderer();
         }
+        this.psShaderName = this.getClass().getName() + "_PixelShader_" + UUID.randomUUID();
     }
 
     public Map<String, Integer> getES2ShaderAttributes() {
@@ -95,7 +98,7 @@ public abstract class ShaderMaterialPeer<T extends ShaderMaterial> {
     }
 
     private JFXShader createPixelShader(Graphics g) {
-        return ShaderController.createShader(PrFilterContext.getInstance(g.getAssociatedScreen()), this.createPixelShaderDeclaration());
+        return ShaderController.createShader(PrFilterContext.getInstance(g.getAssociatedScreen()), this.createPixelShaderDeclaration(), this.psShaderName);
     }
 
     private JFXShader createVertexShader(Graphics g) {

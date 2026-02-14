@@ -66,6 +66,10 @@ public class Reflect<C> {
                 method.trySetAccessible();
                 return method;
             } catch (NoSuchMethodException e) {
+                if (parameterTypes.length > 0) {
+                    throw new ShaderException(String.format("Could not get declared method %s of class %s", methodName, this.clazz.getName()), e);
+                }
+                // Lazy fallback should only be used if no parameters were specified, otherwise strict method matching is expected.
                 final Optional<Method> methodOpt = Arrays.stream(this.clazz.getDeclaredMethods()).filter(m -> m.getName().equals(methodName)).findFirst();
                 final Method method = methodOpt.orElseThrow(
                         () -> new ShaderException(String.format("Could not get declared method %s of class %s", methodName, this.clazz.getName()), e));
@@ -73,6 +77,15 @@ public class Reflect<C> {
                 return method;
             }
         });
+    }
+
+    public boolean hasMethod(String methodName, Class<?>... parameterTypes) {
+        try {
+            this.getMethod(methodName, parameterTypes);
+            return true;
+        } catch (ShaderException e) {
+            return false;
+        }
     }
 
     public <T> T getFieldValue(String fieldName, Object instance) {

@@ -72,7 +72,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
     }
 
     private JFXShader createShader() {
-        return ShaderController.createShader(super.getFilterContext(), this.createShaderDeclaration());
+        return ShaderController.createShader(super.getFilterContext(), this.createShaderDeclaration(), super.getUniqueName());
     }
 
     protected abstract ShaderDeclaration createShaderDeclaration();

@@ -114,12 +114,23 @@ public final class ShaderController {
         }
     }
 
-    public static JFXShader createShader(FilterContext fctx, ShaderDeclaration shaderDeclaration) {
+    public static JFXShader createShader(FilterContext fctx, ShaderDeclaration shaderDeclaration, String shaderName) {
         Objects.requireNonNull(shaderDeclaration, "ShaderDeclaration cannot be null");
         final InputStream shaderSource = ShaderController.isHLSLSupported() ? shaderDeclaration.d3dSource() : shaderDeclaration.es2Source();
         final ShaderFactory factory = ShaderController.getBaseShaderFactory(fctx);
-        final Shader shader = factory.createShader(shaderSource, shaderDeclaration.samplers(), shaderDeclaration.params(),
-                shaderDeclaration.samplers().keySet().size() - 1, true, false);
+        final Reflect<? extends ShaderFactory> factoryReflect = Reflect.on(factory.getClass());
+        final Shader shader;
+        if (factoryReflect.hasMethod("createShader", String.class, InputStream.class, Map.class, Map.class, int.class, boolean.class, boolean.class)) {
+            // JavaFX 24 and above
+            shader = factoryReflect.<Shader>method("createShader", String.class, InputStream.class, Map.class, Map.class, int.class, boolean.class,
+                    boolean.class).invoke(factory, shaderName, shaderSource, shaderDeclaration.samplers(), shaderDeclaration.params(),
+                    shaderDeclaration.samplers().size() - 1, true, false);
+        } else {
+            // JavaFX 23 and below
+            shader = factoryReflect.<Shader>method("createShader", InputStream.class, Map.class, Map.class, int.class, boolean.class, boolean.class)
+                    .invoke(factory, shaderSource, shaderDeclaration.samplers(), shaderDeclaration.params(),
+                            shaderDeclaration.samplers().size() - 1, true, false);
+        }
         if (shader == null) {
             return null;
         }
