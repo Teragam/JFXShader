@@ -23,10 +23,12 @@ import com.sun.prism.impl.ps.BaseShaderContext;
 import com.sun.prism.impl.ps.BaseShaderGraphics;
 import com.sun.prism.ps.ShaderGraphics;
 import com.sun.scenario.effect.Effect;
+import com.sun.scenario.effect.Filterable;
 import com.sun.scenario.effect.ImageData;
 import com.sun.scenario.effect.impl.EffectPeer;
 import com.sun.scenario.effect.impl.PoolFilterable;
 import com.sun.scenario.effect.impl.prism.PrDrawable;
+import com.sun.scenario.effect.impl.prism.PrTexture;
 import com.sun.scenario.effect.impl.prism.ps.PPSDrawable;
 import com.sun.scenario.effect.impl.prism.ps.PPSRenderer;
 import com.sun.scenario.effect.impl.state.RenderState;
@@ -143,7 +145,8 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         final ArrayList<Integer> coordLength = new ArrayList<>();
         final ArrayList<Texture> textures = new ArrayList<>();
         for (int i = 0; i < Math.min(inputs.length, 2); i++) {
-            final PrDrawable srcTexture = (PrDrawable) inputs[i].getUntransformedImage();
+            final Filterable srcFilterable = inputs[i].getUntransformedImage();
+            final PrTexture<?> srcTexture = (PrTexture<?>) inputs[i].getUntransformedImage();
             if (srcTexture == null || srcTexture.getTextureObject() == null) {
                 this.markLost(renderer);
                 return new ImageData(this.getFilterContext(), dst, dstBounds);
@@ -156,8 +159,8 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
             this.setInputNativeBounds(i, srcTexture.getNativeBounds());
 
             final float[] srcRect = new float[8];
-            final int srcCoords = this.getTextureCoordinates(0, srcRect, srcBounds.x, srcBounds.y, srcTexture.getPhysicalWidth(),
-                    srcTexture.getPhysicalHeight(), dstBounds, srcTransform);
+            final int srcCoords = this.getTextureCoordinates(0, srcRect, srcBounds.x, srcBounds.y, srcFilterable.getPhysicalWidth(),
+                    srcFilterable.getPhysicalHeight(), dstBounds, srcTransform);
 
             final float txOff = ((float) prTexture.getContentX()) / prTexture.getPhysicalWidth();
             final float tyOff = ((float) prTexture.getContentY()) / prTexture.getPhysicalHeight();
@@ -322,6 +325,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
     /**
      * Returns the transformed bounds of the input effect.
      * In contrast to {@link #getInputBounds(int)}, this method returns the full bounds regardless if dirty regions are rendered.
+     *
      * @param index the index of the input
      * @return the effect bounds
      */

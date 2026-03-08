@@ -12,12 +12,14 @@ import java.util.Objects;
 
 import javafx.scene.Node;
 import javafx.scene.effect.Effect;
+import javafx.scene.image.Image;
 
 import com.sun.glass.ui.Screen;
 import com.sun.javafx.geom.BaseBounds;
 import com.sun.javafx.geom.Rectangle;
 import com.sun.javafx.geom.transform.BaseTransform;
 import com.sun.javafx.scene.BoundsAccessor;
+import com.sun.javafx.tk.Toolkit;
 import com.sun.javafx.util.Utils;
 import com.sun.prism.GraphicsPipeline;
 import com.sun.prism.PixelFormat;
@@ -31,6 +33,7 @@ import com.sun.prism.ps.Shader;
 import com.sun.prism.ps.ShaderFactory;
 import com.sun.scenario.effect.EffectHelper;
 import com.sun.scenario.effect.FilterContext;
+import com.sun.scenario.effect.Filterable;
 import com.sun.scenario.effect.ImageData;
 import com.sun.scenario.effect.impl.BufferUtil;
 import com.sun.scenario.effect.impl.Renderer;
@@ -44,6 +47,7 @@ import de.teragam.jfxshader.effect.InternalEffect;
 import de.teragam.jfxshader.effect.ShaderEffect;
 import de.teragam.jfxshader.effect.ShaderEffectPeer;
 import de.teragam.jfxshader.effect.ShaderEffectPeerConfig;
+import de.teragam.jfxshader.effect.internal.FilterableTexture;
 import de.teragam.jfxshader.effect.internal.ShaderEffectBase;
 import de.teragam.jfxshader.effect.internal.d3d.D3DRTTextureHelper;
 import de.teragam.jfxshader.effect.internal.es2.ES2RTTextureHelper;
@@ -255,6 +259,25 @@ public final class ShaderController {
             return ES2RTTextureHelper.createES2RTTexture(factory, formatHint, wrapMode, width, height, useMipmap);
         }
         return D3DRTTextureHelper.createD3DRTTexture(factory, formatHint, wrapMode, width, height, useMipmap);
+    }
+
+    public static ImageData createImageData(FilterContext fctx, Texture texture, Rectangle bounds, BaseTransform transform) {
+        return new ImageData(fctx, new FilterableTexture(texture), bounds, transform);
+    }
+
+    public static ImageData createImageData(FilterContext fctx, Image image, BaseTransform transform) {
+        if (image == null) {
+            final Filterable f = com.sun.scenario.effect.Effect.getCompatibleImage(fctx, 1, 1);
+            return new ImageData(fctx, f, new Rectangle(1, 1));
+        }
+        final com.sun.prism.Image prismImage = (com.sun.prism.Image) Toolkit.getImageAccessor().getPlatformImage(image);
+        if (prismImage == null) {
+            final Filterable f = com.sun.scenario.effect.Effect.getCompatibleImage(fctx, 1, 1);
+            return new ImageData(fctx, f, new Rectangle(1, 1));
+        }
+        final BaseResourceFactory factory = ShaderController.getBaseShaderFactory(fctx);
+        final Texture texture = factory.getCachedTexture(prismImage, Texture.WrapMode.CLAMP_TO_EDGE);
+        return new ImageData(fctx, new FilterableTexture(texture), new Rectangle((int) image.getWidth(), (int) image.getHeight()), transform);
     }
 
     public static <T extends ShaderEffect> ShaderEffectPeer<T> getPeerInstance(Class<? extends ShaderEffectPeer<T>> peerClass, FilterContext fctx) {
