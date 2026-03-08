@@ -2,14 +2,18 @@ package de.teragam.jfxshader.misc;
 
 import java.io.InputStream;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.image.Image;
 
 import com.sun.javafx.geom.BaseBounds;
 import com.sun.javafx.geom.transform.BaseTransform;
+import com.sun.javafx.scene.DirtyBits;
+import com.sun.javafx.scene.NodeHelper;
 import com.sun.javafx.scene.canvas.CanvasHelper;
 import com.sun.javafx.sg.prism.NGNode;
 import com.sun.javafx.util.Utils;
@@ -31,6 +35,11 @@ import de.teragam.jfxshader.util.Reflect;
  * <ul>
  *     <li>Depending on the rendering order which gets inferred from the scene graph structure, the nodes that are rendered before the {@link ImageCanvas} lag
  *     one frame behind as the canvas image gets rendered later in the rendering process.</li>
+ *     <li>JavaFX renders the canvas with the desired resolution multiplied by the highest pixel scale factor of all displays rounded up to the next integer.
+ *     The {@link ImageCanvas} downscales the provided canvas image to the canvas size to avoid unexpectedly large images if a high DPI display is present.
+ *     The lower resolution may be noticeable on high DPI displays with a high pixel scale factor.
+ *     This default behavior can be disabled by setting the {@link #highDpiScalingProperty()} to true.
+ *     </li>
  * </ul>
  */
 public class ImageCanvas extends Canvas {
@@ -66,6 +75,7 @@ public class ImageCanvas extends Canvas {
     }
 
     private final ReadOnlyObjectWrapper<Image> image;
+    private final BooleanProperty highDpiScaling;
 
     public ImageCanvas() {
         this(0, 0);
@@ -74,6 +84,12 @@ public class ImageCanvas extends Canvas {
     public ImageCanvas(double width, double height) {
         super(width, height);
         this.image = new ReadOnlyObjectWrapper<>();
+        this.highDpiScaling = new SimpleBooleanProperty() {
+            @Override
+            protected void invalidated() {
+                NodeHelper.markDirty(ImageCanvas.this, DirtyBits.NODE_CONTENTS);
+            }
+        };
         final Reflect<Image> imageReflect = Reflect.on(Image.class);
         final Image dummyImage = imageReflect
                 .constructor(String.class, InputStream.class, double.class, double.class, boolean.class, boolean.class, boolean.class)
@@ -93,4 +109,26 @@ public class ImageCanvas extends Canvas {
         return this.image.get();
     }
 
+    /**
+     * JavaFX renders the canvas with a higher resolution if a display with a pixel scale factor > 1 is present even if the application window is on a
+     * different display with a pixel scale factor of 1.
+     * This can lead to unexpected image sizes for the canvas content.
+     * The {@link ImageCanvas} downscales the provided canvas image to the canvas size by default to avoid this issue.
+     * Displaying the downscaled image on high DPI displays may lead to a blurry image.
+     * Setting this property to true re-enables the high DPI scaling and provides a higher resolution image at the cost of having to account for this
+     * behavior when using the image.
+     *
+     * @return The boolean property.
+     */
+    public BooleanProperty highDpiScalingProperty() {
+        return this.highDpiScaling;
+    }
+
+    public boolean isHighDpiScaling() {
+        return this.highDpiScaling.get();
+    }
+
+    public void setHighDpiScaling(boolean highDpiScaling) {
+        this.highDpiScaling.set(highDpiScaling);
+    }
 }

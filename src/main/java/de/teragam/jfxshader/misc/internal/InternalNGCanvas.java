@@ -1,5 +1,6 @@
 package de.teragam.jfxshader.misc.internal;
 
+import java.nio.IntBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -69,7 +70,7 @@ public class InternalNGCanvas extends NGCanvas {
         };
     }
 
-    private boolean cloneTexture(RTTexture srcTex, int width, int height) {
+    private boolean cloneTexture(RTTexture srcTex, int srcWidth, int srcHeight, int width, int height) {
         boolean texCreated = false;
         if (srcTex == null) {
             return texCreated;
@@ -84,7 +85,7 @@ public class InternalNGCanvas extends NGCanvas {
             this.newTexture.lock();
             texCreated = true;
         }
-        this.newTexture.createGraphics().blit(srcTex, null, 0, 0, width, height, 0, 0, width, height);
+        this.newTexture.createGraphics().blit(srcTex, null, 0, 0, srcWidth, srcHeight, 0, 0, width, height);
         return texCreated;
     }
 
@@ -98,20 +99,29 @@ public class InternalNGCanvas extends NGCanvas {
         final RTTexture tex = Reflect.on(cv.getClass()).getFieldValue("tex", cv);
         final int width = canvasReflect.getFieldValue("tw", this);
         final int height = canvasReflect.getFieldValue("th", this);
+        // The size of the canvas texture corresponds to the canvas size multiplied by a pixel scale factor to support HiDPI displays.
+        // This factor is calculated based on the highest pixel scale of all displays and rounded up to the next integer.
+        // This may lead to unexpected image sizes so the provided JavaFX image is downscaled to the canvas size, unless deactivated by setHighDpiScaling(true).
+        float highestPixelScale = canvasReflect.getFieldValue("highestPixelScale", this);
+        if (this.canvas.isHighDpiScaling()) {
+            highestPixelScale = 1.0f;
+        }
+        final int scaledWidth = (int) (width / highestPixelScale);
+        final int scaledHeight = (int) (height / highestPixelScale);
         // Whenever the canvas size changes, the NGCanvas disposes the old texture which may still be used by other nodes for at least the next frame.
         // Cloning the texture allows controlling the disposal of the old canvas content.
-        final boolean texCreated = this.cloneTexture(tex, width, height);
+        final boolean texCreated = this.cloneTexture(tex, width, height, scaledWidth, scaledHeight);
         this.canvasChanged.compareAndSet(false, texCreated || (thebuf != null));
         if (texCreated) {
             // The new platform image does not provide any CPU-side buffer as the texture always resides on the GPU.
-            final Image newPlatformImage = Image.fromIntArgbPreData(new int[0], width, height);
+            final Image newPlatformImage = Image.fromIntArgbPreData(IntBuffer.wrap(new int[0]), scaledWidth, scaledHeight, 0, highestPixelScale);
             this.switchTexture.set(() -> {
                 // setPlatformImageWH notifies all listeners of the JavaFX image about the new platform image and dimensions.
                 // This is done on the JavaFX Application Thread. Additionally, renderContent may be called multiple times in a single frame, so the
                 // texture switch is deferred to the AnimationTimer to ensure it only happens once per frame at most.
                 final Reflect<javafx.scene.image.Image> imageReflect = Reflect.on(javafx.scene.image.Image.class);
                 imageReflect.method("setPlatformImageWH", PlatformImage.class, double.class, double.class)
-                        .invoke(this.canvas.getImage(), newPlatformImage, width, height);
+                        .invoke(this.canvas.getImage(), newPlatformImage, scaledWidth, scaledHeight);
             });
             final Image oldImage = this.platformImage;
             if (oldImage != null) {
