@@ -10,4 +10,5 @@ module de.teragam.jfxshader {
     exports de.teragam.jfxshader.renderstate;
     exports de.teragam.jfxshader.samples.effects;
     exports de.teragam.jfxshader.samples.materials;
+    exports de.teragam.jfxshader.misc;
 }
