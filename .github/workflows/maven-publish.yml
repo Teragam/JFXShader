@@ -19,9 +19,9 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-          server-id: ossrh
-          server-username: OSSRH_USERNAME
-          server-password: OSSRH_TOKEN
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_TOKEN
           settings-path: ${{ github.workspace }}
 
       - name: Import gpg key
@@ -36,5 +36,5 @@ jobs:
       - name: Publish to Maven Central
         run: mvn -B deploy -s ${{ github.workspace }}/settings.xml "-Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}"
         env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
