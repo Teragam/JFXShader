@@ -49,7 +49,7 @@ To include JFXShader in a Maven project, add the following dependency to the pom
 <dependency>
     <groupId>de.teragam</groupId>
     <artifactId>jfxshader</artifactId>
-    <version>1.3.1</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 
