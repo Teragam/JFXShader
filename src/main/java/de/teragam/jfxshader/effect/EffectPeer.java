@@ -6,9 +6,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.sun.prism.PixelFormat;
-import com.sun.prism.Texture;
-
 import de.teragam.jfxshader.ImagePoolPolicy;
 
 @Documented
@@ -23,15 +20,19 @@ public @interface EffectPeer {
 
     /**
      * @return The pixel format of the target texture.
-     * Defaults to {@link PixelFormat#INT_ARGB_PRE}.
+     * Only the names of the values defined in {@link com.sun.prism.PixelFormat} are allowed.
+     * The actual {@link com.sun.prism.PixelFormat} enum is not used here to avoid a direct dependency of the internal enum for annotations.
+     * Defaults to {@code "INT_ARGB_PRE"}.
      */
-    PixelFormat targetFormat() default PixelFormat.INT_ARGB_PRE;
+    String targetFormat() default "INT_ARGB_PRE";
 
     /**
      * @return The wrap mode of the target texture.
-     * Defaults to {@link Texture.WrapMode#CLAMP_TO_ZERO}.
+     * Only the names of the values defined in {@link com.sun.prism.Texture.WrapMode} are allowed.
+     * The actual {@link com.sun.prism.Texture.WrapMode} enum is not used here to avoid a direct dependency of the internal enum for annotations.
+     * Defaults to {@code "CLAMP_TO_ZERO"}.
      */
-    Texture.WrapMode targetWrapMode() default Texture.WrapMode.CLAMP_TO_ZERO;
+    String targetWrapMode() default "CLAMP_TO_ZERO";
 
     /**
      * Enables mipmaps for the target texture.
