@@ -21,6 +21,7 @@ import com.sun.prism.impl.BaseGraphics;
 import com.sun.prism.impl.VertexBuffer;
 import com.sun.prism.impl.ps.BaseShaderContext;
 import com.sun.prism.impl.ps.BaseShaderGraphics;
+import com.sun.prism.ps.Shader;
 import com.sun.prism.ps.ShaderGraphics;
 import com.sun.scenario.effect.Effect;
 import com.sun.scenario.effect.Filterable;
@@ -39,6 +40,7 @@ import de.teragam.jfxshader.ShaderController;
 import de.teragam.jfxshader.ShaderDeclaration;
 import de.teragam.jfxshader.effect.InternalEffect;
 import de.teragam.jfxshader.effect.ShaderEffect;
+import de.teragam.jfxshader.effect.ShaderEffectPeer;
 import de.teragam.jfxshader.effect.ShaderEffectPeerConfig;
 import de.teragam.jfxshader.exception.ShaderException;
 import de.teragam.jfxshader.exception.TextureCreationException;
@@ -48,6 +50,8 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
 
     private static final EnumMap<PixelFormat, PolicyBasedImagePool> FORMAT_IMAGE_POOL_MAP = new EnumMap<>(PixelFormat.class);
 
+    private final PeerAccessor<T> peerAccessor;
+    private final ShaderEffectPeer<S> parentPeer;
     private JFXShader shader;
     private PPSDrawable drawable;
     private BaseTransform transform;
@@ -59,8 +63,20 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
 
     private final int checkTextureOpMask;
 
-    protected PPSMultiSamplerPeer(ShaderEffectPeerConfig options) {
+    /**
+     * Creates a new multi-sampler peer instance.
+     *
+     * @param options    configuration for this peer, including the filter context, renderer and shader name.
+     * @param parentPeer the {@link ShaderEffectPeer} that owns or uses this multi-sampler peer. The parent peer
+     *                   represents the higher-level effect peer associated with the {@link ShaderEffect} and is
+     *                   used by this instance to access shared configuration and state. The lifecycle of the
+     *                   parent peer is managed externally; this class only keeps a reference to it and does not
+     *                   dispose or otherwise manage the {@code parentPeer} instance.
+     */
+    protected PPSMultiSamplerPeer(ShaderEffectPeerConfig options, ShaderEffectPeer<S> parentPeer) {
         super(options.getFilterContext(), options.getRenderer(), options.getShaderName());
+        this.peerAccessor = Reflect.createProxy(this, EffectPeer.class, PeerAccessor.class);
+        this.parentPeer = parentPeer;
         this.textureCoords = new ArrayList<>();
         this.config = Objects.requireNonNull(options, "ShaderEffectPeerConfig must not be null");
         this.checkTextureOpMask = Reflect.on(BaseShaderContext.class).getFieldValue("CHECK_TEXTURE_OP_MASK", null);
@@ -71,6 +87,10 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         if (this.shader != null) {
             this.shader.dispose();
         }
+    }
+
+    public ShaderEffectPeer<S> getParentPeer() {
+        return this.parentPeer;
     }
 
     private JFXShader createShader() {
@@ -101,6 +121,59 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         return this.outputClip;
     }
 
+    /**
+     * Returns normalized source texture coordinates for one input as computed during the most recent
+     * {@link #filter} pass.
+     * <p>
+     * Internally, {@link #filterImpl} delegates to {@link EffectPeer#getTextureCoordinates}
+     * and then applies {@code contentX/contentY} offsets so coordinates reference the content region inside
+     * pooled textures (not the full physical backing texture).
+     * <p>
+     * The returned array contains either 4 or 8 floats.
+     * Index sequences like {@code [0,1,2,3,4,5,6,7]} refer to array positions, not literal coordinate values.
+     * Each corner uses a pair of indices ({@code u,v}).
+     * <p>
+     * Destination corners use JavaFX's naming:
+     * {@code (dx1,dy1)=top-left}, {@code (dx2,dy1)=top-right},
+     * {@code (dx1,dy2)=bottom-left}, {@code (dx2,dy2)=bottom-right}.
+     * <p>
+     * Mapping details:
+     * <ul>
+     *     <li>
+     *         4 floats for rectilinear mapping: {@code [u0, v0, u1, v1]}.
+     *         Corner mapping is:
+     *         <pre>
+     *             dx1,dy1 -> ret[0], ret[1]
+     *             dx2,dy1 -> ret[2], ret[1]
+     *             dx1,dy2 -> ret[0], ret[3]
+     *             dx2,dy2 -> ret[2], ret[3]
+     *         </pre>
+     *     </li>
+     *     <li>
+     *         8 floats for non-rectilinear mapping.
+     *         Raw output from {@link EffectPeer#getTextureCoordinates} is stored in {@code srcRect[0..7]} and maps corners as:
+     *         <pre>
+     *             dx1,dy1 -> srcRect[0], srcRect[1]
+     *             dx2,dy1 -> srcRect[4], srcRect[5]
+     *             dx1,dy2 -> srcRect[6], srcRect[7]
+     *             dx2,dy2 -> srcRect[2], srcRect[3]
+     *         </pre>
+     *         This method returns the 8 values in corner order
+     *         {@code [top-left, top-right, bottom-left, bottom-right]} by reordering
+     *         raw indices {@code [0,1,2,3,4,5,6,7]} into returned indices {@code [0,1,4,5,6,7,2,3]}.
+     *     </li>
+     * </ul>
+     * Coordinates are stored only for inputs processed in the current pass; this implementation populates
+     * entries for at most the first two inputs.
+     * <p>
+     * A defensive copy is returned, so caller modifications do not affect internal peer state.
+     *
+     * @param inputIndex zero-based input index
+     * @return copy of the normalized coordinate array for the requested input
+     * @throws IndexOutOfBoundsException if coordinates are unavailable for {@code inputIndex}, for example
+     *                                   before the first successful filter pass or when the index exceeds
+     *                                   the number of processed inputs
+     */
     public float[] getTextureCoords(int inputIndex) {
         return Arrays.copyOf(this.textureCoords.get(inputIndex), this.textureCoords.get(inputIndex).length);
     }
@@ -204,7 +277,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
             this.markLost(renderer);
             return new ImageData(this.getFilterContext(), dst, dstBounds);
         }
-        g.setExternalShader(this.shader);
+        g.setExternalShader((Shader) this.shader.getObject());
         try {
             this.updateShader(this.shader, (S) ((InternalEffect) super.getEffect()).getEffect());
             this.drawTextures((float) dstw, (float) dsth, textures, coords, coordLength, (BaseShaderGraphics) g);
@@ -308,7 +381,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
      * Queues the invalidation and disposal of the shader.
      * It will be recreated with {@link PPSMultiSamplerPeer#createShaderDeclaration()} when needed.
      */
-    protected void invalidateShader() {
+    public void invalidateShader() {
         if (this.shader != null) {
             this.invalidateShader = true;
         }
@@ -317,7 +390,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
     /**
      * @return the NGNode, where the effect is applied to, if available.
      */
-    protected Optional<NGNode> getNGNode() {
+    public Optional<NGNode> getNGNode() {
         return Optional.ofNullable(((InternalEffect) super.getEffect()).getDefaultInput()).filter(NodeEffectInput.class::isInstance)
                 .map(NodeEffectInput.class::cast).map(NodeEffectInput::getNode);
     }
@@ -329,7 +402,7 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
      * @param index the index of the input
      * @return the effect bounds
      */
-    protected BaseBounds getInputEffectBounds(int index) {
+    public BaseBounds getInputEffectBounds(int index) {
         final InternalEffect effect = (InternalEffect) super.getEffect();
         return effect.getDefaultedInput(index, effect.getDefaultInput()).getBounds(this.getTransform(), effect.getDefaultInput());
     }
@@ -340,6 +413,10 @@ public abstract class PPSMultiSamplerPeer<T extends RenderState, S extends Shade
         } catch (ShaderException ignored) {
             return false;
         }
+    }
+
+    public PeerAccessor<T> getPeerAccessor() {
+        return this.peerAccessor;
     }
 
 }

@@ -3,7 +3,6 @@ package de.teragam.jfxshader;
 import java.io.InputStream;
 import java.lang.reflect.Proxy;
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +46,7 @@ import de.teragam.jfxshader.effect.InternalEffect;
 import de.teragam.jfxshader.effect.ShaderEffect;
 import de.teragam.jfxshader.effect.ShaderEffectPeer;
 import de.teragam.jfxshader.effect.ShaderEffectPeerConfig;
+import de.teragam.jfxshader.effect.internal.PPSMultiSamplerPeer;
 import de.teragam.jfxshader.effect.internal.FilterableTexture;
 import de.teragam.jfxshader.effect.internal.ShaderEffectBase;
 import de.teragam.jfxshader.effect.internal.d3d.D3DRTTextureHelper;
@@ -61,9 +61,7 @@ public final class ShaderController {
 
     public static final int MAX_BOUND_TEXTURES = 16;
 
-    private static final boolean MODULAR_JAVAFX = ModuleLayer.boot().findModule("javafx.graphics").isPresent();
     private static final Map<Class<? extends ShaderEffect>, IEffectRenderer> EFFECT_RENDERER_MAP = Collections.synchronizedMap(new HashMap<>());
-    private static final List<Class<? extends ShaderEffectPeer<?>>> OPENED_PEERS = Collections.synchronizedList(new ArrayList<>());
     private static final FloatBuffer tmpBuf = BufferUtil.newFloatBuffer(16);
 
     private ShaderController() {}
@@ -105,10 +103,10 @@ public final class ShaderController {
                             throw new ShaderCreationException("The ShaderEffect instance cannot be provided to a singleton ShaderEffectPeer");
                         } else {
                             peerCache.put(peerName, Reflect.on(peer).constructor(effect.getClass(), ShaderEffectPeerConfig.class)
-                                    .create(effect, peerConfigInstance));
+                                    .create(effect, peerConfigInstance).getFXEffectPeer());
                         }
                     } else {
-                        peerCache.put(peerName, Reflect.on(peer).constructor(ShaderEffectPeerConfig.class).create(peerConfigInstance));
+                        peerCache.put(peerName, Reflect.on(peer).constructor(ShaderEffectPeerConfig.class).create(peerConfigInstance).getFXEffectPeer());
                     }
                 }
                 ((ShaderEffectBase) effect.getFXEffect()).getPeerMap().putIfAbsent(peerName, peerCache.get(peerName));
@@ -138,10 +136,11 @@ public final class ShaderController {
         if (shader == null) {
             return null;
         }
+        final Reflect<? extends Shader> shaderReflect = Reflect.on(shader.getClass());
         return Reflect.createProxy(shader, JFXShader.class, (proxy, method, args) -> {
             if ("setMatrix".equals(method.getName())) {
                 if (ShaderController.isGLSLSupported()) {
-                    return Reflect.on(shader.getClass()).method("setMatrix", String.class, float[].class)
+                    return shaderReflect.method(method.getName(), String.class, float[].class)
                             .invoke(shader, args[0], args[1]);
                 } else {
                     tmpBuf.clear();
@@ -151,7 +150,7 @@ public final class ShaderController {
                     return null;
                 }
             }
-            return method.invoke(shader, args);
+            return shaderReflect.method(method.getName(), method.getParameterTypes()).invoke(shader, args);
         });
     }
 
@@ -181,12 +180,13 @@ public final class ShaderController {
                     .invoke(null, es2Context, vertexShader,
                             Objects.requireNonNull(pixelShaderDeclaration.es2Source(), "ES2 pixel shader source cannot be null"),
                             Objects.requireNonNull(pixelShaderDeclaration.samplers(), "ES2 pixel shader samplers cannot be null"), attributes, 1, true);
+            final Reflect<? extends Shader> shaderReflect = Reflect.on(es2Shader.getClass());
             return Reflect.createProxy(es2Shader, JFXShader.class, (proxy, method, args) -> {
                 if ("setMatrix".equals(method.getName())) {
-                    return Reflect.on(es2Shader.getClass()).method("setMatrix", String.class, float[].class)
+                    return shaderReflect.method("setMatrix", String.class, float[].class)
                             .invoke(es2Shader, args[0], args[1]);
                 }
-                return method.invoke(es2Shader, args);
+                return shaderReflect.method(method.getName(), method.getParameterTypes()).invoke(es2Shader, args);
             });
         } else {
             throw new ShaderCreationException("ES2 shader programs are not supported on DirectX 9.0");
@@ -217,10 +217,6 @@ public final class ShaderController {
 
     private static EffectPeer getPeerConfig(Class<? extends ShaderEffectPeer<?>> peer) {
         if (Objects.requireNonNull(peer, "Peer cannot be null").isAnnotationPresent(EffectPeer.class)) {
-            if (ShaderController.MODULAR_JAVAFX && !ShaderController.OPENED_PEERS.contains(peer)) {
-                ShaderController.OPENED_PEERS.add(peer);
-                Reflect.addOpens("com.sun.prism", "javafx.graphics", peer.getAnnotation(EffectPeer.class).getClass().getModule());
-            }
             return peer.getAnnotation(EffectPeer.class);
         } else {
             throw new IllegalArgumentException(String.format("%s is not annotated with %s", peer, EffectPeer.class));
@@ -283,10 +279,10 @@ public final class ShaderController {
     public static <T extends ShaderEffect> ShaderEffectPeer<T> getPeerInstance(Class<? extends ShaderEffectPeer<T>> peerClass, FilterContext fctx) {
         final com.sun.scenario.effect.impl.EffectPeer<?> peer = Renderer.getRenderer(fctx)
                 .getPeerInstance(fctx, ShaderController.getPeerConfig(peerClass).value(), -1);
-        if (peer instanceof ShaderEffectPeer) {
-            return (ShaderEffectPeer<T>) peer;
+        if (peer instanceof PPSMultiSamplerPeer) {
+            return (ShaderEffectPeer<T>) ((PPSMultiSamplerPeer<?, ?>) peer).getParentPeer();
         } else {
-            throw new ShaderCreationException(String.format("Peer %s is not a ShaderEffectPeer", peer));
+            throw new ShaderCreationException(String.format("Peer %s is not a PPSMultiSamplerPeer", peer));
         }
     }
 
