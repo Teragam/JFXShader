@@ -110,8 +110,8 @@ public class ImageCanvas extends Canvas {
     }
 
     /**
-     * JavaFX renders the canvas with a higher resolution if a display with a pixel scale factor > 1 is present even if the application window is on a
-     * different display with a pixel scale factor of 1.
+     * JavaFX renders the canvas with a higher resolution if a display with a pixel scale factor greater than 1 is present even if the application window is
+     * on a different display with a pixel scale factor of 1.
      * This can lead to unexpected image sizes for the canvas content.
      * The {@link ImageCanvas} downscales the provided canvas image to the canvas size by default to avoid this issue.
      * Displaying the downscaled image on high DPI displays may lead to a blurry image.
