@@ -46,8 +46,8 @@ import de.teragam.jfxshader.effect.InternalEffect;
 import de.teragam.jfxshader.effect.ShaderEffect;
 import de.teragam.jfxshader.effect.ShaderEffectPeer;
 import de.teragam.jfxshader.effect.ShaderEffectPeerConfig;
-import de.teragam.jfxshader.effect.internal.PPSMultiSamplerPeer;
 import de.teragam.jfxshader.effect.internal.FilterableTexture;
+import de.teragam.jfxshader.effect.internal.PPSMultiSamplerPeer;
 import de.teragam.jfxshader.effect.internal.ShaderEffectBase;
 import de.teragam.jfxshader.effect.internal.d3d.D3DRTTextureHelper;
 import de.teragam.jfxshader.effect.internal.es2.ES2RTTextureHelper;
@@ -96,8 +96,15 @@ public final class ShaderController {
                 final String peerName = peerConfig.singleton() ? peerConfig.value() : String.format("%s-%s", peerConfig.value(),
                         ((ShaderEffectBase) effect.getFXEffect()).getEffectID());
                 if (!peerCache.containsKey(peerName)) {
-                    final ShaderEffectPeerConfig peerConfigInstance = new ShaderEffectPeerConfig(fctx, renderer, peerName, peerConfig.targetFormat(),
-                            peerConfig.targetWrapMode(), peerConfig.targetMipmaps(), peerConfig.targetPoolPolicy());
+                    final ShaderEffectPeerConfig peerConfigInstance = new ShaderEffectPeerConfig(
+                            fctx,
+                            renderer,
+                            peerName,
+                            PixelFormat.valueOf(peerConfig.targetFormat()),
+                            Texture.WrapMode.valueOf(peerConfig.targetWrapMode()),
+                            peerConfig.targetMipmaps(),
+                            peerConfig.targetPoolPolicy()
+                    );
                     if (Reflect.on(peer).hasConstructor(effect.getClass(), ShaderEffectPeerConfig.class)) {
                         if (peerConfig.singleton()) {
                             throw new ShaderCreationException("The ShaderEffect instance cannot be provided to a singleton ShaderEffectPeer");
