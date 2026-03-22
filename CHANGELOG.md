@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented here.
 
+## v1.4.0 - 2026-03-22
+
+### Added
+
+- Added [ImageCanvas](src/main/java/de/teragam/jfxshader/misc/ImageCanvas.java) as a custom `Canvas` implementation that exposes the underlying platform texture as a JavaFX `Image` property.
+- Added [CanvasInput](src/main/java/de/teragam/jfxshader/samples/effects/CanvasInput.java) effect that displays the image from an [ImageCanvas](src/main/java/de/teragam/jfxshader/misc/ImageCanvas.java). The effect is designed to be used in combination with other effects to allow using the image from an [ImageCanvas](src/main/java/de/teragam/jfxshader/misc/ImageCanvas.java) as an input for other shader effects.
+- Added option to use this library as a javaagent when using the JPMS. Until now, the library could only be used in modular applications by calling `JFXShaderModule.setup()`. This dynamically opens up the necessary modules at runtime, however, this will not work in future Java versions, as the module system will be more strict about dynamic module modifications. Using the library as a javaagent will ensure that the necessary modules can still be opened up and that the library can be used in future Java versions. To use the library as a javaagent, add the following JVM argument:
+  ```
+  -javaagent:path/to/jfxshader-1.4.0.jar
+  ```
+- Custom effects can now profit from JavaFX dirty region optimizations by implementing the necessary methods in their `ShaderEffect`. This gets rid of the necessity to disable the `prism.dirtyopts` system property and allows JavaFX to only re-render the parts of the scene that have changed for better performance. The [ZoomRadialBlur](src/main/java/de/teragam/jfxshader/samples/effects/ZoomRadialBlur.java), [BlendShapes](src/main/java/de/teragam/jfxshader/samples/effects/BlendShapes.java) and
+  [Pixelate](src/main/java/de/teragam/jfxshader/samples/effects/Pixelate.java) Effects have been updated to support this.
+
+### Changed
+
+- Improved [BlendShapes](src/main/java/de/teragam/jfxshader/samples/effects/BlendShapes.java) effect to be more intuitive and better documented.
+- Refactored [JFXShader](src/main/java/de/teragam/jfxshader/JFXShader.java) interface and [ShaderEffectPeer](src/main/java/de/teragam/jfxshader/effect/ShaderEffectPeer.java) for improved JPMS support.
+- Changed [EffectPeer](src/main/java/de/teragam/jfxshader/effect/EffectPeer.java) annotation to use String values for pixel format and wrap mode. This removes the need of opening up the unnamed module of the created EffectPeer annotation when using the JPMS.
+
+### Fixed
+
+- Fixed effect support for JavaFX 24 and above.
+
 ## v1.3.1 - 2024-01-27
 
 ### Added
